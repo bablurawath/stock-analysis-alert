@@ -86,8 +86,16 @@ def process_cycle(seen_ids: set):
         ai_summary = ""
         pdf_path = None
 
-        # Download & Run AI analysis if matched or if financial results
-        should_analyze = is_matched or ("Financial" in headline) or ("Result" in headline) or ("Outcome" in headline)
+        # Filter out administrative noise (loss of share certificates, trading window closures)
+        is_trivial = any(w in headline.lower() for w in [
+            "loss of share", "trading window", "newspaper", "duplicate share", 
+            "compliance certificate", "investor meet", "analysts/institutional"
+        ])
+        
+        # Only call Gemini for high-value financial actions or watchlist matches
+        should_analyze = not is_trivial and (
+            is_matched or any(w in headline for w in ["Financial", "Result", "Outcome", "Dividend", "Acquisition", "Order", "Board Meeting"])
+        )
 
         if should_analyze and pdf_url:
             print(f"\n🔔 [ANALYZING] [{symbol}] {company}: {headline}")
@@ -95,6 +103,7 @@ def process_cycle(seen_ids: set):
             if pdf_path and pdf_path.exists():
                 print("🤖 Digesting filing with Google Gemini Flash (Strict English)...")
                 ai_summary = analyze_document(pdf_path, f"{company} ({symbol})", headline)
+                time.sleep(3.5)  # Pacing delay to prevent 15 RPM rate limit
                 try:
                     pdf_path.unlink(missing_ok=True)
                 except Exception:

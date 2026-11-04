@@ -54,8 +54,7 @@ def test_gemini():
 
     try:
         from ai_engine import generate_with_fallback
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        response = generate_with_fallback(client, "Say 'Gemini is ready for financial analysis!' in 1 line.")
+        response = generate_with_fallback("Say 'Gemini is ready for financial analysis!' in 1 line.")
         print(f"✅ Success! Gemini replied: {response.text.strip()}")
         return True
     except Exception as e:
