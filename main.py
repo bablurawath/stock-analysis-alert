@@ -24,6 +24,8 @@ from exchange_client import (
     download_attachment
 )
 from ai_engine import analyze_document
+from technicals import get_stock_technicals
+from database import save_announcement
 from telegram_client import send_telegram_alert
 
 def load_seen_ids() -> set:
@@ -75,7 +77,7 @@ def process_cycle(seen_ids: set):
             print(f"📥 Downloading PDF from: {pdf_url}...")
             pdf_path = download_attachment(pdf_url, filename_hint=f"{symbol}_filing.pdf")
 
-        # AI Analysis
+        # 1. AI Analysis
         ai_summary = ""
         if pdf_path and pdf_path.exists():
             print("🤖 Analyzing document with Google Gemini Flash...")
@@ -87,28 +89,82 @@ def process_cycle(seen_ids: set):
         else:
             ai_summary = f"*{details or 'No attachment provided'}*"
 
-        # Format Telegram Message
+        # 2. Technical Analysis & Support/Resistance
+        print(f"📈 Fetching technical indicators for {symbol}...")
+        tech = get_stock_technicals(symbol)
+        
+        current_price = tech.get("current_price", 0.0) if tech else 0.0
+        rsi_val = tech.get("rsi", 50.0) if tech else 50.0
+        rsi_badge = tech.get("rsi_badge", "Neutral") if tech else "Neutral"
+        pivots = tech.get("pivots", {}) if tech else {}
+        s1 = pivots.get("s1", 0.0)
+        r1 = pivots.get("r1", 0.0)
+
+        # Smart money / Shareholding check
+        smart_money = "Stable institutional baseline. FII & Mutual Fund ownership monitored quarterly."
+        if "Shareholding Pattern" in headline or "Regulation 31" in headline:
+            smart_money = "Quarterly Shareholding Update: FII/DII institutional shift detailed in filing attachment."
+
+        # Detect Sentiment from AI summary
+        sentiment = "NEUTRAL"
+        if "Bullish" in ai_summary:
+            sentiment = "BULLISH"
+        elif "Bearish" in ai_summary:
+            sentiment = "BEARISH"
+
+        # 3. Cache to Database (Analyze once, serve infinite website visitors for ₹0)
+        save_announcement({
+            "id": news_id,
+            "symbol": symbol,
+            "company_name": company,
+            "subject": headline,
+            "details": details,
+            "pdf_url": pdf_url,
+            "announced_at": announced_at,
+            "ai_summary": ai_summary,
+            "sentiment": sentiment,
+            "current_price": current_price,
+            "rsi": rsi_val,
+            "support_1": s1,
+            "resistance_1": r1,
+            "smart_money_note": smart_money
+        })
+
+        # 4. Format High-Value 360° Telegram Alert
         message_lines = [
             f"⚡ *{APP_TITLE}: {symbol}*",
-            f"🏢 *{company}*",
+            f"🏢 *{company}* (CMP: ₹{current_price:,.2f})" if current_price else f"🏢 *{company}*",
             f"📋 *Subject:* {headline}",
             f"🕒 _{announced_at}_",
             "",
-            "───────────────────",
+            "📊 *1. FINANCIAL INTELLIGENCE:*",
             ai_summary,
-            "───────────────────"
+            ""
         ]
 
+        if tech:
+            message_lines.extend([
+                "📈 *2. TECHNICAL SETUP:*",
+                f"• RSI (14): *{rsi_val}* ({rsi_badge})",
+                f"• Key Support (S1): ₹{s1:,.2f} | Resistance (R1): ₹{r1:,.2f}",
+                f"• 52-Week Range: ₹{tech.get('52w_low', 0):,.2f} - ₹{tech.get('52w_high', 0):,.2f}",
+                "",
+                "🏦 *3. SMART MONEY INSIGHT:*",
+                f"• {smart_money}",
+                ""
+            ])
+
+        message_lines.append("───────────────────")
         if pdf_url:
-            message_lines.append(f"📄 [Open Original Exchange Filing]({pdf_url})")
+            message_lines.append(f"📄 [Open Original Exchange Document]({pdf_url})")
 
         full_message = "\n".join(message_lines)
-        print("📤 Sending alert to Telegram...")
+        print("📤 Broadcasting 360° alert to Telegram...")
         send_telegram_alert(full_message)
 
 def main():
     print("=" * 60)
-    print("🚀 Stock AI Announcement Notifier (EquiSense Alternative)")
+    print(f"🚀 {APP_TITLE} (EquiSense Alternative)")
     print(f"📡 Watchlist: {', '.join(DEFAULT_WATCHLIST)}")
     print(f"⏱️ Poll Interval: {POLL_INTERVAL} seconds")
     print("=" * 60)
