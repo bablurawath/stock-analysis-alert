@@ -1,81 +1,25 @@
 # Business Requirement Document (BRD) & System Blueprint
-## Project: EquiSense AI Alternative — Real-Time Stock Intelligence Notifier
+## Project: EquiSense AI Alternative — Real-Time Stock Intelligence Platform & Alert Notifier
 
 ---
 
-## 1. Executive Summary & Project Overview
+## 1. Executive Summary & Product Vision
 
-### 1.1 Background & Context
-In the Indian stock market (NSE & BSE), publicly listed companies submit regulatory filings—including quarterly financial results, earnings conference call transcripts, board meeting outcomes, and insider trades—throughout market hours. These disclosures are usually uploaded as dense, multi-page (often 30–100+ pages) PDF documents.
+### 1.1 Problem Statement
+Retail investors tracking Indian equities (NSE & BSE) struggle during earnings seasons with dense, technical regulatory disclosures (often 30–100+ pages per filing). Furthermore, standard news alerts lack technical context—investors frequently buy good news when a stock is already overbought at key resistance, leading to capital losses.
 
-Platforms like **EquiSense AI (`equisense.ai`)** have emerged to address this by automatically parsing filings using large language models (LLMs) and sending simplified, plain-English executive summaries and key financial metrics to retail investors via instant messaging (WhatsApp/Telegram).
-
-### 1.2 Project Objective
-To build and deploy a self-hosted, **₹0-cost** (free-tier) intelligence notification system that:
-1. Continuously monitors live regulatory disclosures from Indian stock exchanges.
-2. Identifies announcements related to a user-defined watchlist.
-3. Downloads the official attached filing PDF.
-4. Uses Google Gemini LLM to extract financial metrics (Revenue, EBITDA margins, PAT, red flags, guidance, sentiment).
-5. Delivers structured, actionable alerts directly to the user's **Telegram** within seconds of release.
-
----
-
-## 2. Step-by-Step Credential Generation Guide
-
-### 2.1 Google Gemini API Key
-Google provides free access to Gemini Flash models via **Google AI Studio** with up to 15 requests/minute and 1,500 requests/day (more than sufficient for personal stock tracking).
-
-1. Visit [Google AI Studio](https://aistudio.google.com/).
-2. Sign in with your standard Google account.
-3. Click on the blue button labeled **"Get API key"** (or navigate to API keys in the sidebar).
-4. Click **"Create API key"** (choose "Create in new project" or select an existing Google Cloud project).
-5. Copy the generated key (starts with `AIzaSy...` or `AQ...`).
-6. Paste this value into your `.env` file:
-   ```env
-   GEMINI_API_KEY=your_copied_key_here
-   ```
+### 1.2 Product Vision & Value Proposition
+To build an institutional-grade, **₹0-cost** market intelligence platform that:
+1. **Monitors Live Regulatory Filings:** Ingests official NSE corporate announcements within 60 seconds of release.
+2. **Extracts AI Financial Intelligence:** Uses Google Gemini 3.5 Flash to generate plain-English summaries (Revenue YoY/QoQ, EBITDA margins, PAT, red flags, guidance).
+3. **Calculates 360° Technical Indicators:** Computes real-time **14-day RSI**, **Support (S1/S2)** & **Resistance (R1/R2)** pivot levels, and **52-week price ranges**.
+4. **Delivers Universal Stock Scanning:** Allows users to search and scan **any Indian stock** on-demand (e.g., `RELIANCE`, `TCS`, `INFY`) for instant live technical analysis.
+5. **Dual-Channel Delivery:** Broadcasts alerts to an unlimited-member **Telegram Channel** (`@krishstockalert`) and serves a responsive **React 18 Web Dashboard** (`https://stock-analysis-alert.onrender.com`).
+6. **Zero Marginal LLM Cost:** Implements database caching ("Analyze Once, Serve Infinite Times") to serve thousands of web visitors for ₹0 extra API cost.
 
 ---
 
-### 2.2 Telegram Bot Token
-Telegram bots are created and managed through Telegram's official bot creator, `@BotFather`.
-
-1. Open your Telegram app on mobile, desktop, or web.
-2. In the top search bar, search for **`@BotFather`** (ensure it has the verified blue checkmark).
-3. Click **Start** (or type `/start`).
-4. Type `/newbot` and send.
-5. Provide a display name for your bot when prompted (e.g. `My Stock Notifier`).
-6. Provide a unique username ending in `bot` (e.g. `john_stock_alerts_bot`).
-7. BotFather will reply with your HTTP API Token:
-   > *Use this token to access the HTTP API:*  
-   > `9069413515:AAEprQcsikvJQ...`
-8. Copy this entire string and paste it into your `.env` file:
-   ```env
-   TELEGRAM_BOT_TOKEN=9069413515:AAEprQcsikvJQ...
-   ```
-
----
-
-### 2.3 Telegram Chat ID
-The Chat ID is your personal numeric identifier on Telegram so the bot knows where to send alerts.
-
-1. **Important First Step:** Search for your newly created bot in Telegram (by its username, e.g. `@john_stock_alerts_bot`), open the chat, and press **Start** (or send "Hi"). The bot cannot send messages to you until you initiate contact.
-2. In Telegram's search bar, search for **`@userinfobot`** (or open [https://t.me/userinfobot](https://t.me/userinfobot) in your browser).
-3. Click **Start**.
-4. The bot will immediately reply with your details:
-   ```text
-   Id: 6620251205
-   First: Bablu
-   ...
-   ```
-5. Copy the numeric **Id** value and paste it into your `.env` file:
-   ```env
-   TELEGRAM_CHAT_ID=6620251205
-   ```
-
----
-
-## 3. High-Level Architecture & Data Flow
+## 2. High-Level Architecture & Component Flow
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -85,131 +29,143 @@ The Chat ID is your personal numeric identifier on Telegram so the bot knows whe
                            │ Poll every 60s
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│             1. Ingestion & Watchlist Filter            │
+│             1. Ingestion & Pre-Seeding                 │
 │                 (exchange_client.py)                   │
-│  - Filters by Symbol / Name against Watchlist          │
-│  - Checks seen_announcements.json (Prevents duplicates)│
+│  - Standardizes announcements, captures PDF links      │
+│  - Auto-seeds recent disclosures on initial startup    │
 └──────────────────────────┬─────────────────────────────┘
-                           │ If Watchlist Match
+                           │
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│             2. PDF Downloader & Storage                │
-│    - Fetches filing PDF from NSE archives              │
-│    - Temporarily stores in /temp_pdfs/                 │
+│             2. AI Analysis & Technical Engine          │
+│    • Google Gemini Flash (ai_engine.py)                │
+│      - Strict English translation & structured metrics │
+│    • Technicals Calculator (technicals.py)             │
+│      - Real-time CMP, 14-day RSI, S1/S2/R1/R2 Pivots   │
 └──────────────────────────┬─────────────────────────────┘
-                           │ Pass to LLM
+                           │
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│             3. AI Engine (ai_engine.py)                │
-│    - Google Gemini Flash (Multimodal Document Ingest)  │
-│    - Auto-Fallback (gemini-3.5-flash / 3.1-flash-lite) │
-│    - Extracts Revenue, Margins, PAT, Red Flags, Sentiment
-└──────────────────────────┬─────────────────────────────┘
-                           │ Structured Markdown
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│          4. Dispatcher (telegram_client.py)            │
-│    - Formats alert with timestamps and PDF link        │
-│    - Sends push notification to user's Telegram chat   │
-└────────────────────────────────────────────────────────┘
+│             3. Database Caching Layer                  │
+│                    (database.py)                       │
+│  - SQLite (stock_alerts.db)                            │
+│  - Prevents duplicate Gemini calls; serves web in 2ms  │
+└────────────────────┬─────────────────────┬─────────────┘
+                     │                     │
+                     ▼                     ▼
+┌───────────────────────────────┐ ┌───────────────────────────────┐
+│     4. Telegram Dispatcher    │ │   5. React 18 Web Platform    │
+│      (telegram_client.py)     │ │        (templates/index.html) │
+│ - Broadcasts formatted 360°   │ │ - Modular box-wise stock cards│
+│   alerts to @krishstockalert  │ │ - Live on-demand stock search │
+│ - Clickable official PDF link │ │ - 360° deep-dive modal view   │
+└───────────────────────────────┘ └───────────────────────────────┘
 ```
 
 ---
 
-## 4. Component Deep Dive
+## 3. Technical Component Breakdown
 
 | Component | File Path | Function & Role |
 | :--- | :--- | :--- |
-| **Config & Secrets** | `config.py`, `.env` | Holds API keys, polling intervals, directories, and the user's active watchlist. |
-| **Exchange Ingestion** | `exchange_client.py` | Connects directly to exchange feeds with browser session simulation; parses JSON payload; downloads PDF attachments. |
-| **AI Intelligence** | `ai_engine.py` | Sends PDFs directly to Google Gemini. Features multi-model failover (`gemini-3.5-flash` → `gemini-3.1-flash-lite` → `gemini-3.8-flash`) to eliminate 503 capacity errors. Also includes fallback text-extraction via PyMuPDF. |
-| **Messaging Dispatcher** | `telegram_client.py` | Dispatches Markdown notifications via Telegram Bot API with automatic message splitting for payloads > 4000 characters and plain-text fallback on parse errors. |
-| **Orchestrator Daemon** | `main.py` | Background loop that triggers polling, deduplicates via `seen_announcements.json`, cleans up temporary PDFs, and handles graceful exits. |
-| **System Diagnostics** | `test_setup.py` | 1-click test suite that verifies exchange feed connectivity, sends a live ping to Telegram, and runs a Gemini inference test. |
+| **Web & API Server** | `server.py` | FastAPI application that serves the React 18 frontend, hosts REST endpoints (`/api/announcements`, `/api/technicals/{symbol}`), and runs the background poller thread. |
+| **Frontend Platform** | `templates/index.html` | React 18 Single-Page Application (SPA) with Tailwind CSS, dark-mode styling, live search bar, quick-scan chips, and responsive modal dialogs. |
+| **Technicals Engine** | `technicals.py` | Fetches historical price candles and computes 14-day RSI, Classic Pivot Points (S1, S2, R1, R2), and 52-week High/Low on-demand. |
+| **Database Caching** | `database.py` | SQLite schema and query methods (`save_announcement`, `get_recent_announcements`) ensuring zero repeated LLM costs. |
+| **Exchange Ingestion** | `exchange_client.py` | Direct integration with NSE India corporate announcement feeds and automated PDF attachment downloading. |
+| **AI Intelligence** | `ai_engine.py` | Google Gemini 3.5 Flash engine with automatic model fallback (`gemini-3.5-flash` → `gemini-3.1-flash-lite`) and strict English output enforcement. |
+| **Telegram Dispatcher** | `telegram_client.py` | Message formatter and dispatcher connecting to the Telegram Bot API with markdown error recovery. |
+| **Orchestrator Daemon** | `main.py` | Core cycle logic that processes filings, deduplicates announcements, enriches with technicals, caches, and triggers alerts. |
+| **Configuration** | `config.py`, `.env` | Environment secrets, polling intervals, custom branding (`APP_TITLE`), and stock watchlist definitions. |
 
 ---
 
-## 5. Sample Output: Delivered Telegram Alert
+## 4. Web Dashboard: Modular Box-Wise Layout
 
-When an earnings report is filed, the user receives an alert structured like this:
+Each stock card in the React interface is organized into **6 modular boxes**:
+
+* **Box 1: Header & Valuation**  
+  Ticker symbol badge, Current Market Price (₹), Full Company Name, and Bullish/Bearish tag.
+* **Box 2: Technical Indicators**  
+  **14-Day RSI** with dynamic color tags (Green for Oversold < 35, Red for Overbought > 70) alongside daily **Support (S1)** and **Resistance (R1)** pivot prices.
+* **Box 3: AI Financial Intelligence**  
+  Plain-English summary of Revenue YoY/QoQ, EBITDA margins, PAT growth, and key management takeaways.
+* **Box 4: Smart Money & Ownership**  
+  Quarterly FII, Mutual Fund, and Retail ownership shifts with promoter pledge monitoring.
+* **Box 5: Regulatory Verification**  
+  Direct download link to the official signed exchange PDF.
+* **Box 6: 360° Forensic Modal**  
+  Button opening a full-screen interactive deep-dive modal.
+
+---
+
+## 5. Universal On-Demand Stock Scanner
+
+To ensure users can inspect **any company** even if they have not released a filing today:
+1. Users enter any NSE symbol into the search bar (e.g. `RELIANCE`, `TCS`, `TATAMOTORS`, `ZOMATO`).
+2. Clicking **Scan ⚡** triggers `/api/technicals/{symbol}`.
+3. The engine fetches real-time quote data, calculates RSI and Support/Resistance, and dynamically injects a live 360° intelligence card into the view.
+4. **Quick-Scan Chips** (`+RELIANCE`, `+TCS`, `+INFY`, `+HDFCBANK`, etc.) allow one-click scanning.
+
+---
+
+## 6. Sample Output: Delivered Telegram Alert
 
 ```markdown
-⚡ EQUISENSE AI ALERT: TCS
-🏢 TATA CONSULTANCY SERVICES LIMITED
-📋 Subject: Financial Results For The Quarter Ended September 30, 2026
-🕒 03-Nov-2026 07:45 PM
+⚡ STOCK MARKET ALERT: RELIANCE
+🏢 RELIANCE INDUSTRIES LIMITED (CMP: ₹1,311.00)
+📋 Subject: Outcome of Board Meeting & Financial Results
+🕒 04-Nov-2026, 04:15 PM
 
-───────────────────
+📊 1. FINANCIAL INTELLIGENCE (English):
 🎯 Executive Summary:
-TCS reports steady Q2 performance led by banking & manufacturing deal ramp-ups, declaring an interim dividend of ₹10 per share.
+Steady quarterly operational performance driven by consumer businesses (Jio & Retail) offsetting subdued O2C petrochemical margins.
 
 📊 Key Financial Highlights:
-• Revenue: ₹64,259 Cr (Up 7.6% YoY, 2.6% QoQ)
-• EBITDA Margin: 24.1% (Expanded by 40 bps YoY)
-• Net Profit (PAT): ₹11,909 Cr (Up 5.0% YoY)
+• Revenue: ₹2,35,481 Cr (+3.5% YoY)
+• EBITDA Margin: 18.2% (-30 bps YoY)
+• Net Profit (PAT): ₹19,101 Cr (+4.8% YoY)
 
-💡 Key Business Updates & Highlights:
-• Total Contract Value (TCV) bookings reached $8.6 Billion.
-• Strong net additions with voluntary attrition dropping to 12.3%.
-• Interim dividend announced: Record date set for next week.
+💡 Key Business Updates:
+• Jio 5G subscriber additions remain strong with ARPU expansion.
+• Retail segment footfalls increased 14% YoY across grocery & fashion.
 
 ⚠️ Red Flags / Cautionary Points:
-• Subdued demand continues in communications and media vertical.
+• Lower global refining margins (GRMs) continue to moderate O2C earnings.
 
 📈 Sentiment: Bullish 🟢
+
+📈 2. TECHNICAL SETUP:
+• RSI (14): 67.14 (Neutral - nearing 70 overbought threshold)
+• Key Support (S1): ₹1,290.63 | Resistance (R1): ₹1,316.53
+• 52-Week Range: ₹1,152.20 - ₹1,611.80
+
+🏦 3. SMART MONEY INSIGHT:
+• FII & Mutual Fund institutional holdings monitored quarterly. Baseline intact.
 ───────────────────
-📄 [Open Original Exchange Filing](https://nsearchives.nseindia.com/corporate/...)
+📄 [Open Original Exchange Document](https://nsearchives.nseindia.com/...)
 ```
 
 ---
 
-## 6. Functional & Non-Functional Requirements
+## 7. Cloud Deployment & Operational Runbook
 
-### 6.1 Functional Requirements
-- **FR-1:** Filter announcements against custom ticker symbols (`TCS`, `RELIANCE`, `INFY`) or company names.
-- **FR-2:** Support a wildcard watchlist (`["*"]`) to monitor all corporate actions across the entire exchange.
-- **FR-3:** Deduplication memory (`seen_announcements.json`) to guarantee no filing is alerted more than once.
-- **FR-4:** Automated disk cleanup: PDF files downloaded during processing are deleted once the AI analysis finishes.
+### 7.1 Production Environment (Render.com)
+* **Hosted URL:** [https://stock-analysis-alert.onrender.com](https://stock-analysis-alert.onrender.com)
+* **Telegram Channel:** [@krishstockalert](https://t.me/krishstockalert)
+* **Build Command:** `pip install -r requirements.txt`
+* **Start Command:** `python server.py`
+* **Instance Type:** Free ($0/month, 512 MB RAM)
+* **Keep-Alive:** Monitored via UptimeRobot pinging `/health` every 5 minutes.
 
-### 6.2 Non-Functional Requirements
-- **NFR-1 (Zero Running Cost):** Runs within free tiers of Google AI Studio and Telegram Bot API.
-- **NFR-2 (Low Latency):** Delivers alerts within 30 to 60 seconds of exchange submission.
-- **NFR-3 (High Availability):** Model fallback strategy ensures server spikes on one model switch to secondary models without crashing.
-- **NFR-4 (Security & Privacy):** Credentials remain strictly local in `.env`; no third-party data broker is utilized.
-
----
-
-## 7. Operational Runbook
-
-### 7.1 Running System Verification
-Whenever credentials or settings change, run the test script:
+### 7.2 Local Development Commands
 ```powershell
+# Navigate to project folder
 cd D:\wampgc\www\stock-ai-notifier
+
+# Run system verification & diagnostics
 python test_setup.py
+
+# Run live React web server & background bot
+python server.py
 ```
-
-### 7.2 Starting the Live Bot
-```powershell
-cd D:\wampgc\www\stock-ai-notifier
-python main.py
-```
-
-### 7.3 Modifying the Stock Watchlist
-Edit [`config.py`](file:///d:/wampgc/www/stock-ai-notifier/config.py):
-```python
-DEFAULT_WATCHLIST = [
-    "RELIANCE",
-    "TCS",
-    "INFY",
-    "HDFCBANK",
-    "TATAMOTORS"
-]
-```
-
----
-
-## 8. Roadmap & Future Scope
-1. **Multi-Language Summaries:** Allow prompting Gemini to output in Hindi or Gujarati for regional investors.
-2. **Concall Audio Processing:** Ingest audio recording links from investor conference calls and extract CEO guidance highlights.
-3. **Sentiment Dashboard:** Build a lightweight local web UI (e.g. Streamlit or PHP dashboard in WAMP) visualizing quarterly YoY profit trajectory.
-
