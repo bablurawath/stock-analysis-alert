@@ -1,8 +1,22 @@
+import os
+import sys
 import time
 import requests
+import urllib3
 import fitz  # PyMuPDF
 from pathlib import Path
 from typing import Optional
+
+# Disable insecure request warnings for SSL bypass compatibility
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Ensure standard UTF-8 console output
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from google import genai
 from config import GEMINI_API_KEYS, GROQ_API_KEY
 
@@ -13,7 +27,7 @@ LANGUAGE REQUIREMENT: Strictly write your entire response in clear, professional
 Your goal is to digest this corporate disclosure/financial report and create a concise, readable, and actionable alert for a retail investor.
 
 Required Output Format in clean Markdown:
-🎯 *Executive Summary*: 1-2 sharp lines summarizing the main news.
+📌 *Executive Summary*: 1-2 sharp lines summarizing the main news.
 
 📊 *Key Financial Highlights* (if quarterly/annual result):
 • Revenue / Turnover: [YoY & QoQ figures with % growth]
@@ -28,9 +42,9 @@ Required Output Format in clean Markdown:
 ⚠️ *Red Flags / Cautionary Points* (if any, e.g. margin contraction, exceptional loss, debt rise, auditor qualification):
 • [Points or 'None noted']
 
-📈 *Sentiment*: [Bullish 🟢 / Neutral 🟡 / Bearish 🔴]
+🎯 *Sentiment*: [Bullish 🟢 / Neutral 🟡 / Bearish 🔴]
 
-Keep the summary sharp and readable in under 45 seconds. Do not hallucinate numbers—if a metric is missing in the document, omit it or state 'Not disclosed'."""
+Keep the summary sharp and readable in under 45 seconds. Do not hallucinate numbers — if a metric is missing in the document, omit it or state 'Not disclosed'."""
 
 CANDIDATE_MODELS = [
     "gemini-3.5-flash",
@@ -58,35 +72,49 @@ def rotate_to_next_key():
         return True
     return False
 
+GROQ_MODELS = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+    "llama-3.3-70b-versatile"
+]
+
 def analyze_with_groq(prompt_text: str) -> Optional[str]:
     """
-    Ultra-fast fallback using Groq API (Llama 3.3 70B) with 14,400 free requests/day.
+    Ultra-fast fallback using Groq API with 14,400 free requests/day.
     """
     if not GROQ_API_KEY:
+        print("[AI Engine] GROQ_API_KEY is not configured, skipping Groq fallback.")
         return None
-    try:
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt_text}
-            ],
-            "temperature": 0.2,
-            "max_tokens": 1024
-        }
-        print("[AI Engine] ⚡ Generating instant summary via Groq (Llama 3.3 70B)...")
-        res = requests.post(url, headers=headers, json=payload, timeout=20)
-        if res.status_code == 200:
-            return res.json()["choices"][0]["message"]["content"]
-        else:
-            print(f"[Groq Error] HTTP {res.status_code}: {res.text[:200]}")
-    except Exception as e:
-        print(f"[Groq Exception] {e}")
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    for model in GROQ_MODELS:
+        try:
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt_text}
+                ],
+                "temperature": 0.2,
+                "max_tokens": 1024
+            }
+            print(f"[AI Engine] [Groq Fallback] Generating instant summary via {model}...")
+            res = requests.post(url, headers=headers, json=payload, timeout=25, verify=False)
+            if res.status_code == 200:
+                content = res.json()["choices"][0]["message"]["content"]
+                print(f"[AI Engine] [Groq Fallback] Successfully generated summary using {model}!")
+                return content
+            else:
+                print(f"[Groq Error {model}] HTTP {res.status_code}: {res.text[:120]}")
+        except Exception as e:
+            print(f"[Groq Exception {model}] {e}")
+
     return None
 
 def generate_with_fallback(contents):
@@ -142,7 +170,7 @@ def analyze_document(pdf_path: Path, company_name: str, subject: str) -> str:
             return response.text
         except Exception as e:
             gemini_failed = True
-            print(f"[AI Engine] Gemini unavailable ({e}). Triggering fallback...")
+            print(f"[AI Engine] Gemini unavailable ({e}). Triggering Groq fallback...")
 
     # 2. Extract text from PDF for Groq / Text-based LLM fallback
     extracted_text = ""
@@ -162,9 +190,9 @@ def analyze_document(pdf_path: Path, company_name: str, subject: str) -> str:
 
     # 4. Clean graceful structured fallback if AI quotas are temporarily locked
     return (
-        f"🎯 *Executive Summary*:\n"
+        f"📌 *Executive Summary*:\n"
         f"Official regulatory disclosure submitted by {company_name}.\n\n"
-        f"📋 *Subject*: {subject}\n"
+        f"📄 *Subject*: {subject}\n"
         f"💡 *Key Note*: Disclosed in compliance with SEBI listing regulations.\n"
-        f"📈 *Sentiment*: Neutral 🟡"
+        f"🎯 *Sentiment*: Neutral 🟡"
     )
