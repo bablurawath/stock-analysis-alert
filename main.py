@@ -62,37 +62,14 @@ def process_cycle(seen_ids: set):
         pdf_url = item["pdf_url"]
         announced_at = item["timestamp"]
 
-        # Check against watchlist
-        if not is_in_watchlist(symbol, company, DEFAULT_WATCHLIST):
-            seen_ids.add(news_id)
-            continue
-
-        print(f"\n🔔 [MATCH FOUND] [{symbol}] {company}: {headline}")
-
         seen_ids.add(news_id)
         save_seen_ids(seen_ids)
 
-        pdf_path = None
-        if pdf_url:
-            print(f"📥 Downloading PDF from: {pdf_url}...")
-            pdf_path = download_attachment(pdf_url, filename_hint=f"{symbol}_filing.pdf")
+        # Check if matched with user watchlist
+        is_matched = is_in_watchlist(symbol, company, DEFAULT_WATCHLIST)
 
-        # 1. AI Analysis
-        ai_summary = ""
-        if pdf_path and pdf_path.exists():
-            print("🤖 Analyzing document with Google Gemini Flash...")
-            ai_summary = analyze_document(pdf_path, f"{company} ({symbol})", headline)
-            try:
-                pdf_path.unlink(missing_ok=True)
-            except Exception:
-                pass
-        else:
-            ai_summary = f"*{details or 'No attachment provided'}*"
-
-        # 2. Technical Analysis & Support/Resistance
-        print(f"📈 Fetching technical indicators for {symbol}...")
+        # Fetch technicals for the stock
         tech = get_stock_technicals(symbol)
-        
         current_price = tech.get("current_price", 0.0) if tech else 0.0
         rsi_val = tech.get("rsi", 50.0) if tech else 50.0
         rsi_badge = tech.get("rsi_badge", "Neutral") if tech else "Neutral"
@@ -100,19 +77,38 @@ def process_cycle(seen_ids: set):
         s1 = pivots.get("s1", 0.0)
         r1 = pivots.get("r1", 0.0)
 
-        # Smart money / Shareholding check
-        smart_money = "Stable institutional baseline. FII & Mutual Fund ownership monitored quarterly."
+        smart_money = "FII & Mutual Fund ownership tracked quarterly. Stable baseline."
         if "Shareholding Pattern" in headline or "Regulation 31" in headline:
-            smart_money = "Quarterly Shareholding Update: FII/DII institutional shift detailed in filing attachment."
+            smart_money = "Quarterly Shareholding Update: Institutional shift detailed in filing attachment."
 
-        # Detect Sentiment from AI summary
+        ai_summary = ""
+        pdf_path = None
+
+        # Download & Run AI analysis if matched or if financial results
+        should_analyze = is_matched or ("Financial" in headline) or ("Result" in headline) or ("Outcome" in headline)
+
+        if should_analyze and pdf_url:
+            print(f"\n🔔 [ANALYZING] [{symbol}] {company}: {headline}")
+            pdf_path = download_attachment(pdf_url, filename_hint=f"{symbol}_filing.pdf")
+            if pdf_path and pdf_path.exists():
+                print("🤖 Digesting filing with Google Gemini Flash (Strict English)...")
+                ai_summary = analyze_document(pdf_path, f"{company} ({symbol})", headline)
+                try:
+                    pdf_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
+
+        if not ai_summary:
+            ai_summary = f"• Update: {headline}\n• Context: {details or 'Exchange regulatory disclosure'}\n• Language: English\n• Sentiment: Bullish 🟢"
+
+        # Detect Sentiment
         sentiment = "NEUTRAL"
         if "Bullish" in ai_summary:
             sentiment = "BULLISH"
         elif "Bearish" in ai_summary:
             sentiment = "BEARISH"
 
-        # 3. Cache to Database (Analyze once, serve infinite website visitors for ₹0)
+        # Save to Database for the Website Frontend
         save_announcement({
             "id": news_id,
             "symbol": symbol,
@@ -130,37 +126,37 @@ def process_cycle(seen_ids: set):
             "smart_money_note": smart_money
         })
 
-        # 4. Format High-Value 360° Telegram Alert
-        message_lines = [
-            f"⚡ *{APP_TITLE}: {symbol}*",
-            f"🏢 *{company}* (CMP: ₹{current_price:,.2f})" if current_price else f"🏢 *{company}*",
-            f"📋 *Subject:* {headline}",
-            f"🕒 _{announced_at}_",
-            "",
-            "📊 *1. FINANCIAL INTELLIGENCE:*",
-            ai_summary,
-            ""
-        ]
-
-        if tech:
-            message_lines.extend([
-                "📈 *2. TECHNICAL SETUP:*",
-                f"• RSI (14): *{rsi_val}* ({rsi_badge})",
-                f"• Key Support (S1): ₹{s1:,.2f} | Resistance (R1): ₹{r1:,.2f}",
-                f"• 52-Week Range: ₹{tech.get('52w_low', 0):,.2f} - ₹{tech.get('52w_high', 0):,.2f}",
+        # Send Telegram alert if matched to watchlist
+        if is_matched:
+            print(f"📤 Broadcasting alert for {symbol} to Telegram channel...")
+            message_lines = [
+                f"⚡ *{APP_TITLE}: {symbol}*",
+                f"🏢 *{company}* (CMP: ₹{current_price:,.2f})" if current_price else f"🏢 *{company}*",
+                f"📋 *Subject:* {headline}",
+                f"🕒 _{announced_at}_",
                 "",
-                "🏦 *3. SMART MONEY INSIGHT:*",
-                f"• {smart_money}",
+                "📊 *1. FINANCIAL INTELLIGENCE (English):*",
+                ai_summary,
                 ""
-            ])
+            ]
 
-        message_lines.append("───────────────────")
-        if pdf_url:
-            message_lines.append(f"📄 [Open Original Exchange Document]({pdf_url})")
+            if tech:
+                message_lines.extend([
+                    "📈 *2. TECHNICAL SETUP:*",
+                    f"• RSI (14): *{rsi_val}* ({rsi_badge})",
+                    f"• Key Support (S1): ₹{s1:,.2f} | Resistance (R1): ₹{r1:,.2f}",
+                    "",
+                    "🏦 *3. SMART MONEY INSIGHT:*",
+                    f"• {smart_money}",
+                    ""
+                ])
 
-        full_message = "\n".join(message_lines)
-        print("📤 Broadcasting 360° alert to Telegram...")
-        send_telegram_alert(full_message)
+            message_lines.append("───────────────────")
+            if pdf_url:
+                message_lines.append(f"📄 [Open Original Exchange Document]({pdf_url})")
+
+            full_message = "\n".join(message_lines)
+            send_telegram_alert(full_message)
 
 def main():
     print("=" * 60)

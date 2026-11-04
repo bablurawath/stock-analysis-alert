@@ -4,6 +4,9 @@ from config import GEMINI_API_KEY
 import fitz  # PyMuPDF
 
 SYSTEM_PROMPT = """You are an expert equity research analyst specializing in Indian stock market disclosures (NSE/BSE).
+
+LANGUAGE REQUIREMENT: Strictly write your entire response in clear, professional ENGLISH only. Even if the filing contains text in Hindi, Gujarati, or other regional languages, translate and summarize all points into English.
+
 Your goal is to digest this corporate disclosure/financial report and create a concise, readable, and actionable alert for a retail investor.
 
 Required Output Format in clean Markdown:
@@ -58,7 +61,7 @@ def analyze_document(pdf_path: Path, company_name: str, subject: str) -> str:
         return "⚠️ Gemini API Key not configured. Please add GEMINI_API_KEY in your .env file."
 
     client = genai.Client(api_key=GEMINI_API_KEY)
-    prompt = f"Analyze this filing for {company_name}.\nAnnouncement Subject: {subject}\n\n{SYSTEM_PROMPT}"
+    prompt = f"Analyze this filing for {company_name}.\nAnnouncement Subject: {subject}\nIMPORTANT: Strictly write your response in English only.\n\n{SYSTEM_PROMPT}"
 
     # 1. Try native PDF upload (best for scanned tables and complex multi-page filings)
     try:
