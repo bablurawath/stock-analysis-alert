@@ -2,4 +2,5 @@ google-genai
 requests
 python-dotenv
 pymupdf
-
+fastapi
+uvicorn
