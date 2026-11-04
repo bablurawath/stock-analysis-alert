@@ -54,6 +54,7 @@ CANDIDATE_MODELS = [
 ]
 
 CURRENT_KEY_INDEX = 0
+GEMINI_COOLDOWN_UNTIL = 0  # Timestamp to pause Gemini when quota limit is reached
 
 def get_current_client():
     """Returns a client for the currently active API key."""
@@ -119,10 +120,10 @@ def analyze_with_groq(prompt_text: str) -> Optional[str]:
 
 def generate_with_fallback(contents):
     """
-    Tries multiple keys and candidate models, handling 429 quota limits gracefully.
+    Tries each configured key once. If quota is exhausted, exits cleanly to trigger Groq.
     """
-    global CURRENT_KEY_INDEX
-    max_attempts = max(2, len(GEMINI_API_KEYS) * 2)
+    global CURRENT_KEY_INDEX, GEMINI_COOLDOWN_UNTIL
+    max_attempts = max(1, len(GEMINI_API_KEYS))
     last_error = None
 
     for attempt in range(max_attempts):
@@ -143,8 +144,8 @@ def generate_with_fallback(contents):
 
                 # Check if quota exceeded (429 / RESOURCE_EXHAUSTED)
                 if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
-                    # If multiple keys exist, try next key
-                    if rotate_to_next_key():
+                    # Rotate to next key if available and haven't tried all
+                    if attempt < max_attempts - 1 and rotate_to_next_key():
                         break
                     else:
                         raise last_error
@@ -156,21 +157,29 @@ def generate_with_fallback(contents):
 
 def analyze_document(pdf_path: Path, company_name: str, subject: str) -> str:
     """
-    Sends the filing PDF to AI for summarization (Gemini with seamless Groq fallback).
+    Sends the filing PDF to AI for summarization (Gemini with smart Groq circuit breaker).
     """
+    global GEMINI_COOLDOWN_UNTIL
     prompt = f"Analyze this filing for {company_name}.\nAnnouncement Subject: {subject}\nIMPORTANT: Strictly write your response in English only.\n\n{SYSTEM_PROMPT}"
 
-    # 1. Try Gemini (Native PDF upload)
-    gemini_failed = False
-    if GEMINI_API_KEYS:
+    # 1. Try Gemini (Native PDF upload) only if not in quota cooldown
+    if GEMINI_API_KEYS and time.time() >= GEMINI_COOLDOWN_UNTIL:
         client, _ = get_current_client()
         try:
             gemini_file = client.files.upload(file=str(pdf_path))
             response = generate_with_fallback([gemini_file, prompt])
             return response.text
         except Exception as e:
-            gemini_failed = True
-            print(f"[AI Engine] Gemini unavailable ({e}). Triggering Groq fallback...")
+            err_str = str(e)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                # Google AI Studio daily quota reached; pause Gemini calls for 1 hour
+                GEMINI_COOLDOWN_UNTIL = time.time() + 3600
+                print("[AI Engine] Google Gemini daily limit reached. Pausing Gemini for 1 hour; directly routing to Groq.")
+            else:
+                print(f"[AI Engine] Gemini unavailable ({e}). Triggering Groq fallback...")
+    elif GEMINI_API_KEYS and time.time() < GEMINI_COOLDOWN_UNTIL:
+        remaining_mins = max(1, int((GEMINI_COOLDOWN_UNTIL - time.time()) / 60))
+        print(f"[AI Engine] Gemini in quota cooldown ({remaining_mins}m left). Fast-routing directly to Groq...")
 
     # 2. Extract text from PDF for Groq / Text-based LLM fallback
     extracted_text = ""
