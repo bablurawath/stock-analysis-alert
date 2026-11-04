@@ -73,9 +73,9 @@ def rotate_to_next_key():
     return False
 
 GROQ_MODELS = [
-    "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
     "qwen/qwen3.8-27b",
+    "openai/gpt-oss-120b",
     "llama-3.3-70b-versatile"
 ]
 
