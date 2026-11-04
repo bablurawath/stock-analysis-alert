@@ -47,6 +47,8 @@ def seed_initial_data_if_empty():
             price = tech.get('current_price', 0.0) if tech else 0.0
             rsi = tech.get('rsi', 50.0) if tech else 50.0
             pivots = tech.get('pivots', {}) if tech else {}
+            delivery_pct = tech.get('delivery_pct', 52.0) if tech else 52.0
+            whale_note = tech.get('whale_note', 'Stable institutional holdings') if tech else 'Stable institutional holdings'
             
             save_announcement({
                 'id': item['id'],
@@ -62,7 +64,9 @@ def seed_initial_data_if_empty():
                 'rsi': rsi,
                 'support_1': pivots.get('s1', 0.0),
                 'resistance_1': pivots.get('r1', 0.0),
-                'smart_money_note': 'Institutional FII/DII holdings monitored quarterly.'
+                'smart_money_note': 'Institutional FII/DII holdings monitored quarterly.',
+                'delivery_pct': delivery_pct,
+                'whale_note': whale_note
             })
         print("✅ Pre-seeded live disclosures into website database.")
     except Exception as e:

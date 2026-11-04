@@ -76,6 +76,8 @@ def process_cycle(seen_ids: set):
         pivots = tech.get("pivots", {}) if tech else {}
         s1 = pivots.get("s1", 0.0)
         r1 = pivots.get("r1", 0.0)
+        delivery_pct = tech.get("delivery_pct", 50.0) if tech else 50.0
+        whale_note = tech.get("whale_note", "Stable institutional holdings.") if tech else "Stable institutional holdings."
 
         smart_money = "FII & Mutual Fund ownership tracked quarterly. Stable baseline."
         if "Shareholding Pattern" in headline or "Regulation 31" in headline:
@@ -123,7 +125,9 @@ def process_cycle(seen_ids: set):
             "rsi": rsi_val,
             "support_1": s1,
             "resistance_1": r1,
-            "smart_money_note": smart_money
+            "smart_money_note": smart_money,
+            "delivery_pct": delivery_pct,
+            "whale_note": whale_note
         })
 
         # Send Telegram alert if matched to watchlist
