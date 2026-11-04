@@ -110,3 +110,4 @@ def get_stock_technicals(symbol: str) -> Optional[Dict[str, Any]]:
     except Exception as e:
         print(f"[Technicals] Error fetching data for {symbol}: {e}")
         return None
+

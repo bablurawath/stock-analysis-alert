@@ -69,3 +69,4 @@ def get_recent_announcements(limit: int = 50, search: str = "") -> List[Dict[str
 
 # Auto-initialize on import
 init_db()
+
