@@ -71,7 +71,7 @@
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                         <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Total Disclosures</div>
+                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Tracked Stocks</div>
                             <div className="text-xl sm:text-2xl font-bold text-white mt-1">{total}</div>
                         </div>
                         <div className="glass-panel p-4 rounded-xl">
@@ -89,10 +89,10 @@
                             </div>
                         </div>
                         <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Smart Money Flow</div>
+                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Live Scanner</div>
                             <div className="text-sm sm:text-base font-bold text-indigo-400 mt-1.5 flex items-center space-x-1.5">
-                                <span>Quarterly Shift</span>
-                                <i className="fa-solid fa-chart-pie text-xs"></i>
+                                <span>Search Any Stock</span>
+                                <i className="fa-solid fa-bolt text-xs"></i>
                             </div>
                         </div>
                     </div>
@@ -275,6 +275,7 @@
         function App() {
             const [items, setItems] = useState([]);
             const [loading, setLoading] = useState(true);
+            const [searchingLive, setSearchingLive] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
             const [activeFilter, setActiveFilter] = useState('ALL');
             const [selectedItem, setSelectedItem] = useState(null);
@@ -294,9 +295,48 @@
 
             useEffect(() => {
                 fetchData();
-                const interval = setInterval(fetchData, 60000); // 60s auto-refresh
+                const interval = setInterval(fetchData, 60000);
                 return () => clearInterval(interval);
             }, []);
+
+            // Quick live technical scan on demand
+            const handleSearchLiveStock = async (query) => {
+                const cleanQuery = (query || searchTerm).trim().toUpperCase();
+                if (!cleanQuery) return;
+
+                setSearchingLive(true);
+                try {
+                    const res = await fetch(`/api/technicals/${encodeURIComponent(cleanQuery)}`);
+                    if (res.ok) {
+                        const tech = await res.json();
+                        const newStockCard = {
+                            id: `live_${cleanQuery}_${Date.now()}`,
+                            symbol: tech.symbol,
+                            company_name: `${cleanQuery} (Live Quote)`,
+                            subject: `Real-time technical price action & pivot analysis`,
+                            details: `Current Market Price: ₹${tech.current_price}. 52W Range: ₹${tech['52w_low']} - ₹${tech['52w_high']}`,
+                            pdf_url: null,
+                            announced_at: 'Live Instant Scan',
+                            ai_summary: `🎯 Technical Outlook:\n• Price Action: Trading at ₹${tech.current_price}\n• 14-Day RSI: ${tech.rsi} (${tech.rsi_badge})\n• Support Levels: S1 ₹${tech.pivots.s1} | S2 ₹${tech.pivots.s2}\n• Resistance Levels: R1 ₹${tech.pivots.r1} | R2 ₹${tech.pivots.r2}\n• Strategy: Watch reaction around S1/R1 pivot boundaries.`,
+                            sentiment: tech.rsi <= 35 ? 'BULLISH' : (tech.rsi >= 70 ? 'BEARISH' : 'NEUTRAL'),
+                            current_price: tech.current_price,
+                            rsi: tech.rsi,
+                            support_1: tech.pivots.s1,
+                            resistance_1: tech.pivots.r1,
+                            smart_money_note: `52-Week Range: ₹${tech['52w_low']} - ₹${tech['52w_high']}`
+                        };
+
+                        setItems(prev => [newStockCard, ...prev.filter(p => p.symbol !== cleanQuery)]);
+                        setSearchTerm(cleanQuery);
+                    } else {
+                        alert(`Could not find live quote for "${cleanQuery}". Please verify the NSE ticker symbol.`);
+                    }
+                } catch (err) {
+                    console.error('Search error:', err);
+                } finally {
+                    setSearchingLive(false);
+                }
+            };
 
             const filteredItems = useMemo(() => {
                 return items.filter(item => {
@@ -317,18 +357,28 @@
                     <Navbar />
                     <StatsBanner items={items} />
 
-                    {/* Filter & Search Bar */}
+                    {/* Filter & Live Search Bar */}
                     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 w-full">
                         <div className="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3 shadow-xl">
-                            <div className="relative flex-1 w-full">
-                                <i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-500 text-sm"></i>
+                            <div className="relative flex-1 w-full flex items-center">
+                                <i className="fa-solid fa-magnifying-glass absolute left-4 text-gray-500 text-sm"></i>
                                 <input 
                                     type="text" 
                                     value={searchTerm} 
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    placeholder="Search by Stock Symbol (e.g. TCS, RELIANCE, INFY) or company..."
-                                    className="w-full pl-11 pr-4 py-2.5 bg-gray-900/90 border border-gray-700/80 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-500 transition"
+                                    onKeyDown={e => { if (e.key === 'Enter') handleSearchLiveStock(); }}
+                                    placeholder="Search ANY stock (e.g. RELIANCE, TCS, INFY, TATAMOTORS, HDFCBANK)..."
+                                    className="w-full pl-11 pr-24 py-2.5 bg-gray-900/90 border border-gray-700/80 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-500 transition"
                                 />
+                                {searchTerm.trim() && (
+                                    <button 
+                                        onClick={() => handleSearchLiveStock()}
+                                        disabled={searchingLive}
+                                        className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-md">
+                                        {searchingLive ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-bolt"></i>}
+                                        <span>Scan</span>
+                                    </button>
+                                )}
                             </div>
 
                             <div className="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto">
@@ -354,6 +404,19 @@
                                 </button>
                             </div>
                         </div>
+
+                        {/* Quick Stock Chips */}
+                        <div className="mt-3 flex items-center space-x-2 overflow-x-auto text-xs text-gray-400">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Popular Scans:</span>
+                            {['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'TATAMOTORS', 'ICICIBANK', 'SBIN'].map(sym => (
+                                <button 
+                                    key={sym} 
+                                    onClick={() => handleSearchLiveStock(sym)}
+                                    className="px-2.5 py-1 rounded-lg bg-gray-900 hover:bg-blue-600/20 text-gray-300 hover:text-blue-300 border border-gray-800 transition font-mono font-semibold">
+                                    +{sym}
+                                </button>
+                            ))}
+                        </div>
                     </section>
 
                     {/* Cards Grid */}
@@ -364,10 +427,16 @@
                                 <p className="text-sm font-medium">Fetching verified exchange disclosures...</p>
                             </div>
                         ) : filteredItems.length === 0 ? (
-                            <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800">
-                                <i className="fa-regular fa-folder-open text-4xl mb-3"></i>
-                                <p className="text-base font-semibold text-gray-400">No announcements match your search.</p>
-                                <p className="text-xs text-gray-600 mt-1">Try searching a different stock ticker or clearing the filter.</p>
+                            <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto">
+                                <i className="fa-solid fa-magnifying-glass-chart text-4xl mb-3 text-blue-500"></i>
+                                <p className="text-base font-semibold text-gray-300">"{searchTerm}" is not in recent filings.</p>
+                                <p className="text-xs text-gray-500 mt-1 mb-4">Click below to fetch instant live price, RSI, Support & Resistance for {searchTerm.toUpperCase()}:</p>
+                                <button 
+                                    onClick={() => handleSearchLiveStock()}
+                                    disabled={searchingLive}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20">
+                                    {searchingLive ? 'Scanning Market...' : `Scan ${searchTerm.toUpperCase()} Live Now`}
+                                </button>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -391,4 +460,3 @@
     </script>
 </body>
 </html>
-
