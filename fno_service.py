@@ -105,36 +105,29 @@ def mark_broadcasted_today(date_str: str):
 
 def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
     """
-    Broadcasts the F&O Declared Results to Telegram exactly ONCE per result day.
-    Includes:
-    - Only stocks with DECLARED financial results (no board meetings)
-    - Single quarter move for all 4 quarters (Q1, Q2, Q3, Q4)
-    - 4Q Average Expected Volatility & Directional Bias
-    - Classic Support/Resistance floor/ceiling & Delivery %
+    Broadcasts the Morning Pre-Market F&O Earnings Radar to Telegram once on result day.
+    Sent before results drop (e.g. 9:00 AM) with:
+    - All F&O stocks with results scheduled for TODAY
+    - Expected 4Q average volatility (±X%) and directional bias
+    - Individual moves for all 4 quarters (Q1, Q2, Q3, Q4)
+    - Support/Resistance floor/ceiling levels & delivery accumulation
     """
     today_str = get_ist_today_str()
     if not force and has_broadcasted_today(today_str):
-        return {"status": "SKIPPED", "message": f"F&O results already broadcasted for {today_str}"}
+        return {"status": "SKIPPED", "message": f"Morning F&O radar already broadcasted for {today_str}"}
 
     fno_results = fetch_today_fno_results()
     if not fno_results:
-        return {"status": "NO_DATA", "message": "No F&O financial results declared today"}
-
-    # STRICT FILTER: Only broadcast when actual financial results are DECLARED today
-    declared = [r for r in fno_results if "DECLARED" in r.get("result_status", "").upper()]
-    if not declared:
-        return {
-            "status": "NO_DECLARED_RESULTS",
-            "message": f"No F&O financial results declared today ({today_str}). Board meetings without results are excluded from broadcast."
-        }
+        return {"status": "NO_DATA", "message": f"No F&O results scheduled for today ({today_str})"}
 
     lines = [
-        f"⚡ *F&O RESULTS DECLARED TODAY ({today_str})*",
+        f"🌅 *MORNING PRE-MARKET F&O EARNINGS RADAR (TODAY - {today_str})*",
         f"━━━━━━━━━━━━━━━━━━━━━━━━━",
-        f"📊 *{len(declared)} F&O Derivatives Stocks Declared Results Today*\n"
+        f"🔔 *{len(fno_results)} F&O Derivatives Stocks Scheduled for Results Today*",
+        f"⏱️ *Pre-Market Briefing (Before Results Drop)*\n"
     ]
 
-    for r in declared[:12]:
+    for r in fno_results[:15]:
         vol = r.get("earnings_volatility", {})
         avg_move = vol.get("avg_abs_move", 2.2)
         bias = vol.get("avg_dir_move", 0.0)
@@ -146,7 +139,6 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         for idx, q in enumerate(q_moves, start=1):
             q_label = q.get("quarter") or f"Q{idx}"
             d_str = q.get("result_date", "")
-            # Short date label e.g. "07-Aug"
             d_short = "-".join(d_str.split("-")[:2]) if "-" in d_str else d_str
             t_short = q.get("timing_short", "T+1")
             pct = q.get("pct", 0.0)
@@ -173,8 +165,8 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
     sent = send_telegram_alert(msg)
     if sent:
         mark_broadcasted_today(today_str)
-        print(f"[Broadcast] Successfully sent F&O Result Radar to Telegram for {today_str}")
-        return {"status": "SUCCESS", "message": f"Successfully broadcasted {len(declared)} declared F&O results for {today_str}"}
+        print(f"[Broadcast] Successfully sent Morning Pre-Market F&O Radar to Telegram for {today_str}")
+        return {"status": "SUCCESS", "message": f"Successfully broadcasted {len(fno_results)} F&O results scheduled for {today_str}"}
     else:
         return {"status": "FAILED", "message": "Failed to send Telegram alert"}
 
@@ -415,7 +407,32 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"[FNO Results] Error initializing NSE session: {e}")
 
-    # Step 2: Fetch today's corporate announcements
+    candidates_map = {}
+
+    # Step 2: Fetch today's scheduled board meetings for Financial Results (Morning Pre-Market)
+    bm_url = f"https://www.nseindia.com/api/corporate-board-meetings?index=equities&from_date={today_str}&to_date={today_str}"
+    try:
+        r_bm = session.get(bm_url, verify=False, timeout=15)
+        if r_bm.status_code == 200:
+            for it in r_bm.json():
+                sym = (it.get("bm_symbol") or "").strip().upper()
+                purpose = (it.get("bm_purpose", "") + " " + it.get("bm_desc", "")).lower()
+                if sym in NSE_FNO_SYMBOLS and "result" in purpose and sym not in candidates_map:
+                    candidates_map[sym] = {
+                        "type": "scheduled_today",
+                        "symbol": sym,
+                        "company_name": it.get("sm_name") or sym,
+                        "subject": it.get("bm_purpose") or "Board Meeting for Financial Results",
+                        "details": it.get("bm_desc", ""),
+                        "pdf_url": it.get("attachment") or "",
+                        "time_str": it.get("bm_date") or today_str,
+                        "seq_id": int(time.time()),
+                        "status_label": f"RESULT TODAY ({today_str})"
+                    }
+    except Exception as e:
+        print(f"[FNO Results] Error fetching today board meetings: {e}")
+
+    # Step 3: Cross-reference with today's corporate announcements
     ann_url = f"https://www.nseindia.com/api/corporate-announcements?index=equities&from_date={today_str}&to_date={today_str}"
     try:
         r = session.get(ann_url, verify=False, timeout=15)
@@ -425,7 +442,7 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
                 sym = item.get("symbol", "").strip().upper()
                 desc = (item.get("desc", "") + " " + item.get("attmntText", "")).lower()
                 
-                if sym in NSE_FNO_SYMBOLS and sym not in seen_symbols:
+                if sym in NSE_FNO_SYMBOLS:
                     is_result = any(keyword in desc for keyword in [
                         "financial result", "financial results", "outcome of board meeting",
                         "un-audited financial", "unaudited financial", "audited financial",
@@ -433,22 +450,27 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
                     ])
 
                     if is_result:
-                        seen_symbols.add(sym)
-                        raw_candidates.append({
-                            "type": "declared",
-                            "symbol": sym,
-                            "company_name": item.get("sm_name") or sym,
-                            "subject": item.get("desc") or "Financial Results & Board Outcome",
-                            "details": item.get("attmntText", ""),
-                            "pdf_url": item.get("attmntFile") or "",
-                            "time_str": item.get("an_dt") or item.get("dt") or "Today",
-                            "seq_id": item.get("seq_id", int(time.time()))
-                        })
+                        if sym in candidates_map:
+                            candidates_map[sym]["type"] = "declared"
+                            candidates_map[sym]["status_label"] = "DECLARED TODAY"
+                            if item.get("attmntFile"):
+                                candidates_map[sym]["pdf_url"] = item.get("attmntFile")
+                        else:
+                            candidates_map[sym] = {
+                                "type": "declared",
+                                "symbol": sym,
+                                "company_name": item.get("sm_name") or sym,
+                                "subject": item.get("desc") or "Financial Results & Board Outcome",
+                                "details": item.get("attmntText", ""),
+                                "pdf_url": item.get("attmntFile") or "",
+                                "time_str": item.get("an_dt") or item.get("dt") or "Today",
+                                "seq_id": item.get("seq_id", int(time.time())),
+                                "status_label": "DECLARED TODAY"
+                            }
     except Exception as e:
         print(f"[FNO Results] Error fetching today announcements: {e}")
 
-    # Step 3: Filter strictly for DECLARED results only.
-    # Board meetings without declared results are excluded as per requirement ("if there is no result no need to display").
+    raw_candidates = list(candidates_map.values())
 
     # Step 4: Batch fetch technicals and historical earnings volatility in parallel
     all_symbols = [c["symbol"] for c in raw_candidates]
@@ -472,7 +494,8 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
         del_pct = tech.get("delivery_pct", 55.0)
         whale_note = tech.get("whale_note", "Active F&O derivatives volume")
 
-        status_label = "DECLARED TODAY"
+        is_declared = (c.get("type") == "declared")
+        status_label = c.get("status_label") or ("DECLARED TODAY" if is_declared else f"RESULT TODAY ({today_str})")
 
         # Generate summary with timing distinction & 4-quarter breakdown
         q_breakdown_items = []
@@ -482,18 +505,32 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
             q_breakdown_items.append(f"{q_label} ({d_short}): {m['pct']:+0.2f}% ({m.get('timing_short', 'T+1')})")
         past_moves_summary = " • ".join(q_breakdown_items)
 
-        summary = (
-            f"📌 *F&O Quarterly Earnings Released*:\n"
-            f"{comp_name} ({sym}) officially submitted its financial results to the exchange today.\n\n"
-            f"📊 *Actionable Signal & Earnings Volatility*:\n"
-            f"• Status: {status_label}\n"
-            f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi} ({'Bullish Momentum' if rsi <= 40 else ('Overbought' if rsi >= 70 else 'Neutral')})\n"
-            f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
-            f"• Past 4 Quarters Moves: {past_moves_summary or 'In range'}\n"
-            f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
-            f"• Delivery Accumulation: {del_pct}% ({'Whale Accumulation' if del_pct >= 60 else 'Routine Flow'})\n\n"
-            f"🎯 *Takeaway*: Watch for post-result continuation or open-interest shift beyond the ±{vol['avg_abs_move']}% volatility band."
-        )
+        if is_declared:
+            summary = (
+                f"📌 *F&O Quarterly Earnings Released*:\n"
+                f"{comp_name} ({sym}) officially submitted its financial results to the exchange today.\n\n"
+                f"📊 *Actionable Signal & Earnings Volatility*:\n"
+                f"• Status: {status_label}\n"
+                f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi} ({'Bullish Momentum' if rsi <= 40 else ('Overbought' if rsi >= 70 else 'Neutral')})\n"
+                f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
+                f"• Past 4 Quarters Moves: {past_moves_summary or 'In range'}\n"
+                f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
+                f"• Delivery Accumulation: {del_pct}% ({'Whale Accumulation' if del_pct >= 60 else 'Routine Flow'})\n\n"
+                f"🎯 *Takeaway*: Watch for post-result continuation or open-interest shift beyond the ±{vol['avg_abs_move']}% volatility band."
+            )
+        else:
+            summary = (
+                f"🌅 *Morning Pre-Market Earnings Radar*:\n"
+                f"{comp_name} ({sym}) has its Board Meeting scheduled today ({today_str}) to consider quarterly financial results.\n\n"
+                f"📊 *Pre-Result Positioning & Volatility Radar*:\n"
+                f"• Status: {status_label}\n"
+                f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi} ({'Bullish Momentum' if rsi <= 40 else ('Overbought' if rsi >= 70 else 'Neutral')})\n"
+                f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
+                f"• Past 4 Quarters Moves: {past_moves_summary or 'In range'}\n"
+                f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
+                f"• Delivery Accumulation: {del_pct}% ({'Whale Accumulation' if del_pct >= 60 else 'Routine Flow'})\n\n"
+                f"🎯 *Pre-Market Takeaway*: Historical reactions average ±{vol['avg_abs_move']}%. Look for IV crush or directional breakout beyond S1/R1."
+            )
 
         results.append({
             "id": f"fno_{sym}_{c['seq_id']}",

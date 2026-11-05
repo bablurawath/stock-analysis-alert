@@ -99,8 +99,11 @@ def background_worker():
         try:
             # 1. Process regular watchlist filings
             process_cycle(seen_ids)
-            # 2. Check and broadcast F&O Result Radar once per day
-            broadcast_today_fno_results(force=False)
+            # 2. Check and broadcast Morning Pre-Market F&O Radar once per day (from 8:30 AM IST)
+            ist = timezone(timedelta(hours=5, minutes=30))
+            now_ist = datetime.now(ist)
+            if now_ist.hour >= 8:
+                broadcast_today_fno_results(force=False)
         except Exception as e:
             print(f"[Worker Error] {e}")
 
