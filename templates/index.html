@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STOCK MARKET ALERT - Institutional AI Platform</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (Local Bundle with CDN fallback) -->
+    <script src="/static/tailwind.js" onerror="this.onerror=null;this.src='https://cdn.tailwindcss.com';"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- React 18 & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel for in-browser JSX parsing -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- React 18 & ReactDOM (Local Bundle with Cloudflare fallback) -->
+    <script src="/static/react.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js';"></script>
+    <script src="/static/react-dom.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js';"></script>
+    <!-- Babel for in-browser JSX parsing (Local Bundle with Cloudflare fallback) -->
+    <script src="/static/babel.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js';"></script>
     <style>
         body { background-color: #0b0f19; color: #f3f4f6; }
         .glass-panel { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
@@ -23,7 +23,17 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased selection:bg-blue-500 selection:text-white">
-    <div id="root"></div>
+    <div id="root">
+        <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b0f19; color: #9ca3af; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin-bottom: 16px; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);">
+                ⚡
+            </div>
+            <div style="font-size: 20px; font-weight: 700; color: #f3f4f6; margin-bottom: 8px;">STOCK MARKET ALERT</div>
+            <div style="font-size: 13px; color: #60a5fa; display: flex; align-items: center; gap: 8px;">
+                <span>Initializing live institutional AI feed...</span>
+            </div>
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;

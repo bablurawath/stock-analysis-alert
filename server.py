@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 if sys.platform == "win32":
     try:
@@ -26,8 +27,12 @@ from exchange_client import fetch_latest_announcements
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_FILE = BASE_DIR / "templates" / "index.html"
+STATIC_DIR = BASE_DIR / "static"
 
 app = FastAPI(title=APP_TITLE)
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 def seed_initial_data_if_empty():
     """Seeds recent exchange announcements so the website is instantly populated on first launch."""
