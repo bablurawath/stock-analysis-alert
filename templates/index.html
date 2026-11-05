@@ -214,6 +214,40 @@
                             </div>
                         )}
 
+                        {/* 4B. Historical Earnings Day Volatility (Last 3-4 Quarters) */}
+                        {item.earnings_volatility && item.earnings_volatility.quarter_moves && item.earnings_volatility.quarter_moves.length > 0 && (
+                            <div className="mb-3.5 bg-gradient-to-br from-gray-900 to-amber-950/20 rounded-xl p-3 border border-amber-500/25">
+                                <div className="flex items-center justify-between text-xs mb-2">
+                                    <span className="text-gray-300 font-bold flex items-center space-x-1.5">
+                                        <i className="fa-solid fa-chart-line text-amber-400"></i>
+                                        <span>Result Day Move (Last 4Q)</span>
+                                    </span>
+                                    <span className="font-extrabold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px]">
+                                        Avg: ±{item.earnings_volatility.avg_abs_move}%
+                                    </span>
+                                </div>
+
+                                {/* 4 Quarter Mini Badges */}
+                                <div className="grid grid-cols-4 gap-1.5 text-center">
+                                    {item.earnings_volatility.quarter_moves.slice(0, 4).map((q, idx) => (
+                                        <div key={idx} className="bg-gray-950/90 p-1.5 rounded-lg border border-gray-800">
+                                            <div className="text-[9px] text-gray-500 truncate" title={q.date}>
+                                                {q.date.split('-')[1] ? `${q.date.split('-')[0]} ${q.date.split('-')[1]}` : `Q${idx+1}`}
+                                            </div>
+                                            <div className={`font-mono font-bold text-[11px] mt-0.5 ${q.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {q.pct > 0 ? `+${q.pct}%` : `${q.pct}%`}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex items-center justify-between text-[10px] text-gray-400 mt-2 pt-1.5 border-t border-gray-800/80">
+                                    <span>Net Bias: <strong className={item.earnings_volatility.avg_dir_move >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{item.earnings_volatility.avg_dir_move > 0 ? `+${item.earnings_volatility.avg_dir_move}%` : `${item.earnings_volatility.avg_dir_move}%`}</strong></span>
+                                    <span>Expected Swing: <strong className="text-amber-300">±{item.earnings_volatility.avg_abs_move}%</strong></span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* 5. 1-Minute AI Takeaway */}
                         <div className="mb-3">
                             <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center justify-between">
@@ -272,6 +306,49 @@
                                 {item.ai_summary}
                             </div>
                         </div>
+
+                        {/* 4-Quarter Historical Earnings Volatility Table */}
+                        {item.earnings_volatility && item.earnings_volatility.quarter_moves && item.earnings_volatility.quarter_moves.length > 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                                    <h4 className="text-xs font-bold uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+                                        <i className="fa-solid fa-chart-line"></i>
+                                        <span>Historical Earnings Day Move (Last 4 Quarters)</span>
+                                    </h4>
+                                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                        Average Absolute Move: ±{item.earnings_volatility.avg_abs_move}%
+                                    </span>
+                                </div>
+                                <div className="bg-gray-950 rounded-xl border border-gray-800 overflow-hidden">
+                                    <table className="w-full text-xs text-left">
+                                        <thead className="bg-gray-900 text-gray-400 uppercase text-[10px] border-b border-gray-800">
+                                            <tr>
+                                                <th className="px-3 py-2">Quarter Result Date</th>
+                                                <th className="px-3 py-2">Pre-Result (₹)</th>
+                                                <th className="px-3 py-2">Post-Result (₹)</th>
+                                                <th className="px-3 py-2 text-right">Result Day Move (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-900 text-gray-300">
+                                            {item.earnings_volatility.quarter_moves.map((q, idx) => (
+                                                <tr key={idx} className="hover:bg-gray-900/40">
+                                                    <td className="px-3 py-2 font-medium text-white">{q.date}</td>
+                                                    <td className="px-3 py-2 font-mono text-gray-400">{q.prev ? `₹${q.prev.toLocaleString('en-IN')}` : '-'}</td>
+                                                    <td className="px-3 py-2 font-mono text-gray-200">{q.close ? `₹${q.close.toLocaleString('en-IN')}` : '-'}</td>
+                                                    <td className={`px-3 py-2 text-right font-mono font-bold ${q.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                        {q.pct > 0 ? `+${q.pct}%` : `${q.pct}%`}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    <div className="bg-gray-900/60 p-2.5 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-800">
+                                        <span>Directional Average: <strong className={item.earnings_volatility.avg_dir_move >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{item.earnings_volatility.avg_dir_move > 0 ? `+${item.earnings_volatility.avg_dir_move}%` : `${item.earnings_volatility.avg_dir_move}%`}</strong></span>
+                                        <span>Expected Result Swing: <strong className="text-amber-300 font-bold">±{item.earnings_volatility.avg_abs_move}%</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Technical & Delivery Indicators */}
                         <div className="mb-6">
@@ -355,9 +432,15 @@
 
                 setSearchingLive(true);
                 try {
-                    const res = await fetch(`/api/technicals/${encodeURIComponent(cleanQuery)}`);
-                    if (res.ok) {
-                        const tech = await res.json();
+                    const [techRes, volRes] = await Promise.all([
+                        fetch(`/api/technicals/${encodeURIComponent(cleanQuery)}`),
+                        fetch(`/api/earnings-volatility/${encodeURIComponent(cleanQuery)}`)
+                    ]);
+
+                    if (techRes.ok) {
+                        const tech = await techRes.json();
+                        const vol = volRes.ok ? await volRes.json() : null;
+
                         const newStockCard = {
                             id: `live_${cleanQuery}_${Date.now()}`,
                             symbol: tech.symbol,
@@ -366,14 +449,15 @@
                             details: `Current Market Price: ₹${tech.current_price}. 52W Range: ₹${tech['52w_low']} - ₹${tech['52w_high']}`,
                             pdf_url: null,
                             announced_at: 'Live Instant Scan',
-                            ai_summary: `🎯 Simple Outlook:\n• Price Action: Trading at ₹${tech.current_price}\n• RSI (14): ${tech.rsi} (${tech.rsi_badge})\n• Floor (Support): S1 ₹${tech.pivots.s1}\n• Ceiling (Resistance): R1 ₹${tech.pivots.r1}\n• Verdict: ${tech.verdict}`,
+                            ai_summary: `🎯 Simple Outlook:\n• Price Action: Trading at ₹${tech.current_price}\n• RSI (14): ${tech.rsi} (${tech.rsi_badge})\n• Floor (Support): S1 ₹${tech.pivots.s1}\n• Ceiling (Resistance): R1 ₹${tech.pivots.r1}\n• Historical 4Q Result Volatility: ${vol ? `±${vol.avg_abs_move}%` : 'Standard'}\n• Verdict: ${tech.verdict}`,
                             sentiment: tech.rsi <= 38 ? 'BULLISH' : (tech.rsi >= 70 ? 'BEARISH' : 'NEUTRAL'),
                             current_price: tech.current_price,
                             rsi: tech.rsi,
                             support_1: tech.pivots.s1,
                             resistance_1: tech.pivots.r1,
                             delivery_pct: tech.delivery_pct,
-                            whale_note: tech.whale_note
+                            whale_note: tech.whale_note,
+                            earnings_volatility: vol
                         };
 
                         setItems(prev => [newStockCard, ...prev.filter(p => p.symbol !== cleanQuery)]);
