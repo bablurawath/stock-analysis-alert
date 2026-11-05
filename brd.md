@@ -11,7 +11,7 @@ Retail investors tracking Indian equities (NSE & BSE) struggle during earnings s
 ### 1.2 Product Vision & Value Proposition
 To build an institutional-grade, **₹0-cost** market intelligence platform that:
 1. **Monitors Live Regulatory Filings:** Ingests official NSE corporate announcements within 60 seconds of release.
-2. **Extracts AI Financial Intelligence:** Uses Google Gemini 3.5 Flash to generate plain-English summaries (Revenue YoY/QoQ, EBITDA margins, PAT, red flags, guidance).
+2. **Extracts AI Financial Intelligence:** Uses Google Gemini 3.5 Flash to generate lain-English summaries (Revenue YoY/QoQ, EBITDA margins, PAT, red flags, guidance).
 3. **Calculates 360° Technical Indicators:** Computes real-time **14-day RSI**, **Support (S1/S2)** & **Resistance (R1/R2)** pivot levels, and **52-week price ranges**.
 4. **Delivers Universal Stock Scanning:** Allows users to search and scan **any Indian stock** on-demand (e.g., `RELIANCE`, `TCS`, `INFY`) for instant live technical analysis.
 5. **Dual-Channel Delivery:** Broadcasts alerts to an unlimited-member **Telegram Channel** (`@krishstockalert`) and serves a responsive **React 18 Web Dashboard** (`https://stock-analysis-alert.onrender.com`).
@@ -19,7 +19,7 @@ To build an institutional-grade, **₹0-cost** market intelligence platform that
 
 ---
 
-## 2. High-Level Architecture & Component Flow
+## 2.p High-Level Architecture & Component Flow
 
 ```
 ┌────────────────────────────────────────────────────────┐

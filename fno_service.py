@@ -70,8 +70,11 @@ def get_ist_today_str() -> str:
 
 def get_historical_earnings_moves(symbol: str, session: requests.Session = None) -> Dict[str, Any]:
     """
-    Computes the exact percentage move on earnings day for the last 3-4 quarters,
-    along with the average absolute move (expected earnings volatility) and average directional move.
+    Computes TRUE earnings reaction moves for the last 3-4 quarters:
+    - Post-Market / After-Hours Results (Declared after 3:30 PM):
+      Evaluated on T+1 (Next Trading Session) against Result Day Close.
+    - Market Hours Results (Declared 9:15 AM - 3:30 PM):
+      Evaluated on T (Same Day) against Previous Day Close.
     """
     clean_sym = symbol.strip().upper()
     if clean_sym in _EARNINGS_VOL_CACHE:
@@ -103,7 +106,8 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
                             past_dates.append({
                                 "raw_date": d_str,
                                 "iso_date": dt.strftime("%Y-%m-%d"),
-                                "dt": dt
+                                "dt": dt,
+                                "timing": "post_market" # default in India: >80% are filed post 4 PM
                             })
                     except Exception:
                         pass
@@ -113,10 +117,36 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
     past_dates.sort(key=lambda x: x["dt"], reverse=True)
     past_dates = past_dates[:4]
 
+    # Verify announcement timing (Market Hours vs Post-Market)
+    for p in past_dates:
+        try:
+            d_fmt = p["dt"].strftime("%d-%m-%Y")
+            ann_url = f"https://www.nseindia.com/api/corporate-announcements?index=equities&symbol={clean_sym}&from_date={d_fmt}&to_date={d_fmt}"
+            ar = session.get(ann_url, verify=False, timeout=6)
+            if ar.status_code == 200:
+                ann_items = ar.json()
+                for ai in ann_items:
+                    desc = str(ai.get("desc", "")).lower()
+                    if "outcome" in desc or "result" in desc or "financial" in desc:
+                        an_dt = ai.get("an_dt", "")
+                        parts = an_dt.split()
+                        if len(parts) >= 2:
+                            time_str = parts[1]
+                            hour = int(time_str.split(":")[0])
+                            minute = int(time_str.split(":")[1])
+                            # If filed between 9:15 AM and 3:30 PM -> Market Hours
+                            if (hour < 15 or (hour == 15 and minute < 30)) and (hour > 9 or (hour == 9 and minute >= 15)):
+                                p["timing"] = "market_hours"
+                            else:
+                                p["timing"] = "post_market"
+                        break
+        except Exception:
+            pass
+
     # Query Yahoo Finance 2-year daily chart
     yahoo_ticker = f"{clean_sym.replace('&', '_')}.NS"
     y_url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_ticker}?interval=1d&range=2y"
-    daily_map = {}
+    daily_candles = []
     try:
         req = urllib.request.Request(y_url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -126,46 +156,78 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
         closes = quotes.get("close", [])
         for i, ts in enumerate(timestamps):
             dt = dt_cls.fromtimestamp(ts, tz=timezone.utc)
-            d_str = dt.strftime("%Y-%m-%d")
-            daily_map[d_str] = {
-                "close": closes[i],
-                "prev_close": closes[i-1] if i > 0 and closes[i-1] is not None else closes[i]
-            }
+            daily_candles.append({
+                "date": dt.strftime("%Y-%m-%d"),
+                "display_date": dt.strftime("%d-%b-%Y"),
+                "close": closes[i]
+            })
     except Exception as e:
         print(f"[{clean_sym}] Yahoo Chart Error: {e}")
+
+    date_to_idx = {c["date"]: i for i, c in enumerate(daily_candles)}
 
     moves = []
     for p in past_dates:
         iso = p["iso_date"]
-        target = iso
-        if target not in daily_map:
+        idx = date_to_idx.get(iso)
+        if idx is None:
             p_dt = p["dt"]
             for offset in [1, 2, 3]:
                 cand = (p_dt + timedelta(days=offset)).strftime("%Y-%m-%d")
-                if cand in daily_map:
-                    target = cand
+                if cand in date_to_idx:
+                    idx = date_to_idx[cand]
                     break
 
-        if target in daily_map:
-            info = daily_map[target]
-            c = info["close"]
-            prev = info["prev_close"]
-            if c is not None and prev and prev > 0:
-                pct = round(((c - prev) / prev) * 100, 2)
-                moves.append({
-                    "date": p["raw_date"],
-                    "pct": pct,
-                    "close": round(c, 2),
-                    "prev": round(prev, 2)
-                })
+        if idx is not None:
+            timing = p.get("timing", "post_market")
+            if timing == "post_market":
+                # Result filed after 3:30 PM:
+                # Pre-result base is Result Day close (idx).
+                # True reaction is observed on Next Trading Session T+1 (idx + 1).
+                if idx + 1 < len(daily_candles):
+                    base_candle = daily_candles[idx]
+                    reaction_candle = daily_candles[idx + 1]
+                    base_price = base_candle["close"]
+                    reaction_price = reaction_candle["close"]
+                    if base_price and reaction_price and base_price > 0:
+                        pct = round(((reaction_price - base_price) / base_price) * 100, 2)
+                        moves.append({
+                            "result_date": p["raw_date"],
+                            "reaction_date": reaction_candle["display_date"],
+                            "timing": "Post-Market (T+1 Reaction)",
+                            "timing_short": "T+1 Next Day",
+                            "base_price": round(base_price, 2),
+                            "reaction_price": round(reaction_price, 2),
+                            "pct": pct
+                        })
+            else:
+                # Result filed during Market Hours (09:15 - 15:30):
+                # Pre-result base is Previous Day close (idx - 1).
+                # Reaction is observed on Result Day (idx).
+                if idx > 0:
+                    base_candle = daily_candles[idx - 1]
+                    reaction_candle = daily_candles[idx]
+                    base_price = base_candle["close"]
+                    reaction_price = reaction_candle["close"]
+                    if base_price and reaction_price and base_price > 0:
+                        pct = round(((reaction_price - base_price) / base_price) * 100, 2)
+                        moves.append({
+                            "result_date": p["raw_date"],
+                            "reaction_date": reaction_candle["display_date"],
+                            "timing": "Market Hours (Intraday)",
+                            "timing_short": "Intraday",
+                            "base_price": round(base_price, 2),
+                            "reaction_price": round(reaction_price, 2),
+                            "pct": pct
+                        })
 
     # Benchmark fallback if IPO or history is short
     if not moves:
         moves = [
-            {"date": "Q1 FY26", "pct": 2.40, "close": 0.0, "prev": 0.0},
-            {"date": "Q4 FY25", "pct": -1.80, "close": 0.0, "prev": 0.0},
-            {"date": "Q3 FY25", "pct": 3.10, "close": 0.0, "prev": 0.0},
-            {"date": "Q2 FY25", "pct": -2.20, "close": 0.0, "prev": 0.0}
+            {"result_date": "Q1 FY26", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": 2.40, "base_price": 0.0, "reaction_price": 0.0},
+            {"result_date": "Q4 FY25", "reaction_date": "Intraday", "timing": "Market Hours (Intraday)", "timing_short": "Intraday", "pct": -1.80, "base_price": 0.0, "reaction_price": 0.0},
+            {"result_date": "Q3 FY25", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": 3.10, "base_price": 0.0, "reaction_price": 0.0},
+            {"result_date": "Q2 FY25", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": -2.20, "base_price": 0.0, "reaction_price": 0.0}
         ]
 
     abs_avg = round(sum(abs(m["pct"]) for m in moves) / len(moves), 2)
@@ -218,7 +280,7 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
     Enriched with:
     - Real-time Price, RSI, Support/Resistance
     - Delivery % accumulation
-    - Historical earnings moves for the last 3-4 quarters
+    - True earnings moves for the last 3-4 quarters (differentiating Market Hours vs Post-Market T+1)
     - Average absolute move (expected volatility) & average directional move
     """
     global _CACHE_DATA, _CACHE_TIMESTAMP
@@ -323,8 +385,8 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
         is_declared = (c["type"] == "declared")
         status_label = "DECLARED TODAY" if is_declared else f"BOARD MEETING ({c.get('c_date', 'Upcoming')})"
 
-        # Generate institutional breakdown text
-        past_moves_summary = " • ".join([f"{m['date']}: {m['pct']:+0.2f}%" for m in vol.get("quarter_moves", [])[:4]])
+        # Generate summary with timing distinction
+        past_moves_summary = " • ".join([f"{m.get('timing_short', 'Move')}: {m['pct']:+0.2f}%" for m in vol.get("quarter_moves", [])[:4]])
 
         if is_declared:
             summary = (
@@ -333,11 +395,11 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
                 f"📊 *Actionable Signal & Earnings Volatility*:\n"
                 f"• Status: {status_label}\n"
                 f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi} ({'Bullish Momentum' if rsi <= 40 else ('Overbought' if rsi >= 70 else 'Neutral')})\n"
-                f"• Historical Earnings Move (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
-                f"• Recent 4Q Reaction: {past_moves_summary or 'In range'}\n"
+                f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
+                f"• True Reaction History: {past_moves_summary or 'In range'}\n"
                 f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
                 f"• Delivery Accumulation: {del_pct}% ({'Whale Accumulation' if del_pct >= 60 else 'Routine Flow'})\n\n"
-                f"🎯 *Takeaway*: Watch for breakout beyond the historical ±{vol['avg_abs_move']}% volatility band."
+                f"🎯 *Takeaway*: Watch for post-result continuation or open-interest shift beyond the ±{vol['avg_abs_move']}% volatility band."
             )
         else:
             summary = (
@@ -345,11 +407,11 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
                 f"{comp_name} ({sym}) has convened a Board Meeting on {c.get('c_date', 'Today')} to consider Quarterly Financial Results.\n\n"
                 f"📊 *Pre-Result Positioning & Volatility Radar*:\n"
                 f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi}\n"
-                f"• Historical Earnings Move (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
-                f"• Past Result Reactions: {past_moves_summary or 'In range'}\n"
+                f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
+                f"• Past True Reactions: {past_moves_summary or 'In range'}\n"
                 f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
                 f"• Delivery Absorption: {del_pct}% ({'High Delivery Inflow' if del_pct >= 60 else 'Standard Churn'})\n\n"
-                f"🎯 *Pre-Result Stance*: Options pricing implies a move of ±{vol['avg_abs_move']}%. Look for IV crush post-announcement."
+                f"🎯 *Pre-Result Stance*: Historical reactions average ±{vol['avg_abs_move']}%. Look for IV crush post-announcement."
             )
 
         results.append({
