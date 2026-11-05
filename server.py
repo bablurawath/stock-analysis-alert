@@ -24,7 +24,11 @@ from main import load_seen_ids, process_cycle
 from database import get_recent_announcements, save_announcement
 from technicals import get_stock_technicals
 from exchange_client import fetch_latest_announcements
-from fno_service import fetch_today_fno_results, get_historical_earnings_moves
+from fno_service import (
+    fetch_today_fno_results,
+    get_historical_earnings_moves,
+    broadcast_today_fno_results
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_FILE = BASE_DIR / "templates" / "index.html"
@@ -93,7 +97,10 @@ def background_worker():
 
     while True:
         try:
+            # 1. Process regular watchlist filings
             process_cycle(seen_ids)
+            # 2. Check and broadcast F&O Result Radar once per day
+            broadcast_today_fno_results(force=False)
         except Exception as e:
             print(f"[Worker Error] {e}")
 
@@ -114,6 +121,12 @@ def api_announcements(search: Optional[str] = "", limit: int = 50):
 def api_fno_results_today():
     results = fetch_today_fno_results()
     return JSONResponse(content={"count": len(results), "results": results})
+
+@app.post("/api/broadcast/fno-today")
+@app.get("/api/broadcast/fno-today")
+def api_broadcast_fno_today(force: bool = False):
+    res = broadcast_today_fno_results(force=force)
+    return JSONResponse(content=res)
 
 @app.get("/api/earnings-volatility/{symbol}")
 def api_earnings_volatility(symbol: str):

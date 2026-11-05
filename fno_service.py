@@ -7,7 +7,12 @@ import datetime
 from datetime import datetime as dt_cls, timezone, timedelta
 from typing import List, Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from technicals import get_stock_technicals
+from telegram_client import send_telegram_alert
+
+BASE_DIR = Path(__file__).resolve().parent
+FNO_BROADCAST_FILE = BASE_DIR / "fno_broadcasts.json"
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -67,6 +72,111 @@ def get_ist_today_str() -> str:
     ist = timezone(timedelta(hours=5, minutes=30))
     now = dt_cls.now(ist)
     return now.strftime("%d-%m-%Y")
+
+def has_broadcasted_today(date_str: str) -> bool:
+    """Checks if today's F&O results have already been broadcasted to Telegram."""
+    if FNO_BROADCAST_FILE.exists():
+        try:
+            with open(FNO_BROADCAST_FILE, "r") as f:
+                data = json.load(f)
+                return bool(data.get(date_str))
+        except Exception:
+            return False
+    return False
+
+def mark_broadcasted_today(date_str: str):
+    """Marks today's date as broadcasted to prevent duplicate sends."""
+    data = {}
+    if FNO_BROADCAST_FILE.exists():
+        try:
+            with open(FNO_BROADCAST_FILE, "r") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+    data[date_str] = {
+        "timestamp": dt_cls.now().isoformat(),
+        "status": "SENT"
+    }
+    try:
+        with open(FNO_BROADCAST_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"[Broadcast Log] Error saving tracker: {e}")
+
+def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
+    """
+    Broadcasts the F&O Declared Results to Telegram exactly ONCE per result day.
+    Includes:
+    - Only stocks with DECLARED financial results (no board meetings)
+    - Single quarter move for all 4 quarters (Q1, Q2, Q3, Q4)
+    - 4Q Average Expected Volatility & Directional Bias
+    - Classic Support/Resistance floor/ceiling & Delivery %
+    """
+    today_str = get_ist_today_str()
+    if not force and has_broadcasted_today(today_str):
+        return {"status": "SKIPPED", "message": f"F&O results already broadcasted for {today_str}"}
+
+    fno_results = fetch_today_fno_results()
+    if not fno_results:
+        return {"status": "NO_DATA", "message": "No F&O financial results declared today"}
+
+    # STRICT FILTER: Only broadcast when actual financial results are DECLARED today
+    declared = [r for r in fno_results if "DECLARED" in r.get("result_status", "").upper()]
+    if not declared:
+        return {
+            "status": "NO_DECLARED_RESULTS",
+            "message": f"No F&O financial results declared today ({today_str}). Board meetings without results are excluded from broadcast."
+        }
+
+    lines = [
+        f"⚡ *F&O RESULTS DECLARED TODAY ({today_str})*",
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"📊 *{len(declared)} F&O Derivatives Stocks Declared Results Today*\n"
+    ]
+
+    for r in declared[:12]:
+        vol = r.get("earnings_volatility", {})
+        avg_move = vol.get("avg_abs_move", 2.2)
+        bias = vol.get("avg_dir_move", 0.0)
+        bias_str = f"+{bias}%" if bias > 0 else f"{bias}%"
+        q_moves = vol.get("quarter_moves", [])[:4]
+
+        # Format individual quarter movements for all 4 quarters
+        q_text_parts = []
+        for idx, q in enumerate(q_moves, start=1):
+            q_label = q.get("quarter") or f"Q{idx}"
+            d_str = q.get("result_date", "")
+            # Short date label e.g. "07-Aug"
+            d_short = "-".join(d_str.split("-")[:2]) if "-" in d_str else d_str
+            t_short = q.get("timing_short", "T+1")
+            pct = q.get("pct", 0.0)
+            pct_str = f"+{pct}%" if pct > 0 else f"{pct}%"
+            arrow = "🟢 ↗" if pct > 0 else ("🔴 ↘" if pct < 0 else "⚪ →")
+            q_text_parts.append(f"  • *{q_label}* ({d_short}): *{pct_str}* {arrow} ({t_short})")
+
+        q_breakdown = "\n".join(q_text_parts) if q_text_parts else "  • Data being indexed"
+
+        lines.append(
+            f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
+            f"• *CMP*: ₹{r['current_price']:,.1f} | *Delivery*: {r['delivery_pct']}%\n"
+            f"• *Past 4 Quarters True Reaction Moves*:\n"
+            f"{q_breakdown}\n"
+            f"• *Expected Swing (4Q Avg)*: *±{avg_move}%* (Bias: {bias_str})\n"
+            f"• *Key Levels*: S1 ₹{r['support_1']:,.1f} | R1 ₹{r['resistance_1']:,.1f}\n"
+            f"─────────────────────────"
+        )
+
+    lines.append("🎯 *Live 360° F&O Derivatives Radar:*")
+    lines.append("👉 https://stock-analysis-alert.onrender.com")
+
+    msg = "\n".join(lines)
+    sent = send_telegram_alert(msg)
+    if sent:
+        mark_broadcasted_today(today_str)
+        print(f"[Broadcast] Successfully sent F&O Result Radar to Telegram for {today_str}")
+        return {"status": "SUCCESS", "message": f"Successfully broadcasted {len(declared)} declared F&O results for {today_str}"}
+    else:
+        return {"status": "FAILED", "message": "Failed to send Telegram alert"}
 
 def get_historical_earnings_moves(symbol: str, session: requests.Session = None) -> Dict[str, Any]:
     """
@@ -144,7 +254,7 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
             pass
 
     # Query Yahoo Finance 2-year daily chart
-    yahoo_ticker = f"{clean_sym.replace('&', '_')}.NS"
+    yahoo_ticker = f"{clean_sym.replace('&', '%26')}.NS"
     y_url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_ticker}?interval=1d&range=2y"
     daily_candles = []
     try:
@@ -180,6 +290,7 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
 
         if idx is not None:
             timing = p.get("timing", "post_market")
+            q_num = len(moves) + 1
             if timing == "post_market":
                 # Result filed after 3:30 PM:
                 # Pre-result base is Result Day close (idx).
@@ -192,6 +303,7 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
                     if base_price and reaction_price and base_price > 0:
                         pct = round(((reaction_price - base_price) / base_price) * 100, 2)
                         moves.append({
+                            "quarter": f"Q{q_num}",
                             "result_date": p["raw_date"],
                             "reaction_date": reaction_candle["display_date"],
                             "timing": "Post-Market (T+1 Reaction)",
@@ -212,6 +324,7 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
                     if base_price and reaction_price and base_price > 0:
                         pct = round(((reaction_price - base_price) / base_price) * 100, 2)
                         moves.append({
+                            "quarter": f"Q{q_num}",
                             "result_date": p["raw_date"],
                             "reaction_date": reaction_candle["display_date"],
                             "timing": "Market Hours (Intraday)",
@@ -224,10 +337,10 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
     # Benchmark fallback if IPO or history is short
     if not moves:
         moves = [
-            {"result_date": "Q1 FY26", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": 2.40, "base_price": 0.0, "reaction_price": 0.0},
-            {"result_date": "Q4 FY25", "reaction_date": "Intraday", "timing": "Market Hours (Intraday)", "timing_short": "Intraday", "pct": -1.80, "base_price": 0.0, "reaction_price": 0.0},
-            {"result_date": "Q3 FY25", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": 3.10, "base_price": 0.0, "reaction_price": 0.0},
-            {"result_date": "Q2 FY25", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": -2.20, "base_price": 0.0, "reaction_price": 0.0}
+            {"quarter": "Q1", "result_date": "Q1 FY26", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": 2.40, "base_price": 0.0, "reaction_price": 0.0},
+            {"quarter": "Q2", "result_date": "Q4 FY25", "reaction_date": "Intraday", "timing": "Market Hours (Intraday)", "timing_short": "Intraday", "pct": -1.80, "base_price": 0.0, "reaction_price": 0.0},
+            {"quarter": "Q3", "result_date": "Q3 FY25", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": 3.10, "base_price": 0.0, "reaction_price": 0.0},
+            {"quarter": "Q4", "result_date": "Q2 FY25", "reaction_date": "Next Day", "timing": "Post-Market (T+1 Reaction)", "timing_short": "T+1", "pct": -2.20, "base_price": 0.0, "reaction_price": 0.0}
         ]
 
     abs_avg = round(sum(abs(m["pct"]) for m in moves) / len(moves), 2)
@@ -334,31 +447,8 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"[FNO Results] Error fetching today announcements: {e}")
 
-    # Step 3: Check Event Calendar for upcoming/scheduled F&O board meetings
-    try:
-        cal_r = session.get("https://www.nseindia.com/api/event-calendar?index=equities", verify=False, timeout=15)
-        if cal_r.status_code == 200:
-            cal_items = cal_r.json()
-            for c in cal_items:
-                sym = c.get("symbol", "").strip().upper()
-                purpose = c.get("purpose", "").lower()
-                c_date = c.get("date", "").strip()
-
-                if sym in NSE_FNO_SYMBOLS and sym not in seen_symbols and "financial result" in purpose:
-                    seen_symbols.add(sym)
-                    raw_candidates.append({
-                        "type": "scheduled",
-                        "symbol": sym,
-                        "company_name": c.get("company") or sym,
-                        "subject": f"Board Meeting for Financial Results ({c_date})",
-                        "details": c.get("bm_desc", ""),
-                        "pdf_url": "",
-                        "time_str": f"Scheduled: {c_date}",
-                        "seq_id": int(time.time()),
-                        "c_date": c_date
-                    })
-    except Exception as e:
-        print(f"[FNO Results] Error fetching event calendar: {e}")
+    # Step 3: Filter strictly for DECLARED results only.
+    # Board meetings without declared results are excluded as per requirement ("if there is no result no need to display").
 
     # Step 4: Batch fetch technicals and historical earnings volatility in parallel
     all_symbols = [c["symbol"] for c in raw_candidates]
@@ -382,37 +472,28 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
         del_pct = tech.get("delivery_pct", 55.0)
         whale_note = tech.get("whale_note", "Active F&O derivatives volume")
 
-        is_declared = (c["type"] == "declared")
-        status_label = "DECLARED TODAY" if is_declared else f"BOARD MEETING ({c.get('c_date', 'Upcoming')})"
+        status_label = "DECLARED TODAY"
 
-        # Generate summary with timing distinction
-        past_moves_summary = " • ".join([f"{m.get('timing_short', 'Move')}: {m['pct']:+0.2f}%" for m in vol.get("quarter_moves", [])[:4]])
+        # Generate summary with timing distinction & 4-quarter breakdown
+        q_breakdown_items = []
+        for idx, m in enumerate(vol.get("quarter_moves", [])[:4], start=1):
+            q_label = m.get("quarter") or f"Q{idx}"
+            d_short = "-".join(m.get("result_date", "").split("-")[:2]) if "-" in m.get("result_date", "") else m.get("result_date", "")
+            q_breakdown_items.append(f"{q_label} ({d_short}): {m['pct']:+0.2f}% ({m.get('timing_short', 'T+1')})")
+        past_moves_summary = " • ".join(q_breakdown_items)
 
-        if is_declared:
-            summary = (
-                f"📌 *F&O Quarterly Earnings Released*:\n"
-                f"{comp_name} ({sym}) officially submitted its financial results to the exchange today.\n\n"
-                f"📊 *Actionable Signal & Earnings Volatility*:\n"
-                f"• Status: {status_label}\n"
-                f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi} ({'Bullish Momentum' if rsi <= 40 else ('Overbought' if rsi >= 70 else 'Neutral')})\n"
-                f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
-                f"• True Reaction History: {past_moves_summary or 'In range'}\n"
-                f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
-                f"• Delivery Accumulation: {del_pct}% ({'Whale Accumulation' if del_pct >= 60 else 'Routine Flow'})\n\n"
-                f"🎯 *Takeaway*: Watch for post-result continuation or open-interest shift beyond the ±{vol['avg_abs_move']}% volatility band."
-            )
-        else:
-            summary = (
-                f"⏱️ *F&O Result Board Meeting Scheduled*:\n"
-                f"{comp_name} ({sym}) has convened a Board Meeting on {c.get('c_date', 'Today')} to consider Quarterly Financial Results.\n\n"
-                f"📊 *Pre-Result Positioning & Volatility Radar*:\n"
-                f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi}\n"
-                f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
-                f"• Past True Reactions: {past_moves_summary or 'In range'}\n"
-                f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
-                f"• Delivery Absorption: {del_pct}% ({'High Delivery Inflow' if del_pct >= 60 else 'Standard Churn'})\n\n"
-                f"🎯 *Pre-Result Stance*: Historical reactions average ±{vol['avg_abs_move']}%. Look for IV crush post-announcement."
-            )
+        summary = (
+            f"📌 *F&O Quarterly Earnings Released*:\n"
+            f"{comp_name} ({sym}) officially submitted its financial results to the exchange today.\n\n"
+            f"📊 *Actionable Signal & Earnings Volatility*:\n"
+            f"• Status: {status_label}\n"
+            f"• CMP: ₹{price:,.2f} | 14-D RSI: {rsi} ({'Bullish Momentum' if rsi <= 40 else ('Overbought' if rsi >= 70 else 'Neutral')})\n"
+            f"• Expected Earnings Swing (Last 4Q Avg): ±{vol['avg_abs_move']}% (Directional: {vol['avg_dir_move']:+0.2f}%)\n"
+            f"• Past 4 Quarters Moves: {past_moves_summary or 'In range'}\n"
+            f"• Pivot Levels: S1 ₹{pivots.get('s1', 0):,.2f} | R1 ₹{pivots.get('r1', 0):,.2f}\n"
+            f"• Delivery Accumulation: {del_pct}% ({'Whale Accumulation' if del_pct >= 60 else 'Routine Flow'})\n\n"
+            f"🎯 *Takeaway*: Watch for post-result continuation or open-interest shift beyond the ±{vol['avg_abs_move']}% volatility band."
+        )
 
         results.append({
             "id": f"fno_{sym}_{c['seq_id']}",

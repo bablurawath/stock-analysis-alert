@@ -52,7 +52,7 @@ def get_stock_technicals(symbol: str) -> Optional[Dict[str, Any]]:
     - Pivot Points (Support 1, 2 & Resistance 1, 2)
     - Delivery Accumulation % and Whale Footprint
     """
-    clean_symbol = symbol.strip().upper().replace("&", "_")
+    clean_symbol = symbol.strip().upper().replace("&", "%26")
     yahoo_ticker = f"{clean_symbol}.NS"
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_ticker}?interval=1d&range=3mo"
 
