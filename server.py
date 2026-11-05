@@ -24,6 +24,7 @@ from main import load_seen_ids, process_cycle
 from database import get_recent_announcements, save_announcement
 from technicals import get_stock_technicals
 from exchange_client import fetch_latest_announcements
+from fno_service import fetch_today_fno_results
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_FILE = BASE_DIR / "templates" / "index.html"
@@ -108,6 +109,11 @@ def on_startup():
 def api_announcements(search: Optional[str] = "", limit: int = 50):
     data = get_recent_announcements(limit=limit, search=search)
     return JSONResponse(content={"count": len(data), "announcements": data})
+
+@app.get("/api/fno-results/today")
+def api_fno_results_today():
+    results = fetch_today_fno_results()
+    return JSONResponse(content={"count": len(results), "results": results})
 
 @app.get("/api/technicals/{symbol}")
 def api_technicals(symbol: str):
