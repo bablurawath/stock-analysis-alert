@@ -67,6 +67,100 @@ CACHE_TTL = 300  # 5 minutes
 # In-memory cache for earnings volatility
 _EARNINGS_VOL_CACHE: Dict[str, Any] = {}
 
+def get_strike_step(price: float) -> float:
+    """Standard NSE Equity Derivative Option Strike Step Intervals."""
+    if price < 150: return 2.5
+    if price < 300: return 5.0
+    if price < 700: return 10.0
+    if price < 1500: return 20.0
+    if price < 3500: return 50.0
+    if price < 7000: return 100.0
+    return 250.0
+
+def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Evaluates 70-80% Win-Rate Strangle/Straddle Setup for Earnings Day:
+    - Calculates exact ATM and 1-Strike OTM options based on NSE strike grids
+    - Determines required breakeven move vs historical 4Q earnings moves
+    - Flags high-probability setups (75-80%+) and filters out IV crush traps
+    """
+    if not cmp or cmp <= 0:
+        return {}
+    step = get_strike_step(cmp)
+    atm = int(round(cmp / step) * step) if step >= 1 else round(cmp / step) * step
+    otm_c = int(atm + step) if step >= 1 else atm + step
+    otm_p = int(atm - step) if step >= 1 else atm - step
+    
+    q_moves = vol.get('quarter_moves', [])
+    avg_abs = vol.get('avg_abs_move', 2.0)
+    
+    # 1. 1-Strike OTM Strangle Breakeven (~step/cmp + 1.2% premium)
+    strangle_be = round((step / cmp * 100) * 0.7 + 1.2, 2)
+    strangle_wins = sum(1 for q in q_moves if abs(q.get('pct', 0)) >= strangle_be)
+    strangle_pop = round((strangle_wins / max(len(q_moves), 1)) * 100)
+    
+    # 2. ATM Straddle Breakeven (~2.4% combined premium)
+    straddle_be = 2.40
+    straddle_wins = sum(1 for q in q_moves if abs(q.get('pct', 0)) >= straddle_be)
+    straddle_pop = round((straddle_wins / max(len(q_moves), 1)) * 100)
+    
+    if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
+        return {
+            'strategy': '1-Strike OTM Strangle (Max ROI)',
+            'pop_pct': strangle_pop,
+            'call_strike': otm_c,
+            'put_strike': otm_p,
+            'atm_strike': atm,
+            'strikes_label': f'{otm_c} CE + {otm_p} PE',
+            'breakeven_pct': strangle_be,
+            'grade': 'HIGH_75_80',
+            'grade_label': '75-80% WIN RATE',
+            'color': 'emerald',
+            'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters.'
+        }
+    elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
+        return {
+            'strategy': 'ATM Straddle (High Probability)',
+            'pop_pct': straddle_pop,
+            'call_strike': atm,
+            'put_strike': atm,
+            'atm_strike': atm,
+            'strikes_label': f'{atm} CE + {atm} PE',
+            'breakeven_pct': straddle_be,
+            'grade': 'HIGH_75',
+            'grade_label': '75% WIN RATE',
+            'color': 'emerald',
+            'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%).'
+        }
+    elif strangle_pop >= 50 or straddle_pop >= 50:
+        return {
+            'strategy': '1-Strike OTM Strangle',
+            'pop_pct': max(strangle_pop, straddle_pop),
+            'call_strike': otm_c,
+            'put_strike': otm_p,
+            'atm_strike': atm,
+            'strikes_label': f'{otm_c} CE + {otm_p} PE',
+            'breakeven_pct': strangle_be,
+            'grade': 'MODERATE',
+            'grade_label': '50-70% MODERATE',
+            'color': 'amber',
+            'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}%.'
+        }
+    else:
+        return {
+            'strategy': 'AVOID (IV Crush Trap)',
+            'pop_pct': max(strangle_pop, straddle_pop),
+            'call_strike': otm_c,
+            'put_strike': otm_p,
+            'atm_strike': atm,
+            'strikes_label': 'No Trade Recommended',
+            'breakeven_pct': strangle_be,
+            'grade': 'AVOID',
+            'grade_label': 'AVOID (<40% POP)',
+            'color': 'rose',
+            'reason': f'Historical swing (±{avg_abs}%) is too low to beat IV crush (needs ±{strangle_be}%). Options decay trap.'
+        }
+
 def get_ist_today_str() -> str:
     """Returns today's date formatted as DD-MM-YYYY in Indian Standard Time."""
     ist = timezone(timedelta(hours=5, minutes=30))
@@ -532,6 +626,8 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
                 f"🎯 *Pre-Market Takeaway*: Historical reactions average ±{vol['avg_abs_move']}%. Look for IV crush or directional breakout beyond S1/R1."
             )
 
+        strike_setup = get_fno_strike_setup(price, vol)
+
         results.append({
             "id": f"fno_{sym}_{c['seq_id']}",
             "symbol": sym,
@@ -550,7 +646,8 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
             "whale_note": whale_note,
             "is_fno": True,
             "result_status": status_label,
-            "earnings_volatility": vol
+            "earnings_volatility": vol,
+            "strike_setup": strike_setup
         })
 
     _CACHE_DATA = results

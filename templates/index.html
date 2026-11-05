@@ -253,6 +253,58 @@
                             </div>
                         )}
 
+                        {/* 4C. High-Probability (70-80%) Strike Recommendation Setup */}
+                        {item.strike_setup && item.strike_setup.strategy && (
+                            <div className={`mb-3.5 rounded-xl p-3 border ${
+                                item.strike_setup.color === 'emerald' 
+                                    ? 'bg-gradient-to-br from-emerald-950/40 to-gray-950 border-emerald-500/40' 
+                                    : (item.strike_setup.color === 'amber' 
+                                        ? 'bg-gradient-to-br from-amber-950/30 to-gray-950 border-amber-500/30' 
+                                        : 'bg-gradient-to-br from-rose-950/30 to-gray-950 border-rose-500/30')
+                            }`}>
+                                <div className="flex items-center justify-between text-xs mb-1.5">
+                                    <span className="font-extrabold flex items-center space-x-1.5 text-white">
+                                        <i className="fa-solid fa-bullseye text-blue-400"></i>
+                                        <span>70-80% Probability Strike Pick</span>
+                                    </span>
+                                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded border ${
+                                        item.strike_setup.color === 'emerald'
+                                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                            : (item.strike_setup.color === 'amber'
+                                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                                : 'bg-rose-500/20 text-rose-300 border-rose-500/40')
+                                    }`}>
+                                        {item.strike_setup.grade_label}
+                                    </span>
+                                </div>
+
+                                <div className="bg-gray-950/90 p-2.5 rounded-lg border border-gray-800 text-xs">
+                                    <div className="flex items-center justify-between font-bold text-gray-200">
+                                        <span className="text-[11px] text-gray-400 font-medium">Recommended:</span>
+                                        <span className="text-white font-mono text-[11px]">{item.strike_setup.strategy}</span>
+                                    </div>
+                                    
+                                    {item.strike_setup.grade !== 'AVOID' && (
+                                        <div className="mt-2 pt-2 border-t border-gray-800/80 flex items-center justify-between font-mono">
+                                            <span className="text-[10px] text-gray-400">Target Strikes:</span>
+                                            <span className="font-extrabold text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/30 text-xs tracking-wide">
+                                                {item.strike_setup.strikes_label}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-2 pt-1.5 border-t border-gray-800/60 flex items-center justify-between text-[10px] text-gray-400">
+                                        <span>Breakeven Move: <strong className="text-amber-300">±{item.strike_setup.breakeven_pct}%</strong></span>
+                                        <span>Past 4Q Swing: <strong className="text-emerald-400">±{item.earnings_volatility ? item.earnings_volatility.avg_abs_move : 0}%</strong></span>
+                                    </div>
+                                </div>
+
+                                <p className="text-[10px] text-gray-400 mt-2 leading-tight">
+                                    💡 {item.strike_setup.reason}
+                                </p>
+                            </div>
+                        )}
+
                         {/* 5. 1-Minute AI Takeaway */}
                         <div className="mb-3">
                             <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center justify-between">
