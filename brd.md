@@ -283,4 +283,4 @@ Each F&O card features an interactive **70-80% Probability Strike Pick** section
 | **v1.5.0** | `bd5c757` | 05-Nov-2026 | Strict declared result filtering, board meeting exclusion from broadcast, and 4 single-quarter movements display. |
 | **v1.6.0** | `e021ff0` | 05-Nov-2026 | Morning Pre-Market F&O Briefing (8:30–9:00 AM IST) sent before results drop with exact today's board meeting ingestion. |
 | **v1.7.0** | `ce8de84` | 05-Nov-2026 | Institutional 70%–80% Win-Rate Strike Pick Engine (1-Strike OTM Strangle vs ATM Straddle vs Avoid IV Crush) on dashboard cards. |
-| **v1.8.0** | `HEAD` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
+| **v1.8.0** | `7db5aa5` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
