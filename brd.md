@@ -316,4 +316,4 @@ To eliminate visual clutter, nested boxes, and fragmented cards across web and m
 | **v1.8.0** | `7db5aa5` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
 | **v1.8.1** | `8f2d0f1` | 06-Nov-2026 | Telegram Broadcast Integration: Enriched Morning Briefing with 70–80% strike recommendations, breakeven thresholds, and hourly tags. |
 | **v1.9.0** | `8539bbd` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
-| **v2.0.0** | `HEAD` | 06-Nov-2026 | Professional Layout Redesign: Unified 4-tile KPI metric strip, consolidated hero trading terminal panel, 4-quarter reaction ribbon, and executive Bloomberg-style Telegram alerts. |
+| **v2.0.0** | `d3f42c2` | 06-Nov-2026 | Professional Layout Redesign: Unified 4-tile KPI metric strip, consolidated hero trading terminal panel, 4-quarter reaction ribbon, and executive Bloomberg-style Telegram alerts. |
