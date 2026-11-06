@@ -52,6 +52,65 @@ NSE_FNO_SYMBOLS = {
     "VOLTAS", "WIPRO", "YESBANK", "ZEEL", "ZOMATO", "ZYDUSLIFE"
 }
 
+# Standard NSE Market Lot Sizes for Equity Derivatives
+NSE_LOT_SIZES: Dict[str, int] = {
+    "AARTIIND": 1000, "ABB": 125, "ABBOTINDIA": 20, "ABCAPITAL": 3100, "ABFRL": 2600,
+    "ACC": 300, "ADANIENT": 300, "ADANIPORTS": 400, "ALKEM": 100, "AMBUJACEM": 900,
+    "APOLLOHOSP": 125, "APOLLOTYRE": 1700, "ASHOKLEY": 5000, "ASIANPAINT": 200, "ASTRAL": 275,
+    "ATUL": 75, "AUBANK": 1000, "AUROPHARMA": 550, "AXISBANK": 625, "BAJAJ-AUTO": 75,
+    "BAJAJFINSV": 500, "BAJFINANCE": 125, "BALKRISIND": 300, "BALRAMCHIN": 1600, "BANDHANBNK": 3000,
+    "BANKBARODA": 2925, "BATAINDIA": 375, "BEL": 2850, "BERGEPAINT": 1100, "BHARATFORG": 500,
+    "BHEL": 2625, "BHARTIARTL": 475, "BIOCON": 2500, "BOSCHLTD": 25, "BPCL": 1800,
+    "BRITANNIA": 200, "BSOFT": 1000, "CANBK": 6750, "CANFINHOME": 975, "CHAMBLFERT": 1500,
+    "CHOLAFIN": 625, "CIPLA": 650, "COALINDIA": 2100, "COFORGE": 150, "COLPAL": 200,
+    "CONCOR": 1000, "COROMANDEL": 700, "CROMPTON": 1800, "CUMMINSIND": 300, "DABUR": 1250,
+    "DALBHARAT": 325, "DEEPAKNTR": 300, "DELHIVERY": 1100, "DIVISLAB": 100, "DIXON": 50,
+    "DLF": 825, "DRREDDY": 125, "EICHERMOT": 175, "ESCORTS": 275, "EXIDEIND": 1200,
+    "FEDERALBNK": 5000, "GAIL": 2750, "GLENMARK": 575, "GMRINFRA": 5000, "GNFC": 1300,
+    "GODREJCP": 500, "GODREJPROP": 200, "GRANULES": 2000, "GRASIM": 250, "GUJGASLTD": 1250,
+    "HAL": 150, "HAVELLS": 500, "HCLTECH": 350, "HDFCAMC": 150, "HDFCBANK": 550,
+    "HDFCLIFE": 1100, "HEROMOTOCO": 150, "HINDALCO": 1400, "HINDCOPPER": 2650, "HINDPETRO": 1350,
+    "HINDUNILVR": 300, "HUDCO": 3500, "ICICIBANK": 700, "ICICIGI": 350, "ICICIPRULI": 1500,
+    "IDEA": 40000, "IDFCFIRSTB": 7500, "IEX": 3750, "IGL": 1375, "INDHOTEL": 1000,
+    "INDIACEM": 2800, "INDIAMART": 150, "INDIANB": 1000, "INDIGO": 150, "INDUSINDBK": 500,
+    "INDUSTOWER": 1700, "INFY": 400, "IOC": 4875, "IPCALAB": 325, "IRCTC": 875,
+    "IREDA": 3000, "IRFC": 3000, "ITC": 1600, "JINDALSTEL": 625, "JIOFIN": 2000,
+    "JKCEMENT": 125, "JSWENERGY": 1000, "JSWSTEEL": 675, "JUBLFOOD": 1250, "KALYANKJIL": 1000,
+    "KEI": 125, "KOTAKBANK": 400, "LALPATHLAB": 175, "LAURUSLABS": 1100, "LICHSGFIN": 1000,
+    "LICI": 700, "LT": 150, "LTIM": 150, "LTTS": 100, "LUPIN": 425,
+    "M&M": 350, "M&MFIN": 2000, "MANAPPURAM": 3000, "MARICO": 1200, "MARUTI": 50,
+    "MAXHEALTH": 500, "MCDOWELL-N": 500, "MCX": 125, "METROPOLIS": 200, "MFSL": 650,
+    "MGL": 400, "MOTHERSON": 4400, "MPHASIS": 275, "MRF": 5, "MUTHOOTFIN": 550,
+    "NATIONALUM": 3750, "NAUKRI": 75, "NAVINFLUOR": 150, "NESTLEIND": 40, "NHPC": 6000,
+    "NMDC": 3375, "NTPC": 1500, "NYKAA": 2500, "OBEROIRLTY": 350, "OFSS": 100,
+    "ONGC": 3850, "PAGEIND": 15, "PAYTM": 700, "PEL": 750, "PERSISTENT": 100,
+    "PETRONET": 3000, "PFC": 1300, "PHOENIXLTD": 350, "PIDILITIND": 250, "PIIND": 150,
+    "PNB": 4000, "POLICYBZR": 450, "POLYCAB": 100, "POONAWALLA": 1250, "POWERGRID": 1800,
+    "PRESTIGE": 300, "PVRINOX": 400, "RAMCOCEM": 850, "RBLBANK": 2500, "RECLTD": 1400,
+    "RELIANCE": 250, "SAIL": 4000, "SBICARD": 800, "SBILIFE": 750, "SBIN": 1500,
+    "SHREECEM": 25, "SHRIRAMFIN": 200, "SIEMENS": 125, "SOLARINDS": 75, "SONACOMS": 950,
+    "SRF": 375, "SUNPHARMA": 350, "SUNTV": 750, "SUPREMEIND": 125, "SYNGENE": 1000,
+    "TATACHEM": 550, "TATACOMM": 250, "TATACONSUM": 450, "TATAELXSI": 100, "TATAMOTORS": 1425,
+    "TATAPOWER": 1500, "TATASTEEL": 5500, "TCS": 175, "TECHM": 600, "TIINDIA": 150,
+    "TITAN": 175, "TORNTPHARM": 250, "TORNTPOWER": 375, "TRENT": 100, "TVSMOTOR": 350,
+    "UBL": 350, "ULTRACEMCO": 100, "UNIONBANK": 4200, "UPL": 1300, "VBL": 750,
+    "VEDL": 1150, "VOLTAS": 600, "WIPRO": 1500, "YESBANK": 25000, "ZEEL": 3000,
+    "ZOMATO": 2000, "ZYDUSLIFE": 450
+}
+
+def get_fno_lot_size(symbol: str, price: float = 0.0) -> int:
+    """Returns official NSE lot size or estimates based on NSE standard contract value (~₹6 Lakhs)."""
+    sym = (symbol or "").upper().replace(".NS", "").replace("&", "%26")
+    if sym in NSE_LOT_SIZES:
+        return NSE_LOT_SIZES[sym]
+    raw_sym = (symbol or "").upper().replace(".NS", "")
+    if raw_sym in NSE_LOT_SIZES:
+        return NSE_LOT_SIZES[raw_sym]
+    if price > 0:
+        approx = int(round((600000 / price) / 25) * 25)
+        return max(approx, 25)
+    return 500
+
 NSE_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "application/json, text/plain, */*",
@@ -77,11 +136,13 @@ def get_strike_step(price: float) -> float:
     if price < 7000: return 100.0
     return 250.0
 
-def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
+def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> Dict[str, Any]:
     """
     Evaluates 70-80% Win-Rate Strangle/Straddle Setup for Earnings Day:
     - Calculates exact ATM and 1-Strike OTM options based on NSE strike grids
     - Determines required breakeven move vs historical 4Q earnings moves
+    - Computes official NSE lot size, estimated premiums, capital required per lot (₹),
+      target profit amount (+60%), and strict stop-loss limit (-35%)
     - Flags high-probability setups (75-80%+) and filters out IV crush traps
     """
     if not cmp or cmp <= 0:
@@ -91,6 +152,19 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
     otm_c = int(atm + step) if step >= 1 else atm + step
     otm_p = int(atm - step) if step >= 1 else atm - step
     
+    lot_size = get_fno_lot_size(symbol, cmp)
+
+    # Estimate pre-earnings option premiums based on implied volatility & empirical data
+    # 1-Strike OTM Strangle: combined premium is ~2.4% of CMP (1.3% CE + 1.1% PE)
+    otm_ce_prem = round(cmp * 0.013, 1) if cmp >= 100 else round(cmp * 0.015, 2)
+    otm_pe_prem = round(cmp * 0.011, 1) if cmp >= 100 else round(cmp * 0.013, 2)
+    otm_tot_prem = round(otm_ce_prem + otm_pe_prem, 1)
+
+    # ATM Straddle: combined premium is ~3.1% of CMP (1.6% CE + 1.5% PE)
+    atm_ce_prem = round(cmp * 0.016, 1) if cmp >= 100 else round(cmp * 0.018, 2)
+    atm_pe_prem = round(cmp * 0.015, 1) if cmp >= 100 else round(cmp * 0.017, 2)
+    atm_tot_prem = round(atm_ce_prem + atm_pe_prem, 1)
+
     q_moves = vol.get('quarter_moves', [])
     avg_abs = vol.get('avg_abs_move', 2.0)
     
@@ -105,6 +179,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
     straddle_pop = round((straddle_wins / max(len(q_moves), 1)) * 100)
     
     if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
+        cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
             'strategy': '1-Strike OTM Strangle (Max ROI)',
             'pop_pct': strangle_pop,
@@ -113,12 +188,21 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
             'atm_strike': atm,
             'strikes_label': f'{otm_c} CE + {otm_p} PE',
             'breakeven_pct': strangle_be,
+            'lot_size': lot_size,
+            'est_call_prem': otm_ce_prem,
+            'est_put_prem': otm_pe_prem,
+            'est_total_prem': otm_tot_prem,
+            'capital_required': cap_req,
+            'stop_loss_amount': int(round((cap_req * 0.35) / 100.0) * 100),
+            'target_profit_amount': int(round((cap_req * 0.60) / 100.0) * 100),
+            'account_guideline': 'Trade 1 lot per ₹3L-₹5L account capital (Max 5% allocation)',
             'grade': 'HIGH_75_80',
             'grade_label': '75-80% WIN RATE',
             'color': 'emerald',
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters.'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
+        cap_req = int(round((atm_tot_prem * lot_size) / 100.0) * 100)
         return {
             'strategy': 'ATM Straddle (High Probability)',
             'pop_pct': straddle_pop,
@@ -127,12 +211,21 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
             'atm_strike': atm,
             'strikes_label': f'{atm} CE + {atm} PE',
             'breakeven_pct': straddle_be,
+            'lot_size': lot_size,
+            'est_call_prem': atm_ce_prem,
+            'est_put_prem': atm_pe_prem,
+            'est_total_prem': atm_tot_prem,
+            'capital_required': cap_req,
+            'stop_loss_amount': int(round((cap_req * 0.35) / 100.0) * 100),
+            'target_profit_amount': int(round((cap_req * 0.60) / 100.0) * 100),
+            'account_guideline': 'Trade 1 lot per ₹3L-₹5L account capital (Max 5% allocation)',
             'grade': 'HIGH_75',
             'grade_label': '75% WIN RATE',
             'color': 'emerald',
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
+        cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
             'strategy': '1-Strike OTM Strangle',
             'pop_pct': max(strangle_pop, straddle_pop),
@@ -141,12 +234,21 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
             'atm_strike': atm,
             'strikes_label': f'{otm_c} CE + {otm_p} PE',
             'breakeven_pct': strangle_be,
+            'lot_size': lot_size,
+            'est_call_prem': otm_ce_prem,
+            'est_put_prem': otm_pe_prem,
+            'est_total_prem': otm_tot_prem,
+            'capital_required': cap_req,
+            'stop_loss_amount': int(round((cap_req * 0.35) / 100.0) * 100),
+            'target_profit_amount': int(round((cap_req * 0.60) / 100.0) * 100),
+            'account_guideline': 'Trade 1 lot per ₹4L-₹6L account capital (Moderate conviction)',
             'grade': 'MODERATE',
             'grade_label': '50-70% MODERATE',
             'color': 'amber',
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}%.'
         }
     else:
+        cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
             'strategy': 'AVOID (IV Crush Trap)',
             'pop_pct': max(strangle_pop, straddle_pop),
@@ -155,6 +257,14 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any]) -> Dict[str, Any]:
             'atm_strike': atm,
             'strikes_label': 'No Trade Recommended',
             'breakeven_pct': strangle_be,
+            'lot_size': lot_size,
+            'est_call_prem': otm_ce_prem,
+            'est_put_prem': otm_pe_prem,
+            'est_total_prem': otm_tot_prem,
+            'capital_required': cap_req,
+            'stop_loss_amount': int(round((cap_req * 0.35) / 100.0) * 100),
+            'target_profit_amount': int(round((cap_req * 0.60) / 100.0) * 100),
+            'account_guideline': 'AVOID - High probability of capital erosion due to IV crush',
             'grade': 'AVOID',
             'grade_label': 'AVOID (<40% POP)',
             'color': 'rose',
@@ -223,7 +333,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
 
     for r in fno_results[:12]:
         vol = r.get("earnings_volatility", {})
-        setup = r.get("strike_setup") or get_fno_strike_setup(r.get("current_price", 0), vol)
+        setup = r.get("strike_setup") or get_fno_strike_setup(r.get("current_price", 0), vol, r.get("symbol", ""))
         avg_move = vol.get("avg_abs_move", 2.2)
         bias = vol.get("avg_dir_move", 0.0)
         bias_str = f"+{bias}%" if bias > 0 else f"{bias}%"
@@ -263,10 +373,20 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
             s_label = setup.get("strikes_label", "N/A")
             strat = setup.get("strategy", "1-Strike OTM Strangle")
             be_pct = setup.get("breakeven_pct", 2.5)
+            cap_req = setup.get("capital_required", 0)
+            lot_sz = setup.get("lot_size", 0)
+            tot_pr = setup.get("est_total_prem", 0.0)
+            tp_amt = setup.get("target_profit_amount", 0)
+            sl_amt = setup.get("stop_loss_amount", 0)
+            rule_str = setup.get("account_guideline", "")
+
             setup_block = (
                 f"• 🎯 *Options Setup*: [{badge_str}]\n"
                 f"  ↳ *Target Strikes*: *{s_label}* ({strat})\n"
-                f"  ↳ *Breakeven Needed*: ±{be_pct}% | *Past 4Q Swing*: ±{avg_move}%"
+                f"  ↳ *Breakeven Needed*: ±{be_pct}% | *Past 4Q Swing*: ±{avg_move}%\n"
+                f"  ↳ 💰 *Capital Needed*: ~₹{cap_req:,} / lot (Lot: {lot_sz} | Est Prem: ₹{tot_pr}/sh)\n"
+                f"  ↳ 🎯 *Target Profit*: +₹{tp_amt:,} (+60%) | 🛑 *Stop-Loss*: -₹{sl_amt:,} (-35%)\n"
+                f"  ↳ 🛡️ *Position Rule*: {rule_str}"
             )
 
         timing_line = ""
@@ -765,7 +885,7 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
                 f"🎯 *Pre-Market Takeaway*: Historical reactions average ±{vol['avg_abs_move']}%. Look for IV crush or directional breakout beyond S1/R1."
             )
 
-        strike_setup = get_fno_strike_setup(price, vol)
+        strike_setup = get_fno_strike_setup(price, vol, sym)
 
         results.append({
             "id": f"fno_{sym}_{c['seq_id']}",

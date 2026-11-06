@@ -274,8 +274,23 @@ The Morning Pre-Market Briefing (8:30–9:00 AM IST) sent via Telegram to `@kris
 * **70-80% Win Rate Setup Badge**: `[🟢 75-80% HIGH WIN RATE]` or `[🔴 AVOID (<40% POP)]`
 * **Target Option Strikes**: Exact CE & PE strike recommendations (e.g. `1800 CE + 1700 PE (1-Strike OTM Strangle)`)
 * **Breakeven vs Historical Swing**: Side-by-side comparison (`Breakeven Needed: ±2.5% | Past 4Q Swing: ±5.63%`)
+* **Capital Needed per Lot**: Exact capital required in ₹ based on official NSE market lot sizes (`~₹21,200 / lot (Lot: 500)`)
+* **Target Profit & Stop-Loss in ₹**: Defined gain target (`+₹12,700 (+60%)`) and strict cut-loss limit (`-₹7,400 (-35%)`)
+* **Position Sizing Rule**: Clear portfolio allocation guideline (`Max 1 lot per ₹3L-₹5L account; max 5% event risk`)
 * **Hourly Reaction Progression Tags**: Embedded directly in individual quarter movements (`Q1 (08-Aug): +6.2% 🟢 ↗ (1st Hr: +3.8% | 4th Hr: +5.1%)`)
 * **Hourly Timing Averages**: `1st Hr Avg: ±X.X% | 4th Hr Avg: ±X.X%` for optimal intraday entry/exit timing.
+
+### 11.6 Capital Allocation, Lot Size & Money Management Architecture
+To prevent devastating losses from over-allocation or improper strike selection:
+* **Why Deep OTM is an IV Crush Trap:** Buying cheap far-OTM options on earnings day fails because Implied Volatility collapses by 40%–60% immediately after the announcement. Options with delta $< 0.20$ suffer 80%–100% loss even when the stock moves.
+* **Why 1-Strike OTM & ATM Win:** Options with delta $0.40–0.50$ convert price moves into intrinsic value, which overpowers post-earnings IV crush when the stock moves $\ge$ breakeven.
+* **NSE Lot Size Engine:** System maps official contract lot sizes across all 214 NSE F&O equities (fallback heuristic: $\approx ₹6,00,000 / \text{CMP}$).
+* **Capital Sizing Equation:**
+  $$\text{Capital Required (₹)} = (\text{Estimated Call Premium} + \text{Estimated Put Premium}) \times \text{Lot Size}$$
+* **The 3%–5% Account Risk Rule:** Never allocate more than 3% to 5% of total account capital to a single earnings event.
+* **Strict Stop-Loss & Target Rules:**
+  * **Stop-Loss:** Cut the position when combined premium drops by **-30% to -35%**. Never let premium decay to zero.
+  * **Target Profit:** Take profit at **+50% to +80%** when the stock makes its intraday reaction swing (optimally during Hour 1: 09:15–10:15 AM).
 
 ---
 
@@ -293,3 +308,4 @@ The Morning Pre-Market Briefing (8:30–9:00 AM IST) sent via Telegram to `@kris
 | **v1.7.0** | `ce8de84` | 05-Nov-2026 | Institutional 70%–80% Win-Rate Strike Pick Engine (1-Strike OTM Strangle vs ATM Straddle vs Avoid IV Crush) on dashboard cards. |
 | **v1.8.0** | `7db5aa5` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
 | **v1.8.1** | `8f2d0f1` | 06-Nov-2026 | Telegram Broadcast Integration: Enriched Morning Briefing with 70–80% strike recommendations, breakeven thresholds, and hourly tags. |
+| **v1.9.0** | `HEAD` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |

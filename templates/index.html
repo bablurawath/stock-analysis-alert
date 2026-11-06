@@ -305,6 +305,26 @@
                                         <span>Breakeven Move: <strong className="text-amber-300">±{item.strike_setup.breakeven_pct}%</strong></span>
                                         <span>Past 4Q Swing: <strong className="text-emerald-400">±{item.earnings_volatility ? item.earnings_volatility.avg_abs_move : 0}%</strong></span>
                                     </div>
+
+                                    {item.strike_setup.grade !== 'AVOID' && item.strike_setup.capital_required > 0 && (
+                                        <div className="mt-2 pt-2 border-t border-gray-800/80">
+                                            <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                                <div className="bg-gray-900/80 p-2 rounded-lg border border-gray-800">
+                                                    <span className="text-gray-400 block font-medium">💰 Capital / Lot:</span>
+                                                    <strong className="text-white text-[12px] font-mono">₹{item.strike_setup.capital_required.toLocaleString()}</strong>
+                                                    <span className="text-[9px] text-gray-400 block font-mono mt-0.5">Lot: {item.strike_setup.lot_size} | ~₹{item.strike_setup.est_total_prem}/sh</span>
+                                                </div>
+                                                <div className="bg-gray-900/80 p-2 rounded-lg border border-gray-800">
+                                                    <span className="text-gray-400 block font-medium">🎯 Target (+60%):</span>
+                                                    <strong className="text-emerald-400 text-[12px] font-mono">+₹{item.strike_setup.target_profit_amount.toLocaleString()}</strong>
+                                                    <span className="text-[9px] text-rose-400 block font-mono mt-0.5">SL (-35%): -₹{item.strike_setup.stop_loss_amount.toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-1.5 px-1 text-[9px] text-gray-400 flex items-center justify-between">
+                                                <span>🛡️ <strong className="text-gray-300">Sizing:</strong> {item.strike_setup.account_guideline || 'Max 1 lot per ₹3L-5L account'}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <p className="text-[10px] text-gray-400 mt-2 leading-tight">
