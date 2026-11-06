@@ -338,4 +338,4 @@ To ensure absolute legal clarity and adherence to Indian financial regulations:
 | **v1.9.0** | `8539bbd` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
 | **v2.0.0** | `d3f42c2` | 06-Nov-2026 | Professional Layout Redesign: Unified 4-tile KPI metric strip, consolidated hero trading terminal panel, 4-quarter reaction ribbon, and executive Bloomberg-style Telegram alerts. |
 | **v2.1.0** | `c38ac3d` | 06-Nov-2026 | Dynamic Rolling Fiscal Quarter & Year Engine: Live NSE Board Meeting ingestion with automatic Fiscal Year (`Q2 FY27`, `Q3 FY27`) rollover. |
-| **v2.2.0** | `HEAD` | 06-Nov-2026 | Compliance & Regulatory Disclaimer: Embedded full-width SEBI non-registration & F&O risk warning in Web footer and Telegram broadcasts. |
+| **v2.2.0** | `f6e750a` | 06-Nov-2026 | Compliance & Regulatory Disclaimer: Embedded full-width SEBI non-registration & F&O risk warning in Web footer and Telegram broadcasts. |
