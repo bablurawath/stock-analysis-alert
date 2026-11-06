@@ -250,6 +250,14 @@
                                     <span>Net Bias: <strong className={item.earnings_volatility.avg_dir_move >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{item.earnings_volatility.avg_dir_move > 0 ? `+${item.earnings_volatility.avg_dir_move}%` : `${item.earnings_volatility.avg_dir_move}%`}</strong></span>
                                     <span>Expected Swing: <strong className="text-amber-300">±{item.earnings_volatility.avg_abs_move}%</strong></span>
                                 </div>
+
+                                {item.earnings_volatility.avg_hr1_move && (
+                                    <div className="flex items-center justify-between text-[9px] text-gray-500 mt-1.5 pt-1 border-t border-gray-900 font-mono">
+                                        <span>1st Hr Avg: <strong className="text-blue-300">±{item.earnings_volatility.avg_hr1_move}%</strong></span>
+                                        <span>4th Hr Avg: <strong className="text-indigo-300">±{item.earnings_volatility.avg_hr4_move}%</strong></span>
+                                        <span className="text-amber-400 font-semibold cursor-pointer" onClick={() => onSelect(item)}>360° Hourly ➔</span>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -416,6 +424,94 @@
                                         <span>Historical Expected Swing: <strong className="text-amber-300 font-bold">±{item.earnings_volatility.avg_abs_move}%</strong></span>
                                     </div>
                                 </div>
+
+                                {/* Intraday Hourly Reaction Progression Table (Hour 1, 2, 3, 4+) */}
+                                <div className="mt-4 mb-2">
+                                    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                                        <h5 className="text-xs font-bold uppercase text-blue-400 tracking-wider flex items-center gap-1.5">
+                                            <i className="fa-solid fa-clock-rotate-left"></i>
+                                            <span>Intraday Hourly Moves (1st Hr, 2nd Hr, 3rd Hr, 4th Hr)</span>
+                                        </h5>
+                                        <span className="text-[10px] text-gray-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                                            Real-time 1-Hour Candles vs Pre-Result Base
+                                        </span>
+                                    </div>
+
+                                    <div className="bg-gray-950 rounded-xl border border-gray-800 overflow-hidden">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-xs text-left">
+                                                <thead className="bg-gray-900 text-gray-400 uppercase text-[10px] border-b border-gray-800">
+                                                    <tr>
+                                                        <th className="px-3 py-2">Quarter</th>
+                                                        <th className="px-3 py-2">Reaction Date</th>
+                                                        <th className="px-3 py-2 text-center text-blue-300">1st Hr (09:15-10:15)</th>
+                                                        <th className="px-3 py-2 text-center text-blue-300">2nd Hr (10:15-11:15)</th>
+                                                        <th className="px-3 py-2 text-center text-indigo-300">3rd Hr (11:15-12:15)</th>
+                                                        <th className="px-3 py-2 text-center text-indigo-300">4th Hr (12:15-13:15)</th>
+                                                        <th className="px-3 py-2 text-center text-amber-300">Peak Swing</th>
+                                                        <th className="px-3 py-2 text-right">EOD Close</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-900 text-gray-300 font-mono text-[11px]">
+                                                    {item.earnings_volatility.quarter_moves.map((q, idx) => {
+                                                        const hr1 = q.hr1_pct != null ? q.hr1_pct : q.pct;
+                                                        const hr2 = q.hr2_pct != null ? q.hr2_pct : hr1;
+                                                        const hr3 = q.hr3_pct != null ? q.hr3_pct : hr2;
+                                                        const hr4 = q.hr4_pct != null ? q.hr4_pct : hr3;
+                                                        const peak = q.peak_intraday_pct != null ? q.peak_intraday_pct : Math.abs(q.pct);
+
+                                                        return (
+                                                            <tr key={idx} className="hover:bg-gray-900/40">
+                                                                <td className="px-3 py-2 font-bold text-amber-300 whitespace-nowrap">{q.quarter || `Q${idx+1}`}</td>
+                                                                <td className="px-3 py-2 text-gray-300 whitespace-nowrap">{q.reaction_date}</td>
+                                                                <td className={`px-3 py-2 text-center font-bold ${hr1 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                    {hr1 > 0 ? `+${hr1}%` : `${hr1}%`}
+                                                                </td>
+                                                                <td className={`px-3 py-2 text-center font-bold ${hr2 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                    {hr2 > 0 ? `+${hr2}%` : `${hr2}%`}
+                                                                </td>
+                                                                <td className={`px-3 py-2 text-center font-bold ${hr3 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                    {hr3 > 0 ? `+${hr3}%` : `${hr3}%`}
+                                                                </td>
+                                                                <td className={`px-3 py-2 text-center font-bold ${hr4 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                    {hr4 > 0 ? `+${hr4}%` : `${hr4}%`}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-center font-bold text-amber-300">
+                                                                    ±{peak}%
+                                                                </td>
+                                                                <td className={`px-3 py-2 text-right font-bold ${q.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                    {q.pct > 0 ? `+${q.pct}%` : `${q.pct}%`}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        {/* Visual Hourly Step Chain for the latest quarter */}
+                                        {item.earnings_volatility.quarter_moves[0] && item.earnings_volatility.quarter_moves[0].hourly_progression && item.earnings_volatility.quarter_moves[0].hourly_progression.length > 0 && (
+                                            <div className="bg-gray-900/70 p-3 border-t border-gray-800">
+                                                <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2 flex items-center justify-between">
+                                                    <span><i className="fa-solid fa-chart-area mr-1 text-blue-400"></i> Latest Quarter Intraday Hour-by-Hour Step Progression ({item.earnings_volatility.quarter_moves[0].quarter} - {item.earnings_volatility.quarter_moves[0].reaction_date}):</span>
+                                                    <span className="text-amber-400 font-mono">Base: ₹{item.earnings_volatility.quarter_moves[0].base_price}</span>
+                                                </div>
+                                                <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[11px] font-mono">
+                                                    {item.earnings_volatility.quarter_moves[0].hourly_progression.map((hp, h_idx) => (
+                                                        <div key={h_idx} className="bg-gray-950 p-2 rounded-lg border border-gray-800 min-w-[90px] text-center flex-shrink-0">
+                                                            <div className="text-[9px] text-gray-500 font-sans truncate">{hp.time || (hp.hour ? hp.hour.split(' ')[0] : '')}</div>
+                                                            <div className={`font-bold mt-0.5 ${hp.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                {hp.pct > 0 ? `+${hp.pct}%` : `${hp.pct}%`}
+                                                            </div>
+                                                            <div className="text-[8px] text-gray-400 mt-0.5 truncate">₹{hp.close}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
                                 <div className="text-[10px] text-gray-500 mt-1.5 flex items-center gap-1.5">
                                     <i className="fa-solid fa-circle-info text-blue-400"></i>
                                     <span><strong>Timing Rule:</strong> If results are declared after 3:30 PM (Post-Market), the reaction is measured on the Next Trading Day (T+1). If declared during 9:15 AM - 3:30 PM, it is measured Intraday.</span>

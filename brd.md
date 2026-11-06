@@ -203,6 +203,15 @@ In Indian equities, over 80% of board meetings conclude after market close (post
 * Computes **Average Expected Volatility (Absolute Swing):** $\pm \text{Avg} = \frac{\sum |\text{Move}_i|}{4}$.
 * Computes **Directional Skew / Bias:** $\text{Net Bias} = \frac{\sum \text{Move}_i}{4}$ (identifies stocks with strong historical upward/downward tendencies post-earnings).
 
+### 9.3 Intraday Hourly Reaction Progression (1st Hr, 2nd Hr, 3rd Hr, 4th Hr)
+Beyond daily closing prices, F&O options pricing is highly sensitive to opening gap behavior and midday momentum shifts. The engine ingests 730 days of 1-hour candles (`interval=1h`) to provide a multi-session hourly reaction breakdown:
+* **1st Hour (09:15 – 10:15 AM):** Captures opening market reaction, gap-up/gap-down magnitude, and initial IV spike.
+* **2nd Hour (10:15 – 11:15 AM):** Tracks opening continuation vs morning profit-booking reversal.
+* **3rd Hour (11:15 – 12:15 PM):** Evaluates mid-day consolidation and initial theta/IV decay.
+* **4th Hour (12:15 – 01:15 PM):** Tracks afternoon acceleration (crucial for companies releasing outcomes around noon).
+* **Peak Intraday Swing & Timing:** Identifies the maximum high-to-low percentage swing reached during the day and flags which hour historically triggers peak volatility.
+* **Dashboard Integration:** Displayed via an interactive **Hourly Progression Table** and visual step chain in the 360° modal, with 1st Hr and 4th Hr average indicators on stock cards.
+
 ---
 
 ## 10. Morning Pre-Market Broadcast & Automated Notification Engine
@@ -274,3 +283,4 @@ Each F&O card features an interactive **70-80% Probability Strike Pick** section
 | **v1.5.0** | `bd5c757` | 05-Nov-2026 | Strict declared result filtering, board meeting exclusion from broadcast, and 4 single-quarter movements display. |
 | **v1.6.0** | `e021ff0` | 05-Nov-2026 | Morning Pre-Market F&O Briefing (8:30–9:00 AM IST) sent before results drop with exact today's board meeting ingestion. |
 | **v1.7.0** | `ce8de84` | 05-Nov-2026 | Institutional 70%–80% Win-Rate Strike Pick Engine (1-Strike OTM Strangle vs ATM Straddle vs Avoid IV Crush) on dashboard cards. |
+| **v1.8.0** | `HEAD` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
