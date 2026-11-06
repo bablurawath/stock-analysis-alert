@@ -339,70 +339,51 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         bias_str = f"+{bias}%" if bias > 0 else f"{bias}%"
         q_moves = vol.get("quarter_moves", [])[:4]
 
-        # Format individual quarter movements for all 4 quarters with hourly tags
-        q_text_parts = []
+        # Clean 4-quarter summary in 1 neat line
+        q_summary_parts = []
         for idx, q in enumerate(q_moves, start=1):
             q_label = q.get("quarter") or f"Q{idx}"
-            d_str = q.get("result_date", "")
-            d_short = "-".join(d_str.split("-")[:2]) if "-" in d_str else d_str
-            t_short = q.get("timing_short", "T+1")
             pct = q.get("pct", 0.0)
             pct_str = f"+{pct}%" if pct > 0 else f"{pct}%"
-            arrow = "🟢 ↗" if pct > 0 else ("🔴 ↘" if pct < 0 else "⚪ →")
-            
-            hr1 = q.get("hr1_pct")
-            hr4 = q.get("hr4_pct")
-            hourly_tag = ""
-            if hr1 is not None and hr4 is not None:
-                h1_str = f"+{hr1}%" if hr1 > 0 else f"{hr1}%"
-                h4_str = f"+{hr4}%" if hr4 > 0 else f"{hr4}%"
-                hourly_tag = f" _(1st Hr: {h1_str} | 4th Hr: {h4_str})_"
+            q_summary_parts.append(f"{q_label} *{pct_str}*")
+        q_summary_line = " | ".join(q_summary_parts) if q_summary_parts else "Data syncing"
 
-            q_text_parts.append(f"  • *{q_label}* ({d_short}): *{pct_str}* {arrow} ({t_short}){hourly_tag}")
+        # Timing line
+        hr1_avg = vol.get("avg_hr1_move")
+        hr4_avg = vol.get("avg_hr4_move")
+        timing_str = f" • ⏱️ 1st Hr: *±{hr1_avg}%* | 4th Hr: *±{hr4_avg}%*" if (hr1_avg and hr4_avg) else ""
 
-        q_breakdown = "\n".join(q_text_parts) if q_text_parts else "  • Data being indexed"
-
-        # Options setup text
+        # Options setup block
         if setup.get("grade") == "AVOID":
-            setup_block = (
-                f"• 🎯 *Options Setup*: [🔴 *AVOID (<40% POP)*]\n"
-                f"  ↳ *No Trade Recommended* (Historical swing ±{avg_move}% is too small to beat IV crush)"
+            card_text = (
+                f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
+                f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
+                f"🛑 *Options Setup*: [🔴 *AVOID (<40% Win Rate)*]\n"
+                f"  ↳ Expected Swing: *±{avg_move}%* (Too muted to beat IV crush — buyers lose)\n"
+                f"📊 *Past 4Q*: {q_summary_line}"
             )
         else:
-            badge_str = "🟢 *75-80% HIGH WIN RATE*" if setup.get("grade") == "HIGH_75_80" else ("🟢 *75% HIGH WIN RATE*" if setup.get("grade") == "HIGH_75" else "🟡 *50-70% MODERATE*")
+            badge = "🟢 *75-80% HIGH WIN RATE*" if "75_80" in setup.get("grade", "") else ("🟢 *75% HIGH WIN RATE*" if "75" in setup.get("grade", "") else "🟡 *50-70% MODERATE*")
             s_label = setup.get("strikes_label", "N/A")
             strat = setup.get("strategy", "1-Strike OTM Strangle")
             be_pct = setup.get("breakeven_pct", 2.5)
             cap_req = setup.get("capital_required", 0)
             lot_sz = setup.get("lot_size", 0)
-            tot_pr = setup.get("est_total_prem", 0.0)
             tp_amt = setup.get("target_profit_amount", 0)
             sl_amt = setup.get("stop_loss_amount", 0)
-            rule_str = setup.get("account_guideline", "")
 
-            setup_block = (
-                f"• 🎯 *Options Setup*: [{badge_str}]\n"
-                f"  ↳ *Target Strikes*: *{s_label}* ({strat})\n"
-                f"  ↳ *Breakeven Needed*: ±{be_pct}% | *Past 4Q Swing*: ±{avg_move}%\n"
-                f"  ↳ 💰 *Capital Needed*: ~₹{cap_req:,} / lot (Lot: {lot_sz} | Est Prem: ₹{tot_pr}/sh)\n"
-                f"  ↳ 🎯 *Target Profit*: +₹{tp_amt:,} (+60%) | 🛑 *Stop-Loss*: -₹{sl_amt:,} (-35%)\n"
-                f"  ↳ 🛡️ *Position Rule*: {rule_str}"
+            card_text = (
+                f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
+                f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
+                f"⚡ *Setup*: [{badge}] ➔ *{s_label}* ({strat})\n"
+                f"💰 *Execution*: Capital *~₹{cap_req:,}* (Lot {lot_sz}) | Breakeven: *±{be_pct}%*\n"
+                f"🎯 *Target (+60%)*: *+₹{tp_amt:,}* | 🛑 *Stop-Loss (-35%)*: *-₹{sl_amt:,}*\n"
+                f"📊 *Past 4Q*: {q_summary_line} (Avg *±{avg_move}%*){timing_str}\n"
+                f"🛡️ *Sizing*: Trade 1 lot per ₹3L-₹5L account capital"
             )
 
-        timing_line = ""
-        if vol.get("avg_hr1_move") and vol.get("avg_hr4_move"):
-            timing_line = f"• ⏱️ *Hourly Timing*: 1st Hr Avg: *±{vol['avg_hr1_move']}%* | 4th Hr Avg: *±{vol['avg_hr4_move']}%*\n"
-
-        lines.append(
-            f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
-            f"• *CMP*: ₹{r['current_price']:,.1f} | *Delivery*: {r['delivery_pct']}%\n"
-            f"{setup_block}\n"
-            f"• *Past 4 Quarters Moves & Hourly Reactions*:\n"
-            f"{q_breakdown}\n"
-            f"{timing_line}"
-            f"• *Key Levels*: S1 ₹{r['support_1']:,.1f} | R1 ₹{r['resistance_1']:,.1f}\n"
-            f"─────────────────────────"
-        )
+        lines.append(card_text)
+        lines.append("─────────────────────────")
 
     lines.append("🎯 *Live 360° F&O Derivatives Radar:*")
     lines.append("👉 https://stock-analysis-alert.onrender.com")

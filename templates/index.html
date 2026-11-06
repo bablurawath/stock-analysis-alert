@@ -133,13 +133,13 @@
                 .replace(/\*(.*?)\*/g, '$1');
 
             return (
-                <div className="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl transition-all duration-200">
+                <div className="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border border-gray-800/80 hover:border-blue-500/30">
                     <div>
-                        {/* 1. Header & Price */}
-                        <div className="flex items-start justify-between mb-3 border-b border-gray-800 pb-3">
-                            <div>
+                        {/* 1. Header Bar: Symbol, Status, Name & Price */}
+                        <div className="flex items-start justify-between mb-3 border-b border-gray-800/80 pb-3">
+                            <div className="flex-1 mr-2">
                                 <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                                    <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30 tracking-wide">
+                                    <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/30 tracking-wide">
                                         {item.symbol || 'NSE'}
                                     </span>
                                     {item.result_status && (
@@ -148,215 +148,159 @@
                                             <span>{item.result_status}</span>
                                         </span>
                                     )}
-                                    {item.current_price > 0 && (
-                                        <span className="text-base font-mono font-bold text-gray-200">
-                                            ₹{Number(item.current_price).toLocaleString('en-IN')}
-                                        </span>
-                                    )}
                                 </div>
-                                <h3 className="text-base font-bold text-white mt-1 leading-snug line-clamp-1" title={item.company_name}>
+                                <h3 className="text-sm font-bold text-white mt-1.5 leading-snug line-clamp-1" title={item.company_name}>
                                     {item.company_name}
                                 </h3>
                             </div>
-                            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider ${badgeClass}`}>
-                                {item.sentiment}
-                            </span>
-                        </div>
-
-                        {/* 2. Visual Delivery Accumulation Progress Bar */}
-                        <div className="mb-3.5 bg-gray-900/90 rounded-xl p-3 border border-gray-800">
-                            <div className="flex items-center justify-between text-xs mb-1.5">
-                                <span className="text-gray-400 font-semibold flex items-center space-x-1.5">
-                                    <i className="fa-solid fa-boxes-packing text-blue-400"></i>
-                                    <span>Delivery Accumulation</span>
-                                </span>
-                                <span className={`font-bold ${isHighDelivery ? 'text-emerald-400' : 'text-gray-300'}`}>
-                                    {deliveryVal}%
-                                </span>
-                            </div>
-                            <div className="w-full bg-gray-950 rounded-full h-2 overflow-hidden border border-gray-800">
-                                <div 
-                                    className={`h-full rounded-full transition-all duration-500 ${isHighDelivery ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
-                                    style={{width: `${Math.min(100, Math.max(10, deliveryVal))}%`}}>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between text-[10px] text-gray-500 mt-1">
-                                <span>Intraday Churn (30%)</span>
-                                <span className={`font-semibold ${isHighDelivery ? 'text-emerald-400' : 'text-gray-400'}`}>
-                                    {isHighDelivery ? 'Big Funds Buying 🟢' : 'Routine Flow ⚪'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* 3. Who Bought / Who Sold (Whale Activity) */}
-                        {item.whale_note && (
-                            <div className="mb-3.5 bg-indigo-950/30 border border-indigo-500/25 rounded-xl p-2.5 text-xs text-indigo-300 flex items-start space-x-2">
-                                <i className="fa-solid fa-building-columns text-indigo-400 mt-0.5 text-sm"></i>
-                                <span className="line-clamp-2 leading-relaxed text-[11px]">{item.whale_note}</span>
-                            </div>
-                        )}
-
-                        {/* 4. Crystal-Clear Floor & Ceiling Levels */}
-                        {item.rsi > 0 && (
-                            <div className="mb-3.5 grid grid-cols-3 gap-2 text-center text-xs">
-                                <div className="bg-gray-900/80 p-2 rounded-xl border border-gray-800">
-                                    <div className="text-[10px] text-gray-500">Floor (S1)</div>
-                                    <div className="font-bold text-emerald-400 mt-0.5">₹{Number(item.support_1 || 0).toLocaleString('en-IN')}</div>
-                                </div>
-                                <div className="bg-gray-900/80 p-2 rounded-xl border border-gray-800">
-                                    <div className="text-[10px] text-gray-500">Ceiling (R1)</div>
-                                    <div className="font-bold text-rose-400 mt-0.5">₹{Number(item.resistance_1 || 0).toLocaleString('en-IN')}</div>
-                                </div>
-                                <div className="bg-gray-900/80 p-2 rounded-xl border border-gray-800">
-                                    <div className="text-[10px] text-gray-500">RSI (14)</div>
-                                    <div className={`font-bold mt-0.5 ${rsiColor}`}>{item.rsi}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 4B. Historical Earnings Day Volatility (Last 3-4 Quarters) */}
-                        {item.earnings_volatility && item.earnings_volatility.quarter_moves && item.earnings_volatility.quarter_moves.length > 0 && (
-                            <div className="mb-3.5 bg-gradient-to-br from-gray-900 to-amber-950/20 rounded-xl p-3 border border-amber-500/25">
-                                <div className="flex items-center justify-between text-xs mb-2">
-                                    <span className="text-gray-300 font-bold flex items-center space-x-1.5">
-                                        <i className="fa-solid fa-chart-line text-amber-400"></i>
-                                        <span>Result Day Move (Last 4Q)</span>
-                                    </span>
-                                    <span className="font-extrabold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px]">
-                                        Avg: ±{item.earnings_volatility.avg_abs_move}%
-                                    </span>
-                                </div>
-
-                                {/* 4 Quarter Mini Badges */}
-                                <div className="grid grid-cols-4 gap-1.5 text-center">
-                                    {item.earnings_volatility.quarter_moves.slice(0, 4).map((q, idx) => {
-                                        const qLabel = q.quarter || `Q${idx+1}`;
-                                        const dateShort = q.result_date ? q.result_date.split('-').slice(0, 2).join('-') : '';
-                                        return (
-                                            <div key={idx} className="bg-gray-950/90 p-1.5 rounded-lg border border-gray-800" title={`${qLabel} (${q.result_date}): ${q.timing || 'Reaction'} | ₹${q.base_price} ➔ ₹${q.reaction_price} on ${q.reaction_date}`}>
-                                                <div className="text-[9px] text-gray-400 font-medium truncate">
-                                                    {qLabel} <span className="text-[8px] text-gray-500">({dateShort})</span>
-                                                </div>
-                                                <div className={`font-mono font-extrabold text-[11px] mt-0.5 ${q.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                    {q.pct > 0 ? `+${q.pct}%` : `${q.pct}%`}
-                                                </div>
-                                                <div className="text-[8px] text-amber-400/90 font-medium truncate">{q.timing_short || 'T+1'}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="flex items-center justify-between text-[10px] text-gray-400 mt-2 pt-1.5 border-t border-gray-800/80">
-                                    <span>Net Bias: <strong className={item.earnings_volatility.avg_dir_move >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{item.earnings_volatility.avg_dir_move > 0 ? `+${item.earnings_volatility.avg_dir_move}%` : `${item.earnings_volatility.avg_dir_move}%`}</strong></span>
-                                    <span>Expected Swing: <strong className="text-amber-300">±{item.earnings_volatility.avg_abs_move}%</strong></span>
-                                </div>
-
-                                {item.earnings_volatility.avg_hr1_move && (
-                                    <div className="flex items-center justify-between text-[9px] text-gray-500 mt-1.5 pt-1 border-t border-gray-900 font-mono">
-                                        <span>1st Hr Avg: <strong className="text-blue-300">±{item.earnings_volatility.avg_hr1_move}%</strong></span>
-                                        <span>4th Hr Avg: <strong className="text-indigo-300">±{item.earnings_volatility.avg_hr4_move}%</strong></span>
-                                        <span className="text-amber-400 font-semibold cursor-pointer" onClick={() => onSelect(item)}>360° Hourly ➔</span>
+                            <div className="text-right flex-shrink-0">
+                                {item.current_price > 0 && (
+                                    <div className="text-base font-mono font-black text-white">
+                                        ₹{Number(item.current_price).toLocaleString('en-IN')}
                                     </div>
                                 )}
+                                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider mt-1 ${badgeClass}`}>
+                                    {item.sentiment}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* 2. Core Metrics Strip: 4-Tile Clean Horizontal Bar */}
+                        <div className="grid grid-cols-4 gap-1.5 p-2 bg-gray-900/60 rounded-xl border border-gray-800/80 text-center text-xs mb-3">
+                            <div className="px-1 border-r border-gray-800/80">
+                                <div className="text-[10px] text-gray-500 font-medium">Delivery</div>
+                                <div className="font-mono font-bold mt-0.5 flex items-center justify-center space-x-1">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isHighDelivery ? 'bg-emerald-400' : 'bg-blue-400'}`}></span>
+                                    <span className={isHighDelivery ? 'text-emerald-400' : 'text-gray-200'}>{deliveryVal}%</span>
+                                </div>
+                            </div>
+                            <div className="px-1 border-r border-gray-800/80">
+                                <div className="text-[10px] text-gray-500 font-medium">Pivots (S1 / R1)</div>
+                                <div className="font-mono font-bold text-gray-300 mt-0.5 text-[11px] truncate" title={`S1: ₹${item.support_1} | R1: ₹${item.resistance_1}`}>
+                                    ₹{Math.round(item.support_1 || 0)} / ₹{Math.round(item.resistance_1 || 0)}
+                                </div>
+                            </div>
+                            <div className="px-1 border-r border-gray-800/80">
+                                <div className="text-[10px] text-gray-500 font-medium">RSI (14)</div>
+                                <div className={`font-mono font-bold mt-0.5 ${rsiColor}`}>{item.rsi || '—'}</div>
+                            </div>
+                            <div className="px-1">
+                                <div className="text-[10px] text-gray-500 font-medium">4Q Swing</div>
+                                <div className="font-mono font-bold text-amber-300 mt-0.5">
+                                    ±{item.earnings_volatility ? item.earnings_volatility.avg_abs_move : '0'}%
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Whale Note (if available) */}
+                        {item.whale_note && (
+                            <div className="mb-3 bg-indigo-950/20 border border-indigo-500/20 rounded-xl px-3 py-1.5 text-xs text-indigo-300 flex items-center space-x-2">
+                                <i className="fa-solid fa-building-columns text-indigo-400 text-xs"></i>
+                                <span className="line-clamp-1 text-[11px] font-medium">{item.whale_note}</span>
                             </div>
                         )}
 
-                        {/* 4C. High-Probability (70-80%) Strike Recommendation Setup */}
+                        {/* 4. Institutional Options Trading Setup (Hero Terminal Box) */}
                         {item.strike_setup && item.strike_setup.strategy && (
-                            <div className={`mb-3.5 rounded-xl p-3 border ${
-                                item.strike_setup.color === 'emerald' 
-                                    ? 'bg-gradient-to-br from-emerald-950/40 to-gray-950 border-emerald-500/40' 
-                                    : (item.strike_setup.color === 'amber' 
-                                        ? 'bg-gradient-to-br from-amber-950/30 to-gray-950 border-amber-500/30' 
-                                        : 'bg-gradient-to-br from-rose-950/30 to-gray-950 border-rose-500/30')
-                            }`}>
-                                <div className="flex items-center justify-between text-xs mb-1.5">
-                                    <span className="font-extrabold flex items-center space-x-1.5 text-white">
-                                        <i className="fa-solid fa-bullseye text-blue-400"></i>
-                                        <span>70-80% Probability Strike Pick</span>
-                                    </span>
-                                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded border ${
-                                        item.strike_setup.color === 'emerald'
-                                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                            : (item.strike_setup.color === 'amber'
-                                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                                                : 'bg-rose-500/20 text-rose-300 border-rose-500/40')
-                                    }`}>
-                                        {item.strike_setup.grade_label}
-                                    </span>
-                                </div>
-
-                                <div className="bg-gray-950/90 p-2.5 rounded-lg border border-gray-800 text-xs">
-                                    <div className="flex items-center justify-between font-bold text-gray-200">
-                                        <span className="text-[11px] text-gray-400 font-medium">Recommended:</span>
-                                        <span className="text-white font-mono text-[11px]">{item.strike_setup.strategy}</span>
+                            item.strike_setup.grade === 'AVOID' ? (
+                                <div className="mb-3 rounded-xl p-3 bg-rose-950/20 border border-rose-500/30">
+                                    <div className="flex items-center space-x-2 text-rose-300 font-bold text-xs">
+                                        <i className="fa-solid fa-triangle-exclamation text-rose-400"></i>
+                                        <span>AVOID (<40% Win Rate) • No Trade Recommended</span>
                                     </div>
-                                    
-                                    {item.strike_setup.grade !== 'AVOID' && (
-                                        <div className="mt-2 pt-2 border-t border-gray-800/80 flex items-center justify-between font-mono">
-                                            <span className="text-[10px] text-gray-400">Target Strikes:</span>
-                                            <span className="font-extrabold text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/30 text-xs tracking-wide">
-                                                {item.strike_setup.strikes_label}
+                                    <p className="text-[11px] text-gray-400 mt-1 leading-snug">
+                                        Historical swing (±{item.earnings_volatility ? item.earnings_volatility.avg_abs_move : 0}%) is too small to beat IV crush. Options buyers lose on both legs.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="mb-3 rounded-xl p-3 bg-gradient-to-b from-gray-900/90 to-gray-950 border border-emerald-500/30 shadow-inner">
+                                    <div className="flex items-center justify-between text-xs mb-2">
+                                        <span className="font-mono font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] flex items-center space-x-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            <span>{item.strike_setup.grade_label}</span>
+                                        </span>
+                                        <span className="font-mono font-extrabold text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/30 text-xs">
+                                            🎯 {item.strike_setup.strikes_label}
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-1.5 bg-gray-950/90 p-2 rounded-lg border border-gray-800 text-center my-2">
+                                        <div className="border-r border-gray-800/80 pr-1">
+                                            <span className="text-[10px] text-gray-500 block font-medium">💰 Capital / Lot</span>
+                                            <strong className="text-white font-mono text-xs block mt-0.5">₹{item.strike_setup.capital_required ? item.strike_setup.capital_required.toLocaleString() : '—'}</strong>
+                                            <span className="text-[9px] text-gray-500 font-mono block">Lot: {item.strike_setup.lot_size}</span>
+                                        </div>
+                                        <div className="border-r border-gray-800/80 px-1">
+                                            <span className="text-[10px] text-gray-500 block font-medium">🎯 Target (+60%)</span>
+                                            <strong className="text-emerald-400 font-mono text-xs block mt-0.5">+₹{item.strike_setup.target_profit_amount ? item.strike_setup.target_profit_amount.toLocaleString() : '—'}</strong>
+                                            <span className="text-[9px] text-emerald-500/70 font-mono block">Intraday exit</span>
+                                        </div>
+                                        <div className="pl-1">
+                                            <span className="text-[10px] text-gray-500 block font-medium">🛑 Stop-Loss (-35%)</span>
+                                            <strong className="text-rose-400 font-mono text-xs block mt-0.5">-₹{item.strike_setup.stop_loss_amount ? item.strike_setup.stop_loss_amount.toLocaleString() : '—'}</strong>
+                                            <span className="text-[9px] text-rose-500/70 font-mono block">Strict cut</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[10px] text-gray-400 mt-1.5 px-0.5 font-medium">
+                                        <span>Breakeven: <strong className="text-amber-300 font-mono">±{item.strike_setup.breakeven_pct}%</strong></span>
+                                        <span>🛡️ <strong className="text-gray-300">Sizing:</strong> {item.strike_setup.account_guideline || '1 lot / ₹3L-5L account'}</span>
+                                    </div>
+                                </div>
+                            )
+                        )}
+
+                        {/* 5. Historical 4-Quarter True Moves Strip */}
+                        {item.earnings_volatility && item.earnings_volatility.quarter_moves && item.earnings_volatility.quarter_moves.length > 0 && (
+                            <div className="bg-gray-900/40 rounded-xl p-2.5 border border-gray-800 mb-3">
+                                <div className="flex items-center justify-between text-[11px] mb-1.5 font-medium">
+                                    <span className="text-gray-400 flex items-center space-x-1.5">
+                                        <i className="fa-solid fa-clock-rotate-left text-amber-400 text-xs"></i>
+                                        <span>Past 4Q Reaction Moves</span>
+                                    </span>
+                                    <button onClick={() => onSelect(item)} className="text-[10px] text-amber-400 hover:text-amber-300 font-bold flex items-center space-x-1 transition">
+                                        <span>360° Hourly Breakdown</span>
+                                        <i className="fa-solid fa-chevron-right text-[8px]"></i>
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-4 gap-1 text-center font-mono">
+                                    {item.earnings_volatility.quarter_moves.slice(0, 4).map((q, idx) => (
+                                        <div key={idx} className="bg-gray-950 p-1.5 rounded border border-gray-800/80" title={`${q.quarter || 'Q'+(idx+1)}: ${q.timing || 'Reaction'} on ${q.result_date}`}>
+                                            <span className="text-[9px] text-gray-500 block truncate">{q.quarter || `Q${idx+1}`}</span>
+                                            <span className={`font-extrabold text-[11px] block mt-0.5 ${q.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {q.pct > 0 ? `+${q.pct}%` : `${q.pct}%`}
                                             </span>
                                         </div>
-                                    )}
-
-                                    <div className="mt-2 pt-1.5 border-t border-gray-800/60 flex items-center justify-between text-[10px] text-gray-400">
-                                        <span>Breakeven Move: <strong className="text-amber-300">±{item.strike_setup.breakeven_pct}%</strong></span>
-                                        <span>Past 4Q Swing: <strong className="text-emerald-400">±{item.earnings_volatility ? item.earnings_volatility.avg_abs_move : 0}%</strong></span>
-                                    </div>
-
-                                    {item.strike_setup.grade !== 'AVOID' && item.strike_setup.capital_required > 0 && (
-                                        <div className="mt-2 pt-2 border-t border-gray-800/80">
-                                            <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                                <div className="bg-gray-900/80 p-2 rounded-lg border border-gray-800">
-                                                    <span className="text-gray-400 block font-medium">💰 Capital / Lot:</span>
-                                                    <strong className="text-white text-[12px] font-mono">₹{item.strike_setup.capital_required.toLocaleString()}</strong>
-                                                    <span className="text-[9px] text-gray-400 block font-mono mt-0.5">Lot: {item.strike_setup.lot_size} | ~₹{item.strike_setup.est_total_prem}/sh</span>
-                                                </div>
-                                                <div className="bg-gray-900/80 p-2 rounded-lg border border-gray-800">
-                                                    <span className="text-gray-400 block font-medium">🎯 Target (+60%):</span>
-                                                    <strong className="text-emerald-400 text-[12px] font-mono">+₹{item.strike_setup.target_profit_amount.toLocaleString()}</strong>
-                                                    <span className="text-[9px] text-rose-400 block font-mono mt-0.5">SL (-35%): -₹{item.strike_setup.stop_loss_amount.toLocaleString()}</span>
-                                                </div>
-                                            </div>
-                                            <div className="mt-1.5 px-1 text-[9px] text-gray-400 flex items-center justify-between">
-                                                <span>🛡️ <strong className="text-gray-300">Sizing:</strong> {item.strike_setup.account_guideline || 'Max 1 lot per ₹3L-5L account'}</span>
-                                            </div>
-                                        </div>
-                                    )}
+                                    ))}
                                 </div>
-
-                                <p className="text-[10px] text-gray-400 mt-2 leading-tight">
-                                    💡 {item.strike_setup.reason}
-                                </p>
                             </div>
                         )}
 
-                        {/* 5. 1-Minute AI Takeaway */}
-                        <div className="mb-3">
-                            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center justify-between">
-                                <span><i className="fa-solid fa-robot mr-1 text-indigo-400"></i> AI Takeaway</span>
-                                <span className="text-[10px] text-gray-500">Gemini 3.5</span>
+                        {/* 6. Compact AI Takeaway */}
+                        <div className="text-xs text-gray-400 bg-gray-950/40 p-2.5 rounded-xl border border-gray-800/60 mb-3 leading-relaxed">
+                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                                <span><i className="fa-solid fa-robot mr-1 text-indigo-400"></i> AI Intelligence</span>
+                                <span className="text-[9px] text-gray-600 font-normal">Gemini 3.5</span>
                             </div>
-                            <div className="text-xs text-gray-300 bg-gray-950/60 p-3 rounded-xl border border-gray-800/60 max-h-32 overflow-y-auto leading-relaxed whitespace-pre-line">
+                            <div className="text-gray-300 text-[11px] line-clamp-2 leading-snug">
                                 {formattedSummary}
                             </div>
                         </div>
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="pt-3 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
+                    {/* 7. Footer Actions */}
+                    <div className="pt-2.5 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
                         <span className="text-[11px] text-gray-500">{item.announced_at || 'Recently'}</span>
                         <div className="flex items-center space-x-2">
                             {item.pdf_url && (
-                                <a href={item.pdf_url} target="_blank" className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-blue-400 font-semibold transition text-xs">
+                                <a href={item.pdf_url} target="_blank" className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-blue-400 font-semibold transition text-xs">
                                     <i className="fa-regular fa-file-pdf"></i>
                                     <span>PDF</span>
                                 </a>
                             )}
-                            <button onClick={() => onSelect(item)} className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-semibold border border-blue-500/30 transition text-xs">
-                                360° View
+                            <button onClick={() => onSelect(item)} className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-semibold border border-blue-500/30 transition text-xs flex items-center space-x-1">
+                                <span>360° Deep Dive</span>
+                                <i className="fa-solid fa-arrow-right text-[10px]"></i>
                             </button>
                         </div>
                     </div>

@@ -292,6 +292,13 @@ To prevent devastating losses from over-allocation or improper strike selection:
   * **Stop-Loss:** Cut the position when combined premium drops by **-30% to -35%**. Never let premium decay to zero.
   * **Target Profit:** Take profit at **+50% to +80%** when the stock makes its intraday reaction swing (optimally during Hour 1: 09:15–10:15 AM).
 
+### 11.7 Institutional Visual Redesign & Executive Terminal Layout
+To eliminate visual clutter, nested boxes, and fragmented cards across web and mobile:
+* **Unified Core Metrics Strip:** Consolidates Delivery %, S1/R1 Pivot Range, 14-D RSI, and 4Q Expected Swing into a single horizontal 4-tile grid.
+* **Hero Trading Terminal Panel:** Integrates Strike Recommendation, Strategy Pill, 3-Column Execution Matrix (Capital / Lot, Target Profit, Stop-Loss), and Sizing Guidance into one dark-themed high-contrast trading panel.
+* **Past 4Q Reaction Ribbon:** Replaces bulky vertical boxes with a clean 4-pill horizontal sparkline with 1-click access to the 360° Intraday Hourly Progression modal.
+* **Executive Telegram Briefing:** Formats alerts into structured, 7-line Bloomberg-style blocks with clean typography and zero nested bullet bloat.
+
 ---
 
 ## 12. Version History & Release Changelog
@@ -309,3 +316,4 @@ To prevent devastating losses from over-allocation or improper strike selection:
 | **v1.8.0** | `7db5aa5` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
 | **v1.8.1** | `8f2d0f1` | 06-Nov-2026 | Telegram Broadcast Integration: Enriched Morning Briefing with 70–80% strike recommendations, breakeven thresholds, and hourly tags. |
 | **v1.9.0** | `8539bbd` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
+| **v2.0.0** | `HEAD` | 06-Nov-2026 | Professional Layout Redesign: Unified 4-tile KPI metric strip, consolidated hero trading terminal panel, 4-quarter reaction ribbon, and executive Bloomberg-style Telegram alerts. |
