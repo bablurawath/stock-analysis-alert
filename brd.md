@@ -310,6 +310,15 @@ To guarantee 100% dynamic freshness across future quarters with zero hardcoded d
   * Results announced in Oct / Nov / Dec $\rightarrow$ `Q2 FY{YY+1}` (e.g. Nov 2026 $\rightarrow$ `Q2 FY27`)
 * **Future-Proofing:** In 3 months (February 2027), the platform will automatically display `Q3 FY27` without requiring any code modifications or manual intervention.
 
+### 11.9 Legal, Regulatory & Risk Disclaimer Specifications
+To ensure absolute legal clarity and adherence to Indian financial regulations:
+* **Non-SEBI Registered Entity:** Explicit disclosure that the platform is an automated educational, computational, and research technology tool analyzing public regulatory filings (NSE/BSE), and not a SEBI-registered Investment Advisor (RIA) or Research Analyst.
+* **Derivatives (F&O) High-Risk Warning:** Mandatory statutory disclosure highlighting that derivative trading carries substantial capital risk and referencing SEBI's official findings that 9 out of 10 individual retail F&O traders incur net financial losses.
+* **No Buy/Sell Recommendations:** Reaffirmation that strike setups, probability metrics, and volatility analytics are historical empirical models provided solely for analytical and educational research.
+* **Omnichannel Placement:**
+  * **Web Dashboard:** Dedicated full-width dark compliance footer (`bg-gray-950/90 border-t border-gray-800/80`) with shield emblem, technology source tags (NSE/BSE Feeds, Gemini 3.5), and structured risk disclosure.
+  * **Telegram Alerts:** Embedded one-line statutory compliance footer on every daily broadcast.
+
 ---
 
 ## 12. Version History & Release Changelog
@@ -329,3 +338,4 @@ To guarantee 100% dynamic freshness across future quarters with zero hardcoded d
 | **v1.9.0** | `8539bbd` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
 | **v2.0.0** | `d3f42c2` | 06-Nov-2026 | Professional Layout Redesign: Unified 4-tile KPI metric strip, consolidated hero trading terminal panel, 4-quarter reaction ribbon, and executive Bloomberg-style Telegram alerts. |
 | **v2.1.0** | `c38ac3d` | 06-Nov-2026 | Dynamic Rolling Fiscal Quarter & Year Engine: Live NSE Board Meeting ingestion with automatic Fiscal Year (`Q2 FY27`, `Q3 FY27`) rollover. |
+| **v2.2.0** | `HEAD` | 06-Nov-2026 | Compliance & Regulatory Disclaimer: Embedded full-width SEBI non-registration & F&O risk warning in Web footer and Telegram broadcasts. |

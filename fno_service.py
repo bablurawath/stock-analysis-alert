@@ -386,7 +386,8 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         lines.append("─────────────────────────")
 
     lines.append("🎯 *Live 360° F&O Derivatives Radar:*")
-    lines.append("👉 https://stock-analysis-alert.onrender.com")
+    lines.append("👉 https://stock-analysis-alert.onrender.com\n")
+    lines.append("⚠️ _Disclaimer: Strictly for educational and research analytics. Not SEBI registered investment advice. F&O trading carries high capital risk._")
 
     msg = "\n".join(lines)
     sent = send_telegram_alert(msg)
