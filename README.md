@@ -1,4 +1,4 @@
-# 📈 Stock AI Notifier (EquiSense Alternative)
+# 📈 Stock AI Notifier
 
 An AI-powered corporate announcement and financial results analyzer that monitors Indian stock market filings (BSE/NSE) in real-time, digests quarterly reports with **Google Gemini Flash**, and sends instant alerts to your **Telegram**.
 

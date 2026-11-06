@@ -1,5 +1,5 @@
 # Business Requirement Document (BRD) & System Blueprint
-## Project: EquiSense AI Alternative — Real-Time Stock Intelligence Platform & Alert Notifier
+## Project: Stock Market Intelligence Platform & Alert Notifier
 
 ---
 

@@ -173,7 +173,7 @@ def process_cycle(seen_ids: set):
 
 def main():
     print("=" * 60)
-    print(f"🚀 {APP_TITLE} (EquiSense Alternative)")
+    print(f"🚀 {APP_TITLE}")
     print(f"📡 Watchlist: {', '.join(DEFAULT_WATCHLIST)}")
     print(f"⏱️ Poll Interval: {POLL_INTERVAL} seconds")
     print("=" * 60)
