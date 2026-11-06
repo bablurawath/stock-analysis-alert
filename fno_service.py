@@ -221,14 +221,15 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         f"⏱️ *Pre-Market Briefing (Before Results Drop)*\n"
     ]
 
-    for r in fno_results[:15]:
+    for r in fno_results[:12]:
         vol = r.get("earnings_volatility", {})
+        setup = r.get("strike_setup") or get_fno_strike_setup(r.get("current_price", 0), vol)
         avg_move = vol.get("avg_abs_move", 2.2)
         bias = vol.get("avg_dir_move", 0.0)
         bias_str = f"+{bias}%" if bias > 0 else f"{bias}%"
         q_moves = vol.get("quarter_moves", [])[:4]
 
-        # Format individual quarter movements for all 4 quarters
+        # Format individual quarter movements for all 4 quarters with hourly tags
         q_text_parts = []
         for idx, q in enumerate(q_moves, start=1):
             q_label = q.get("quarter") or f"Q{idx}"
@@ -238,16 +239,47 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
             pct = q.get("pct", 0.0)
             pct_str = f"+{pct}%" if pct > 0 else f"{pct}%"
             arrow = "🟢 ↗" if pct > 0 else ("🔴 ↘" if pct < 0 else "⚪ →")
-            q_text_parts.append(f"  • *{q_label}* ({d_short}): *{pct_str}* {arrow} ({t_short})")
+            
+            hr1 = q.get("hr1_pct")
+            hr4 = q.get("hr4_pct")
+            hourly_tag = ""
+            if hr1 is not None and hr4 is not None:
+                h1_str = f"+{hr1}%" if hr1 > 0 else f"{hr1}%"
+                h4_str = f"+{hr4}%" if hr4 > 0 else f"{hr4}%"
+                hourly_tag = f" _(1st Hr: {h1_str} | 4th Hr: {h4_str})_"
+
+            q_text_parts.append(f"  • *{q_label}* ({d_short}): *{pct_str}* {arrow} ({t_short}){hourly_tag}")
 
         q_breakdown = "\n".join(q_text_parts) if q_text_parts else "  • Data being indexed"
+
+        # Options setup text
+        if setup.get("grade") == "AVOID":
+            setup_block = (
+                f"• 🎯 *Options Setup*: [🔴 *AVOID (<40% POP)*]\n"
+                f"  ↳ *No Trade Recommended* (Historical swing ±{avg_move}% is too small to beat IV crush)"
+            )
+        else:
+            badge_str = "🟢 *75-80% HIGH WIN RATE*" if setup.get("grade") == "HIGH_75_80" else ("🟢 *75% HIGH WIN RATE*" if setup.get("grade") == "HIGH_75" else "🟡 *50-70% MODERATE*")
+            s_label = setup.get("strikes_label", "N/A")
+            strat = setup.get("strategy", "1-Strike OTM Strangle")
+            be_pct = setup.get("breakeven_pct", 2.5)
+            setup_block = (
+                f"• 🎯 *Options Setup*: [{badge_str}]\n"
+                f"  ↳ *Target Strikes*: *{s_label}* ({strat})\n"
+                f"  ↳ *Breakeven Needed*: ±{be_pct}% | *Past 4Q Swing*: ±{avg_move}%"
+            )
+
+        timing_line = ""
+        if vol.get("avg_hr1_move") and vol.get("avg_hr4_move"):
+            timing_line = f"• ⏱️ *Hourly Timing*: 1st Hr Avg: *±{vol['avg_hr1_move']}%* | 4th Hr Avg: *±{vol['avg_hr4_move']}%*\n"
 
         lines.append(
             f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
             f"• *CMP*: ₹{r['current_price']:,.1f} | *Delivery*: {r['delivery_pct']}%\n"
-            f"• *Past 4 Quarters True Reaction Moves*:\n"
+            f"{setup_block}\n"
+            f"• *Past 4 Quarters Moves & Hourly Reactions*:\n"
             f"{q_breakdown}\n"
-            f"• *Expected Swing (4Q Avg)*: *±{avg_move}%* (Bias: {bias_str})\n"
+            f"{timing_line}"
             f"• *Key Levels*: S1 ₹{r['support_1']:,.1f} | R1 ₹{r['resistance_1']:,.1f}\n"
             f"─────────────────────────"
         )
