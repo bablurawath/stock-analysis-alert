@@ -269,6 +269,14 @@ Each F&O card features an interactive **70-80% Probability Strike Pick** section
 * Required Breakeven Move % compared side-by-side with Realized 4Q Swing %
 * Plain-English institutional rationale and guidance note
 
+### 11.5 Telegram Broadcast Integration
+The Morning Pre-Market Briefing (8:30–9:00 AM IST) sent via Telegram to `@krishstockalert` directly incorporates:
+* **70-80% Win Rate Setup Badge**: `[🟢 75-80% HIGH WIN RATE]` or `[🔴 AVOID (<40% POP)]`
+* **Target Option Strikes**: Exact CE & PE strike recommendations (e.g. `1800 CE + 1700 PE (1-Strike OTM Strangle)`)
+* **Breakeven vs Historical Swing**: Side-by-side comparison (`Breakeven Needed: ±2.5% | Past 4Q Swing: ±5.63%`)
+* **Hourly Reaction Progression Tags**: Embedded directly in individual quarter movements (`Q1 (08-Aug): +6.2% 🟢 ↗ (1st Hr: +3.8% | 4th Hr: +5.1%)`)
+* **Hourly Timing Averages**: `1st Hr Avg: ±X.X% | 4th Hr Avg: ±X.X%` for optimal intraday entry/exit timing.
+
 ---
 
 ## 12. Version History & Release Changelog
@@ -284,3 +292,4 @@ Each F&O card features an interactive **70-80% Probability Strike Pick** section
 | **v1.6.0** | `e021ff0` | 05-Nov-2026 | Morning Pre-Market F&O Briefing (8:30–9:00 AM IST) sent before results drop with exact today's board meeting ingestion. |
 | **v1.7.0** | `ce8de84` | 05-Nov-2026 | Institutional 70%–80% Win-Rate Strike Pick Engine (1-Strike OTM Strangle vs ATM Straddle vs Avoid IV Crush) on dashboard cards. |
 | **v1.8.0** | `7db5aa5` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
+| **v1.8.1** | `8f2d0f1` | 06-Nov-2026 | Telegram Broadcast Integration: Enriched Morning Briefing with 70–80% strike recommendations, breakeven thresholds, and hourly tags. |
