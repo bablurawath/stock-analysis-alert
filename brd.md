@@ -308,4 +308,4 @@ To prevent devastating losses from over-allocation or improper strike selection:
 | **v1.7.0** | `ce8de84` | 05-Nov-2026 | Institutional 70%–80% Win-Rate Strike Pick Engine (1-Strike OTM Strangle vs ATM Straddle vs Avoid IV Crush) on dashboard cards. |
 | **v1.8.0** | `7db5aa5` | 06-Nov-2026 | Intraday Hourly Reaction Progression Engine: 1st Hr, 2nd Hr, 3rd Hr, 4th Hr, and Peak Intraday Swing tracking across past quarters. |
 | **v1.8.1** | `8f2d0f1` | 06-Nov-2026 | Telegram Broadcast Integration: Enriched Morning Briefing with 70–80% strike recommendations, breakeven thresholds, and hourly tags. |
-| **v1.9.0** | `HEAD` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
+| **v1.9.0** | `8539bbd` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
