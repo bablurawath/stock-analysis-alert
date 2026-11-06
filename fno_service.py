@@ -397,6 +397,19 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
     else:
         return {"status": "FAILED", "message": "Failed to send Telegram alert"}
 
+def get_fiscal_quarter_label(dt: dt_cls) -> str:
+    """Computes Indian Financial Year Quarter Label (e.g. Q1 FY27, Q2 FY27, Q3 FY27, Q4 FY27)."""
+    m = dt.month
+    y = dt.year % 100
+    if m in [1, 2, 3]:
+        return f"Q3 FY{y:02d}"
+    elif m in [4, 5, 6]:
+        return f"Q4 FY{y:02d}"
+    elif m in [7, 8, 9]:
+        return f"Q1 FY{(y+1):02d}"
+    else:
+        return f"Q2 FY{(y+1):02d}"
+
 def get_historical_earnings_moves(symbol: str, session: requests.Session = None) -> Dict[str, Any]:
     """
     Computes TRUE earnings reaction moves for the last 3-4 quarters:
@@ -605,8 +618,12 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
                         prog, hr1, hr2, hr3, hr4, peak_pct, peak_hr = extract_hourly_breakdown(
                             reaction_candle["date"], base_price, pct
                         )
+                        fq_lbl = get_fiscal_quarter_label(p["dt"])
+                        m_yr = p["dt"].strftime("%b '%y")
                         moves.append({
-                            "quarter": f"Q{q_num}",
+                            "quarter": fq_lbl,
+                            "quarter_code": f"Q{q_num}",
+                            "quarter_tag": f"{fq_lbl} ({m_yr})",
                             "result_date": p["raw_date"],
                             "reaction_date": reaction_candle["display_date"],
                             "timing": "Post-Market (T+1 Reaction)",
@@ -636,8 +653,12 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
                         prog, hr1, hr2, hr3, hr4, peak_pct, peak_hr = extract_hourly_breakdown(
                             reaction_candle["date"], base_price, pct
                         )
+                        fq_lbl = get_fiscal_quarter_label(p["dt"])
+                        m_yr = p["dt"].strftime("%b '%y")
                         moves.append({
-                            "quarter": f"Q{q_num}",
+                            "quarter": fq_lbl,
+                            "quarter_code": f"Q{q_num}",
+                            "quarter_tag": f"{fq_lbl} ({m_yr})",
                             "result_date": p["raw_date"],
                             "reaction_date": reaction_candle["display_date"],
                             "timing": "Market Hours (Intraday)",

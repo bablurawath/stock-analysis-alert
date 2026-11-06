@@ -299,6 +299,17 @@ To eliminate visual clutter, nested boxes, and fragmented cards across web and m
 * **Past 4Q Reaction Ribbon:** Replaces bulky vertical boxes with a clean 4-pill horizontal sparkline with 1-click access to the 360° Intraday Hourly Progression modal.
 * **Executive Telegram Briefing:** Formats alerts into structured, 7-line Bloomberg-style blocks with clean typography and zero nested bullet bloat.
 
+### 11.8 Dynamic Rolling Fiscal Quarter & Year Ingestion Architecture
+To guarantee 100% dynamic freshness across future quarters with zero hardcoded dates:
+* **Zero Static Years/Quarters:** Dates, months, and years are never hardcoded. Every evaluation dynamically queries the live NSE Board Meetings endpoint (`https://www.nseindia.com/api/corporate-board-meetings?index=equities&symbol=XYZ`).
+* **Rolling 4-Quarter Window:** Filtering by `dt.date() < datetime.date.today()` ensures that whenever a new quarterly result is published, the window automatically shifts forward by one quarter: the new result becomes the newest quarter, and the oldest rolls off.
+* **Indian Fiscal Year Math (`get_fiscal_quarter_label`):**
+  * Results announced in Jan / Feb / Mar $\rightarrow$ `Q3 FY{YY}` (e.g. Feb 2027 $\rightarrow$ `Q3 FY27`)
+  * Results announced in Apr / May / Jun $\rightarrow$ `Q4 FY{YY}` (e.g. May 2027 $\rightarrow$ `Q4 FY27`)
+  * Results announced in Jul / Aug / Sep $\rightarrow$ `Q1 FY{YY+1}` (e.g. Aug 2027 $\rightarrow$ `Q1 FY28`)
+  * Results announced in Oct / Nov / Dec $\rightarrow$ `Q2 FY{YY+1}` (e.g. Nov 2026 $\rightarrow$ `Q2 FY27`)
+* **Future-Proofing:** In 3 months (February 2027), the platform will automatically display `Q3 FY27` without requiring any code modifications or manual intervention.
+
 ---
 
 ## 12. Version History & Release Changelog
@@ -317,3 +328,4 @@ To eliminate visual clutter, nested boxes, and fragmented cards across web and m
 | **v1.8.1** | `8f2d0f1` | 06-Nov-2026 | Telegram Broadcast Integration: Enriched Morning Briefing with 70–80% strike recommendations, breakeven thresholds, and hourly tags. |
 | **v1.9.0** | `8539bbd` | 06-Nov-2026 | Capital & Money Management Engine: Official NSE Lot Sizes, Capital Required (₹/lot), Target Profit (+60%), Stop-Loss (-35%), and Portfolio Sizing rules across Web & Telegram. |
 | **v2.0.0** | `d3f42c2` | 06-Nov-2026 | Professional Layout Redesign: Unified 4-tile KPI metric strip, consolidated hero trading terminal panel, 4-quarter reaction ribbon, and executive Bloomberg-style Telegram alerts. |
+| **v2.1.0** | `HEAD` | 06-Nov-2026 | Dynamic Rolling Fiscal Quarter & Year Engine: Live NSE Board Meeting ingestion with automatic Fiscal Year (`Q2 FY27`, `Q3 FY27`) rollover. |
