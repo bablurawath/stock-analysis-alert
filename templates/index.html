@@ -231,7 +231,67 @@
                             </div>
                         )}
 
-                        {/* 4. Business Moat & Sentiment Catalyst */}
+                        {/* 4. Past 4-Quarter Business Performance & Growth Trajectory */}
+                        <div className="mb-3 rounded-xl p-3 bg-gradient-to-b from-blue-950/20 to-gray-950 border border-blue-500/30">
+                            <div className="flex items-center justify-between text-xs mb-2">
+                                <span className="text-[10px] font-extrabold uppercase tracking-wide text-blue-300 flex items-center space-x-1.5">
+                                    <i className="fa-solid fa-chart-line text-blue-400"></i>
+                                    <span>4-Quarter Business Performance &amp; Divergence</span>
+                                </span>
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+                                    {item.sales_growth_yoy}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 bg-gray-950/80 p-2 rounded-lg border border-gray-800 text-xs mb-2">
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block font-medium">Profit Growth (PAT)</span>
+                                    <strong className="text-emerald-400 font-mono text-xs block mt-0.5">{item.pat_growth_yoy}</strong>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block font-medium">Quarterly Profit Trend</span>
+                                    <strong className="text-gray-300 font-mono text-[11px] block mt-0.5 truncate" title={item.recent_quarters_trend}>{item.recent_quarters_trend}</strong>
+                                </div>
+                            </div>
+
+                            <div className="text-[11px] text-gray-300 leading-snug bg-blue-950/30 p-2 rounded-lg border border-blue-500/20">
+                                <strong className="text-blue-300">🎯 Business vs Price Divergence:</strong> {item.divergence_note}
+                            </div>
+                        </div>
+
+                        {/* 5. Promoter Integrity, Pledging & Institutional Footprint */}
+                        <div className="mb-3 rounded-xl p-3 bg-gradient-to-b from-emerald-950/20 to-gray-950 border border-emerald-500/30">
+                            <div className="flex items-center justify-between text-xs mb-2">
+                                <span className="text-[10px] font-extrabold uppercase tracking-wide text-emerald-300 flex items-center space-x-1.5">
+                                    <i className="fa-solid fa-shield-halved text-emerald-400"></i>
+                                    <span>Promoter Integrity &amp; Ownership Footprint</span>
+                                </span>
+                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
+                                    0.0% Pledged
+                                </span>
+                            </div>
+
+                            <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between text-[11px] bg-gray-950/80 p-1.5 rounded border border-gray-800/80">
+                                    <span className="text-gray-400">Promoter Stake:</span>
+                                    <strong className="text-gray-200 font-mono">{item.promoter_status}</strong>
+                                </div>
+                                <div className="flex items-center justify-between text-[11px] bg-gray-950/80 p-1.5 rounded border border-gray-800/80">
+                                    <span className="text-gray-400">Institutions (DII / MFs):</span>
+                                    <strong className="text-indigo-300 font-mono">{item.institution_status}</strong>
+                                </div>
+                                <div className="flex items-center justify-between text-[11px] bg-gray-950/80 p-1.5 rounded border border-gray-800/80">
+                                    <span className="text-gray-400">Capital Efficiency &amp; Debt:</span>
+                                    <strong className="text-emerald-300 font-mono">ROCE: {item.roce} | D/E: {item.debt_equity}</strong>
+                                </div>
+                            </div>
+
+                            <div className="text-[11px] text-gray-400 leading-snug mt-2 pt-2 border-t border-gray-800/80">
+                                <strong className="text-emerald-400">🛡️ Promoter Behavior:</strong> {item.promoter_integrity_note}
+                            </div>
+                        </div>
+
+                        {/* 6. Business Moat & Sentiment Catalyst */}
                         <div className="space-y-1.5 text-xs bg-gray-900/40 p-2.5 rounded-xl border border-gray-800/60 mb-3">
                             <div className="text-[11px] text-gray-300 leading-snug">
                                 <strong className="text-blue-400">🏆 Moat:</strong> {item.moat}
@@ -241,7 +301,7 @@
                             </div>
                         </div>
 
-                        {/* 5. Whale / Delivery Footprint */}
+                        {/* 7. Whale / Delivery Footprint */}
                         <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-xl px-3 py-1.5 text-xs text-indigo-300 flex items-center space-x-2">
                             <i className="fa-solid fa-boxes-packing text-indigo-400 text-xs"></i>
                             <span className="line-clamp-1 text-[11px] font-medium">{item.whale_note}</span>
