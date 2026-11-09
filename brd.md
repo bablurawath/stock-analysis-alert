@@ -328,6 +328,24 @@ To eliminate blind spots for small/midcap companies listed exclusively on the Bo
 * **Dynamic Metadata Ingestion:** Ingests live company name (\meta.shortName\ / \meta.longName\), CMP, 52-week high/low range, 14-day RSI, Support/Resistance classic pivots, and tags exchange badge (\BSE Listed\ vs \NSE Listed\).
 * **Universal Search Engine:** Live instant search seamlessly routes user queries to the dual-exchange pipeline, automatically resetting filters from \FNO_TODAY\ to \ALL\ to present scanned cash/equity stocks immediately.
 
+### 11.11 Quality Equity Institutional Accumulation Engine
+Designed for delivery/cash investors seeking asymmetric risk-reward (1:3+ upside) by systematically identifying high-quality businesses temporarily beaten down by broader market sentiment or macro panic:
+* **3-Layer Institutional Filter:**
+  1. *Business Quality & Moat:* Dominant market leadership, high capital efficiency (ROE/ROCE > 15%), and clean balance sheets.
+  2. *Sentiment Discount:* Deep discount from 52-week peak (-15% to -55%) and cold/oversold 14-day RSI (30-45).
+  3. *Whale Footprint:* Strong Demat delivery percentage (>55%-65%) signaling smart money accumulation while retail panics.
+* **4 Market Cap Sub-Tabs:**
+  * **Large Cap:** Established blue-chips (HDFC Bank, Reliance, TCS, Asian Paints, Titan, L&T, etc.)
+  * **Mid Cap:** Fast-growing leaders (Polycab, Dixon, Trent, Astral, Coforge, Persistent, etc.)
+  * **Small Cap:** High-margin emerging champions (CDSL, BSE, Kaynes, Cera, Craftsman, Clean Science, etc.)
+  * **Micro Cap:** High-conviction niche gems & BSE exclusives (Brady & Morris - BRADYM, Rajratan, Shivalik, etc.)
+* **Institutional 3-Tranche Staggered Entry Calculator:**
+  * Eliminates lump-sum timing risk by allocating capital in 3 strategic tranches:
+    * Tranche 1 (40% allocation): Current Market Price (CMP Entry)
+    * Tranche 2 (30% allocation): Key S1 Support Floor
+    * Tranche 3 (30% allocation): Deep S2 Reversal Demand Base
+  * Computes precise blended average cost price, 52-week reversion upside %, and Risk-to-Reward ratio.
+
 ---
 
 ## 12. Version History & Release Changelog

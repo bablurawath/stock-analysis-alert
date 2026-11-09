@@ -29,6 +29,7 @@ from fno_service import (
     get_historical_earnings_moves,
     broadcast_today_fno_results
 )
+from accumulation_service import scan_accumulation_basket
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_FILE = BASE_DIR / "templates" / "index.html"
@@ -142,6 +143,11 @@ def api_technicals(symbol: str):
     if not tech:
         return JSONResponse(status_code=404, content={"error": "Symbol not found or data unavailable"})
     return JSONResponse(content=tech)
+
+@app.get("/api/accumulation")
+def api_accumulation(category: str = "ALL", refresh: bool = False):
+    stocks = scan_accumulation_basket(category=category, force_refresh=refresh)
+    return JSONResponse(content={"category": category.upper(), "count": len(stocks), "stocks": stocks})
 
 @app.get("/health")
 def health():

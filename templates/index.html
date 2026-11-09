@@ -72,7 +72,7 @@
         // ====================================================================
         // 2. STATS BANNER COMPONENT
         // ====================================================================
-        function StatsBanner({ items, fnoCount, onSelectFno }) {
+        function StatsBanner({ items, fnoCount, onSelectFno, accumulationCount, onSelectAccumulation }) {
             const total = items.length;
             const bullish = items.filter(i => i.sentiment === 'BULLISH').length;
             const highDelivery = items.filter(i => (i.delivery_pct || 0) >= 60).length;
@@ -90,16 +90,19 @@
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">View Tab</span>
                             </div>
                         </div>
-                        <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Tracked Stocks</div>
-                            <div className="text-xl sm:text-2xl font-bold text-white mt-1">{total}</div>
+                        <div className="glass-panel p-4 rounded-xl cursor-pointer hover:border-emerald-500/40 transition" onClick={onSelectAccumulation}>
+                            <div className="text-emerald-400 text-xs font-semibold uppercase tracking-wider flex items-center space-x-1">
+                                <i className="fa-solid fa-gem text-xs"></i>
+                                <span>Quality Accumulation</span>
+                            </div>
+                            <div className="text-xl sm:text-2xl font-bold text-emerald-300 mt-1 flex items-center space-x-2">
+                                <span>{accumulationCount || 38}</span>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">4 Sub-Tabs</span>
+                            </div>
                         </div>
                         <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Bullish Beats</div>
-                            <div className="text-xl sm:text-2xl font-bold text-emerald-400 mt-1 flex items-center space-x-1.5">
-                                <span>{bullish}</span>
-                                <i className="fa-solid fa-arrow-trend-up text-sm"></i>
-                            </div>
+                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Tracked Filings</div>
+                            <div className="text-xl sm:text-2xl font-bold text-white mt-1">{total}</div>
                         </div>
                         <div className="glass-panel p-4 rounded-xl">
                             <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Whale Accumulation</div>
@@ -110,6 +113,152 @@
                         </div>
                     </div>
                 </section>
+            );
+        }
+
+        // ====================================================================
+        // 2.5 INSTITUTIONAL QUALITY ACCUMULATION CARD (LARGE, MID, SMALL, MICRO)
+        // ====================================================================
+        function AccumulationCard({ item, onSelect }) {
+            const catColors = {
+                LARGE: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+                MID: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+                SMALL: 'bg-teal-500/15 text-teal-300 border-teal-500/30',
+                MICRO: 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+            };
+            const catBadge = catColors[item.category] || 'bg-gray-800 text-gray-300 border-gray-700';
+
+            const scoreColor = item.accumulation_score >= 80 
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                : (item.accumulation_score >= 65 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-gray-800 text-gray-400 border-gray-700');
+
+            return (
+                <div className="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border border-gray-800/80 hover:border-emerald-500/40 hover:shadow-emerald-950/20">
+                    <div>
+                        {/* 1. Header Bar: Symbol, Cap Badge, Exchange & Score */}
+                        <div className="flex items-start justify-between mb-3 border-b border-gray-800/80 pb-3">
+                            <div className="flex-1 mr-2">
+                                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                    <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/30 tracking-wide">
+                                        {item.symbol}
+                                    </span>
+                                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${catBadge}`}>
+                                        {item.category} CAP
+                                    </span>
+                                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-gray-900 text-gray-400 border border-gray-800">
+                                        {item.exchange}
+                                    </span>
+                                </div>
+                                <h3 className="text-sm font-bold text-white mt-1.5 leading-snug line-clamp-1" title={item.name}>
+                                    {item.name}
+                                </h3>
+                                <p className="text-[11px] text-gray-400 mt-0.5">{item.sector}</p>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                                <div className="text-base font-mono font-black text-white">
+                                    ₹{Number(item.current_price).toLocaleString('en-IN')}
+                                </div>
+                                <div className={`mt-1 inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreColor}`}>
+                                    <span>★ {item.accumulation_score}/100</span>
+                                    <span className="text-[9px]">({item.grade})</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Core Metrics Strip */}
+                        <div className="grid grid-cols-4 gap-1.5 p-2 bg-gray-900/60 rounded-xl border border-gray-800/80 text-center text-xs mb-3">
+                            <div className="px-1 border-r border-gray-800/80">
+                                <div className="text-[10px] text-gray-500 font-medium">Off 52W High</div>
+                                <div className="font-mono font-extrabold text-rose-400 mt-0.5 text-xs">
+                                    -{item.discount_from_peak}%
+                                </div>
+                            </div>
+                            <div className="px-1 border-r border-gray-800/80">
+                                <div className="text-[10px] text-gray-500 font-medium">14-D RSI</div>
+                                <div className="font-mono font-bold mt-0.5 text-xs text-emerald-400">
+                                    {item.rsi}
+                                </div>
+                            </div>
+                            <div className="px-1 border-r border-gray-800/80">
+                                <div className="text-[10px] text-gray-500 font-medium">Delivery %</div>
+                                <div className="font-mono font-bold text-gray-200 mt-0.5 text-xs">
+                                    {item.delivery_pct}%
+                                </div>
+                            </div>
+                            <div className="px-1">
+                                <div className="text-[10px] text-gray-500 font-medium">52W Upside</div>
+                                <div className="font-mono font-extrabold text-emerald-400 mt-0.5 text-xs">
+                                    +{item.upside ? item.upside.target_upside_pct : 0}%
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Smart 3-Tranche Staggered Entry Calculator */}
+                        {item.tranches && (
+                            <div className="mb-3 rounded-xl p-3 bg-gradient-to-b from-gray-900/90 to-gray-950 border border-emerald-500/30 shadow-inner">
+                                <div className="flex items-center justify-between text-xs mb-2">
+                                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-emerald-300 flex items-center space-x-1">
+                                        <i className="fa-solid fa-layer-group text-emerald-400"></i>
+                                        <span>3-Tranche Institutional Entry</span>
+                                    </span>
+                                    <span className="text-[10px] font-mono text-gray-400">
+                                        Avg Cost: <strong className="text-white">₹{item.tranches.blended_entry}</strong>
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-1.5 bg-gray-950/90 p-2 rounded-lg border border-gray-800 text-center my-1.5">
+                                    <div className="border-r border-gray-800/80 pr-1">
+                                        <span className="text-[9px] text-gray-500 block uppercase font-medium">Tranche 1 (40%)</span>
+                                        <strong className="text-white font-mono text-xs block mt-0.5">₹{Number(item.tranches.t1_price).toLocaleString('en-IN')}</strong>
+                                        <span className="text-[9px] text-blue-400 font-mono block">At CMP</span>
+                                    </div>
+                                    <div className="border-r border-gray-800/80 px-1">
+                                        <span className="text-[9px] text-gray-500 block uppercase font-medium">Tranche 2 (30%)</span>
+                                        <strong className="text-amber-300 font-mono text-xs block mt-0.5">₹{Number(item.tranches.t2_price).toLocaleString('en-IN')}</strong>
+                                        <span className="text-[9px] text-amber-400/80 font-mono block">S1 Support</span>
+                                    </div>
+                                    <div className="pl-1">
+                                        <span className="text-[9px] text-gray-500 block uppercase font-medium">Tranche 3 (30%)</span>
+                                        <strong className="text-emerald-400 font-mono text-xs block mt-0.5">₹{Number(item.tranches.t3_price).toLocaleString('en-IN')}</strong>
+                                        <span className="text-[9px] text-emerald-400/80 font-mono block">Deep Value S2</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between text-[10px] text-gray-400 mt-1.5 px-0.5 font-medium">
+                                    <span>🎯 52W Peak: <strong className="text-emerald-300 font-mono">₹{item.upside ? Number(item.upside.target_price).toLocaleString('en-IN') : item['52w_high']}</strong></span>
+                                    <span>⚖️ Risk/Reward: <strong className="text-white font-mono">{item.upside ? item.upside.risk_reward_ratio : '1:3'}</strong></span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 4. Business Moat & Sentiment Catalyst */}
+                        <div className="space-y-1.5 text-xs bg-gray-900/40 p-2.5 rounded-xl border border-gray-800/60 mb-3">
+                            <div className="text-[11px] text-gray-300 leading-snug">
+                                <strong className="text-blue-400">🏆 Moat:</strong> {item.moat}
+                            </div>
+                            <div className="text-[11px] text-gray-400 leading-snug">
+                                <strong className="text-amber-400">⚠️ Why in Accumulation:</strong> {item.sentiment_catalyst}
+                            </div>
+                        </div>
+
+                        {/* 5. Whale / Delivery Footprint */}
+                        <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-xl px-3 py-1.5 text-xs text-indigo-300 flex items-center space-x-2">
+                            <i className="fa-solid fa-boxes-packing text-indigo-400 text-xs"></i>
+                            <span className="line-clamp-1 text-[11px] font-medium">{item.whale_note}</span>
+                        </div>
+                    </div>
+
+                    {/* Footer with Verdict */}
+                    <div className="mt-4 pt-3 border-t border-gray-800/80 flex items-center justify-between text-xs">
+                        <span className="font-extrabold text-[11px] text-emerald-400 flex items-center space-x-1">
+                            <i className="fa-solid fa-shield-heart"></i>
+                            <span>{item.verdict}</span>
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-mono">
+                            52W: ₹{item['52w_low']} - ₹{item['52w_high']}
+                        </span>
+                    </div>
+                </div>
             );
         }
 
@@ -528,6 +677,9 @@
         function App() {
             const [items, setItems] = useState([]);
             const [fnoResults, setFnoResults] = useState([]);
+            const [accumulationStocks, setAccumulationStocks] = useState([]);
+            const [accumulationCategory, setAccumulationCategory] = useState('ALL');
+            const [loadingAccumulation, setLoadingAccumulation] = useState(false);
             const [loading, setLoading] = useState(true);
             const [searchingLive, setSearchingLive] = useState(false);
             const [searchTerm, setSearchTerm] = useState('');
@@ -546,6 +698,29 @@
                 } finally {
                     setBroadcasting(false);
                 }
+            };
+
+            const fetchAccumulationData = async (cat = 'ALL', refresh = false) => {
+                setLoadingAccumulation(true);
+                try {
+                    const res = await fetch(`/api/accumulation?category=${cat}&refresh=${refresh}`);
+                    const json = await res.json();
+                    setAccumulationStocks(json.stocks || []);
+                } catch (e) {
+                    console.error('Accumulation fetch error:', e);
+                } finally {
+                    setLoadingAccumulation(false);
+                }
+            };
+
+            const handleCapChange = (cap) => {
+                setAccumulationCategory(cap);
+                fetchAccumulationData(cap);
+            };
+
+            const getCapCount = (cap) => {
+                if (cap === 'ALL') return accumulationStocks.length || 38;
+                return accumulationStocks.filter(s => s.category === cap).length;
             };
 
             const fetchData = async () => {
@@ -568,6 +743,7 @@
 
             useEffect(() => {
                 fetchData();
+                fetchAccumulationData('ALL');
                 const interval = setInterval(fetchData, 60000);
                 return () => clearInterval(interval);
             }, []);
@@ -639,6 +815,18 @@
                 });
             }, [items, fnoResults, searchTerm, activeFilter]);
 
+            const filteredAccumulation = useMemo(() => {
+                return accumulationStocks.filter(item => {
+                    const matchesSearch = 
+                        (item.symbol || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (item.sector || '').toLowerCase().includes(searchTerm.toLowerCase());
+                    if (!matchesSearch) return false;
+                    if (accumulationCategory !== 'ALL' && item.category !== accumulationCategory) return false;
+                    return true;
+                });
+            }, [accumulationStocks, searchTerm, accumulationCategory]);
+
             return (
                 <div className="flex-1 flex flex-col">
                     <Navbar />
@@ -646,6 +834,8 @@
                         items={items} 
                         fnoCount={fnoResults.length} 
                         onSelectFno={() => setActiveFilter('FNO_TODAY')} 
+                        accumulationCount={accumulationStocks.length || 38}
+                        onSelectAccumulation={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }}
                     />
 
                     {/* Filter & Live Search Bar */}
@@ -682,14 +872,21 @@
                                     onClick={() => setActiveFilter('FNO_TODAY')} 
                                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'FNO_TODAY' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30' : 'bg-gray-800/90 text-amber-300 hover:text-amber-200 border border-amber-500/30'}`}>
                                     <i className="fa-solid fa-bolt text-xs text-amber-300"></i>
-                                    <span>F&O Results (Today)</span>
+                                    <span>F&O Today</span>
                                     <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-amber-200 font-extrabold">{fnoResults.length}</span>
+                                </button>
+                                <button 
+                                    onClick={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }} 
+                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'ACCUMULATION' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30' : 'bg-gray-800/90 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30'}`}>
+                                    <i className="fa-solid fa-gem text-xs text-emerald-300"></i>
+                                    <span>💎 Quality Accumulation</span>
+                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-emerald-200 font-extrabold">{accumulationStocks.length || 38}</span>
                                 </button>
                                 <button 
                                     onClick={() => setActiveFilter('WHALES')} 
                                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'WHALES' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
                                     <i className="fa-solid fa-boxes-packing text-xs"></i>
-                                    <span>Whales (>60% Del)</span>
+                                    <span>Whales (&gt;60% Del)</span>
                                 </button>
                                 <button 
                                     onClick={() => setActiveFilter('BULLISH')} 
@@ -739,10 +936,69 @@
                             </div>
                         )}
 
+                        {/* Quality Accumulation Sub-Tabs Banner (Large, Mid, Small, Micro) */}
+                        {activeFilter === 'ACCUMULATION' && (
+                            <div className="mt-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent border border-emerald-500/30 rounded-2xl p-4 shadow-lg space-y-3">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/30">
+                                            <i className="fa-solid fa-gem"></i>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                                                <span>💎 Institutional Quality Accumulation Radar</span>
+                                                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">CASH &amp; DELIVERY</span>
+                                            </h4>
+                                            <p className="text-xs text-gray-400 mt-0.5">Top-tier businesses with strong moats &amp; high ROCE trading in institutional accumulation zones due to market sentiment or temporary macro dips.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <button 
+                                            onClick={() => fetchAccumulationData(accumulationCategory, true)}
+                                            disabled={loadingAccumulation}
+                                            className="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md">
+                                            <i className={`fa-solid fa-arrows-rotate ${loadingAccumulation ? 'fa-spin' : ''}`}></i>
+                                            <span>{loadingAccumulation ? 'Scanning...' : 'Refresh All Baskets'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 4 Market Cap Sub-Tabs */}
+                                <div className="flex items-center space-x-2 overflow-x-auto pt-2 border-t border-gray-800/80">
+                                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mr-1 flex items-center space-x-1">
+                                        <i className="fa-solid fa-layer-group text-xs text-emerald-400"></i>
+                                        <span>Market Cap:</span>
+                                    </span>
+                                    {[
+                                        { id: 'ALL', label: 'All Caps', icon: 'fa-globe' },
+                                        { id: 'LARGE', label: 'Large Cap', icon: 'fa-landmark' },
+                                        { id: 'MID', label: 'Mid Cap', icon: 'fa-chart-line' },
+                                        { id: 'SMALL', label: 'Small Cap', icon: 'fa-seedling' },
+                                        { id: 'MICRO', label: 'Micro Cap', icon: 'fa-magnifying-glass-chart' }
+                                    ].map(cap => (
+                                        <button 
+                                            key={cap.id}
+                                            onClick={() => handleCapChange(cap.id)}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${
+                                                accumulationCategory === cap.id 
+                                                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
+                                                    : 'bg-gray-900/90 text-gray-400 hover:text-white border border-gray-800'
+                                            }`}>
+                                            <i className={`fa-solid ${cap.icon} text-[10px]`}></i>
+                                            <span>{cap.label}</span>
+                                            <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-black/40 text-emerald-300 font-mono">
+                                                {getCapCount(cap.id)}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Quick Stock Chips */}
                         <div className="mt-3 flex items-center space-x-2 overflow-x-auto text-xs text-gray-400">
                             <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Popular Scans:</span>
-                            {['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'TATAMOTORS', 'ICICIBANK', 'SBIN'].map(sym => (
+                            {['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'BRADYM', 'TATAMOTORS', 'ICICIBANK', 'CDSL'].map(sym => (
                                 <button 
                                     key={sym} 
                                     onClick={() => handleSearchLiveStock(sym)}
@@ -755,35 +1011,60 @@
 
                     {/* Cards Grid */}
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1 w-full">
-                        {loading && items.length === 0 ? (
-                            <div className="text-center py-20 text-gray-400">
-                                <i className="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
-                                <p className="text-sm font-medium">Fetching verified exchange disclosures...</p>
-                            </div>
-                        ) : filteredItems.length === 0 ? (
-                            <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6">
-                                <i className={`fa-solid ${activeFilter === 'FNO_TODAY' ? 'fa-calendar-xmark text-amber-500' : 'fa-magnifying-glass-chart text-blue-500'} text-4xl mb-3`}></i>
-                                <p className="text-base font-semibold text-gray-300">
-                                    {activeFilter === 'FNO_TODAY' ? 'No F&O results matched this query today.' : `"${searchTerm}" is not in recent filings.`}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1 mb-4">
-                                    {activeFilter === 'FNO_TODAY' ? 'F&O results update live as companies submit regulatory board outcomes on NSE/BSE.' : `Click below to fetch instant live price, Delivery %, RSI, and Floor/Ceiling levels for ${searchTerm.toUpperCase()}:`}
-                                </p>
-                                {searchTerm.trim() && (
-                                    <button 
-                                        onClick={() => handleSearchLiveStock()}
-                                        disabled={searchingLive}
-                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20">
-                                        {searchingLive ? 'Scanning Market...' : `Scan ${searchTerm.toUpperCase()} Live Now`}
-                                    </button>
-                                )}
-                            </div>
+                        {activeFilter === 'ACCUMULATION' ? (
+                            loadingAccumulation && accumulationStocks.length === 0 ? (
+                                <div className="text-center py-20 text-gray-400">
+                                    <i className="fa-solid fa-circle-notch fa-spin text-4xl text-emerald-500 mb-3"></i>
+                                    <p className="text-sm font-medium">Scanning institutional quality accumulation baskets across Large, Mid, Small, and Micro caps...</p>
+                                </div>
+                            ) : filteredAccumulation.length === 0 ? (
+                                <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6">
+                                    <i className="fa-solid fa-gem text-emerald-500 text-4xl mb-3"></i>
+                                    <p className="text-base font-semibold text-gray-300">
+                                        No accumulation stocks found for "{searchTerm}".
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Try switching market cap sub-tabs (Large, Mid, Small, Micro) or clear the search.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {filteredAccumulation.map(item => (
+                                        <AccumulationCard key={`${item.category}_${item.symbol}`} item={item} onSelect={setSelectedItem} />
+                                    ))}
+                                </div>
+                            )
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {filteredItems.map(item => (
-                                    <StockCard key={item.id} item={item} onSelect={setSelectedItem} />
-                                ))}
-                            </div>
+                            loading && items.length === 0 ? (
+                                <div className="text-center py-20 text-gray-400">
+                                    <i className="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
+                                    <p className="text-sm font-medium">Fetching verified exchange disclosures...</p>
+                                </div>
+                            ) : filteredItems.length === 0 ? (
+                                <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6">
+                                    <i className={`fa-solid ${activeFilter === 'FNO_TODAY' ? 'fa-calendar-xmark text-amber-500' : 'fa-magnifying-glass-chart text-blue-500'} text-4xl mb-3`}></i>
+                                    <p className="text-base font-semibold text-gray-300">
+                                        {activeFilter === 'FNO_TODAY' ? 'No F&O results matched this query today.' : `"${searchTerm}" is not in recent filings.`}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1 mb-4">
+                                        {activeFilter === 'FNO_TODAY' ? 'F&O results update live as companies submit regulatory board outcomes on NSE/BSE.' : `Click below to fetch instant live price, Delivery %, RSI, and Floor/Ceiling levels for ${searchTerm.toUpperCase()}:`}
+                                    </p>
+                                    {searchTerm.trim() && (
+                                        <button 
+                                            onClick={() => handleSearchLiveStock()}
+                                            disabled={searchingLive}
+                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20">
+                                            {searchingLive ? 'Scanning Market...' : `Scan ${searchTerm.toUpperCase()} Live Now`}
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {filteredItems.map(item => (
+                                        <StockCard key={item.id} item={item} onSelect={setSelectedItem} />
+                                    ))}
+                                </div>
+                            )
                         )}
                     </main>
 
