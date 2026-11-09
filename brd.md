@@ -319,6 +319,15 @@ To ensure absolute legal clarity and adherence to Indian financial regulations:
   * **Web Dashboard:** Dedicated full-width dark compliance footer (`bg-gray-950/90 border-t border-gray-800/80`) with shield emblem, technology source tags (NSE/BSE Feeds, Gemini 3.5), and structured risk disclosure.
   * **Telegram Alerts:** Embedded one-line statutory compliance footer on every daily broadcast.
 
+### 11.10 Dual-Exchange Architecture (NSE + BSE Support)
+To eliminate blind spots for small/midcap companies listed exclusively on the Bombay Stock Exchange (BSE):
+* **Automatic Exchange Fallback Resolution:** The technical analysis and price engine (\	echnicals.py\, \no_service.py\) checks ticker candidates sequentially:
+  * Primary: \{SYMBOL}.NS\ (National Stock Exchange)
+  * Secondary Fallback: \{SYMBOL}.BO\ (Bombay Stock Exchange)
+* **Exclusive BSE Scrip Coverage:** BSE-only equities (e.g., \BRADYM\ - *Brady & Morris Engineering Co.*) resolve automatically without requiring the user to know or manually append \.BO\.
+* **Dynamic Metadata Ingestion:** Ingests live company name (\meta.shortName\ / \meta.longName\), CMP, 52-week high/low range, 14-day RSI, Support/Resistance classic pivots, and tags exchange badge (\BSE Listed\ vs \NSE Listed\).
+* **Universal Search Engine:** Live instant search seamlessly routes user queries to the dual-exchange pipeline, automatically resetting filters from \FNO_TODAY\ to \ALL\ to present scanned cash/equity stocks immediately.
+
 ---
 
 ## 12. Version History & Release Changelog

@@ -572,7 +572,7 @@
                 return () => clearInterval(interval);
             }, []);
 
-            // Quick live technical scan on demand
+            // Quick live technical scan on demand (Dual Exchange: NSE & BSE)
             const handleSearchLiveStock = async (query) => {
                 const cleanQuery = (query || searchTerm).trim().toUpperCase();
                 if (!cleanQuery) return;
@@ -591,12 +591,13 @@
                         const newStockCard = {
                             id: `live_${cleanQuery}_${Date.now()}`,
                             symbol: tech.symbol,
-                            company_name: `${cleanQuery} (Live Analysis)`,
-                            subject: `Real-time technical price action, RSI & delivery footprint`,
+                            company_name: tech.company_name || `${cleanQuery} (${tech.exchange || 'BSE/NSE'})`,
+                            subject: `Real-time technical price action, RSI & delivery footprint (${tech.exchange || 'BSE'})`,
                             details: `Current Market Price: ₹${tech.current_price}. 52W Range: ₹${tech['52w_low']} - ₹${tech['52w_high']}`,
                             pdf_url: null,
                             announced_at: 'Live Instant Scan',
-                            ai_summary: `🎯 Simple Outlook:\n• Price Action: Trading at ₹${tech.current_price}\n• RSI (14): ${tech.rsi} (${tech.rsi_badge})\n• Floor (Support): S1 ₹${tech.pivots.s1}\n• Ceiling (Resistance): R1 ₹${tech.pivots.r1}\n• Historical 4Q Result Volatility: ${vol ? `±${vol.avg_abs_move}%` : 'Standard'}\n• Verdict: ${tech.verdict}`,
+                            result_status: tech.exchange === 'BSE' ? 'BSE Listed' : 'NSE Listed',
+                            ai_summary: `🎯 Simple Outlook:\n• Exchange: ${tech.exchange || 'BSE'}\n• Price Action: Trading at ₹${tech.current_price}\n• RSI (14): ${tech.rsi} (${tech.rsi_badge})\n• Floor (Support): S1 ₹${tech.pivots.s1}\n• Ceiling (Resistance): R1 ₹${tech.pivots.r1}\n• Historical Volatility: ${vol ? `±${vol.avg_abs_move}%` : 'Standard'}\n• Verdict: ${tech.verdict}`,
                             sentiment: tech.rsi <= 38 ? 'BULLISH' : (tech.rsi >= 70 ? 'BEARISH' : 'NEUTRAL'),
                             current_price: tech.current_price,
                             rsi: tech.rsi,
@@ -608,9 +609,12 @@
                         };
 
                         setItems(prev => [newStockCard, ...prev.filter(p => p.symbol !== cleanQuery)]);
+                        if (activeFilter === 'FNO_TODAY') {
+                            setActiveFilter('ALL');
+                        }
                         setSearchTerm(cleanQuery);
                     } else {
-                        alert(`Could not find live quote for "${cleanQuery}". Please verify the NSE ticker symbol.`);
+                        alert(`Could not find live quote for "${cleanQuery}". Please verify the NSE/BSE ticker symbol.`);
                     }
                 } catch (err) {
                     console.error('Search error:', err);
@@ -654,7 +658,7 @@
                                     value={searchTerm} 
                                     onChange={e => setSearchTerm(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') handleSearchLiveStock(); }}
-                                    placeholder="Search ANY stock (e.g. RELIANCE, TCS, INFY, TATAMOTORS, HDFCBANK)..."
+                                    placeholder="Search ANY NSE or BSE stock (e.g. RELIANCE, BRADYM, TCS, INFY)..."
                                     className="w-full pl-11 pr-24 py-2.5 bg-gray-900/90 border border-gray-700/80 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-500 transition"
                                 />
                                 {searchTerm.trim() && (

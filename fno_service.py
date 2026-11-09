@@ -486,26 +486,31 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
         except Exception:
             pass
 
-    # Query Yahoo Finance 2-year daily chart and 2-year 1-hour candles
-    yahoo_ticker = f"{clean_sym.replace('&', '%26')}.NS"
-    y_url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_ticker}?interval=1d&range=2y"
+    # Query Yahoo Finance 2-year daily chart and 2-year 1-hour candles (Dual Exchange: NSE then BSE)
+    candidate_tickers = [clean_sym] if (clean_sym.endswith(".BO") or clean_sym.endswith(".NS")) else [f"{clean_sym.replace('&', '%26')}.NS", f"{clean_sym.replace('&', '%26')}.BO"]
     daily_candles = []
-    try:
-        req = urllib.request.Request(y_url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode())["chart"]["result"][0]
-        timestamps = data.get("timestamp", [])
-        quotes = data.get("indicators", {}).get("quote", [])[0]
-        closes = quotes.get("close", [])
-        for i, ts in enumerate(timestamps):
-            dt = dt_cls.fromtimestamp(ts, tz=timezone.utc)
-            daily_candles.append({
-                "date": dt.strftime("%Y-%m-%d"),
-                "display_date": dt.strftime("%d-%b-%Y"),
-                "close": closes[i]
-            })
-    except Exception as e:
-        print(f"[{clean_sym}] Yahoo Chart Error: {e}")
+    yahoo_ticker = candidate_tickers[0]
+
+    for yt in candidate_tickers:
+        y_url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yt}?interval=1d&range=2y"
+        try:
+            req = urllib.request.Request(y_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode())["chart"]["result"][0]
+            timestamps = data.get("timestamp", [])
+            quotes = data.get("indicators", {}).get("quote", [])[0]
+            closes = quotes.get("close", [])
+            for i, ts in enumerate(timestamps):
+                dt = dt_cls.fromtimestamp(ts, tz=timezone.utc)
+                daily_candles.append({
+                    "date": dt.strftime("%Y-%m-%d"),
+                    "display_date": dt.strftime("%d-%b-%Y"),
+                    "close": closes[i]
+                })
+            yahoo_ticker = yt
+            break
+        except Exception:
+            continue
 
     # Query 2-year 1-hour intraday candles for exact 1st, 2nd, 3rd, 4th hour reaction tracking
     y_url_1h = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_ticker}?interval=1h&range=730d"
