@@ -3,6 +3,7 @@ import json
 import urllib.request
 import concurrent.futures
 from typing import List, Dict, Any, Optional
+from database import save_accumulation_stock, get_saved_accumulation_stocks
 
 # Curated Universe of Outstanding Businesses Across Market Caps with 4-Quarter Fundamentals & Promoter Integrity
 ACCUMULATION_UNIVERSE = {
@@ -869,8 +870,9 @@ def fetch_single_accumulation_stock(stock_meta: Dict[str, Any]) -> Optional[Dict
         # Delivery & Whale Footprint
         delivery_pct = min(78.5, round(52.0 + (hash(symbol) % 18), 1))
 
-        return {
+        res_dict = {
             "symbol": symbol,
+            "category": stock_meta.get("category", "LARGE"),
             "exchange": exchange,
             "name": name,
             "sector": sector,
@@ -918,6 +920,14 @@ def fetch_single_accumulation_stock(stock_meta: Dict[str, Any]) -> Optional[Dict
             "delivery_pct": delivery_pct,
             "whale_note": f"Demat accumulation active on {exchange}. Institutional absorption during sentiment pullbacks."
         }
+
+        # Persist to SQLite Database Disk Storage
+        try:
+            save_accumulation_stock(res_dict)
+        except Exception as db_err:
+            print(f"[Database Warning] Failed to persist {symbol}: {db_err}")
+
+        return res_dict
     except Exception as e:
         print(f"[Accumulation Engine] Error fetching {ticker}: {e}")
         return None
@@ -926,10 +936,32 @@ def scan_accumulation_basket(category: str = "ALL", force_refresh: bool = False)
     global _CACHE
     now = time.time()
 
+    # If cache is valid and not forced to refresh, return from RAM cache
     if not force_refresh and _CACHE["data"] and (now - _CACHE["timestamp"] < CACHE_TTL_SECONDS):
         all_results = _CACHE["data"]
     else:
-        print("[Accumulation Engine] Refreshing institutional accumulation basket...")
+        # First check if we have persisted records in SQLite to serve instantly
+        if not _CACHE["data"] and not force_refresh:
+            try:
+                saved_stocks = get_saved_accumulation_stocks("ALL")
+                if saved_stocks and len(saved_stocks) >= 30:
+                    cached_by_cat = {"LARGE": [], "MID": [], "SMALL": [], "MICRO": []}
+                    for s in saved_stocks:
+                        ck = s.get("category", "LARGE")
+                        if ck in cached_by_cat:
+                            cached_by_cat[ck].append(s)
+                    for ck in cached_by_cat:
+                        cached_by_cat[ck].sort(key=lambda x: x["accumulation_score"], reverse=True)
+                    _CACHE["data"] = cached_by_cat
+                    _CACHE["timestamp"] = now
+                    print(f"[Accumulation Engine] Loaded {len(saved_stocks)} persisted stocks instantly from SQLite database.")
+                    if category.upper() in cached_by_cat:
+                        return cached_by_cat[category.upper()]
+                    return saved_stocks
+            except Exception as e:
+                print(f"[Database Read] Note: {e}")
+
+        print("[Accumulation Engine] Refreshing institutional accumulation basket from market...")
         flat_list = []
         for cat_key, stocks in ACCUMULATION_UNIVERSE.items():
             for s in stocks:
@@ -958,7 +990,7 @@ def scan_accumulation_basket(category: str = "ALL", force_refresh: bool = False)
         _CACHE["data"] = results_by_cat
         _CACHE["timestamp"] = now
         all_results = results_by_cat
-        print(f"[Accumulation Engine] Successfully refreshed {sum(len(v) for v in results_by_cat.values())} stocks.")
+        print(f"[Accumulation Engine] Successfully refreshed and persisted {sum(len(v) for v in results_by_cat.values())} stocks into SQLite database.")
 
     cat_upper = category.upper()
     if cat_upper in all_results:
