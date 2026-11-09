@@ -560,17 +560,18 @@ ACCUMULATION_UNIVERSE = {
             "exchange": "BSE",
             "name": "Brady & Morris Engineering Co.",
             "sector": "Material Handling & Heavy Machinery",
-            "moat": "BSE-exclusive engineering leader (Scrip: 505690), 75+ years legacy in industrial cranes, hoists, and ports machinery with 20%+ ROCE.",
-            "sentiment_catalyst": "Microcap illiquidity and broader market risk-off sentiment causing severe discount from 52W high.",
-            "promoter_status": "Pavitra Brady Group: 73.6% (Strict 0.0% Pledged 🟢)",
-            "institution_status": "Promoter & High Net-Worth Held • Stable Shareholding",
-            "roce": "22.8% (Low Debt)",
-            "debt_equity": "0.14 (Clean Balance Sheet)",
-            "sales_growth_yoy": "+18.4% YoY",
-            "pat_growth_yoy": "+26.2% YoY",
-            "recent_quarters_trend": "Q1: +16% | Q2: +20% | Q3: +28% | Q4: +26% YoY PAT",
-            "divergence_note": "Order book for ports and industrial hoists at record highs with quarterly operating profits doubling over the past 2 years while stock dipped -53% from peak.",
-            "promoter_integrity_note": "Promoters hold 73.6% with zero shares pledged. No equity dilution or aggressive debt; century-old operational track record."
+            "moat": "BSE-exclusive engineering firm (Scrip: 505690), industrial cranes and port hoists manufacturing legacy.",
+            "sentiment_catalyst": "Stock crashed -53% from ₹1,179 peak due to consecutive quarterly net profit collapses (-64% drop).",
+            "promoter_status": "Pavitra Brady Group: 73.6% (0.0% Pledged 🟢)",
+            "institution_status": "Microcap / Zero Mutual Fund Institutional Holding ⚪",
+            "roce": "12.4% (Declining with margin compression)",
+            "debt_equity": "0.14 (Low Debt)",
+            "sales_growth_yoy": "-19.6% Sequential (Q4: ₹17.5Cr → Q2: ₹14.0Cr 📉)",
+            "pat_growth_yoy": "-64.5% Profit Drop (Q4: ₹1.37Cr → Q2: ₹0.49Cr ⚠️)",
+            "recent_quarters_trend": "Q4: ₹1.37 Cr | Q1: ₹0.77 Cr (-44%) | Q2: ₹0.49 Cr (-36%) 📉",
+            "divergence_note": "NO POSITIVE DIVERGENCE: Stock fell 53% because quarterly net profit collapsed from ₹1.37 Cr to ₹0.49 Cr. Stock price is reflecting genuine earnings deterioration.",
+            "promoter_integrity_note": "Promoters hold 73.6% with 0% pledge, but management has been unable to arrest operational margin contraction.",
+            "is_earnings_declining": True
         },
         {
             "ticker": "RAJRATAN.NS",
@@ -841,7 +842,15 @@ def fetch_single_accumulation_stock(stock_meta: Dict[str, Any]) -> Optional[Dict
 
         total_score = min(100, score_disc + score_rsi + score_range + score_vol)
 
-        if total_score >= 80:
+        # 5B. Critical Earnings Health & Value Trap Gate:
+        # A deep discount is ONLY an accumulation zone if business profits are stable or growing.
+        # If quarterly net profits are collapsing (e.g. BRADYM profit collapsed -64%), it is a Value Trap!
+        is_earnings_declining = stock_meta.get("is_earnings_declining", False)
+        if is_earnings_declining:
+            total_score = min(32, round(total_score * 0.35))
+            verdict = "VALUE TRAP / EARNINGS DOWNTURN ⚠️"
+            grade = "D (AVOID)"
+        elif total_score >= 80:
             verdict = "STRONG ACCUMULATE 🟢"
             grade = "A+"
         elif total_score >= 65:
@@ -917,6 +926,7 @@ def fetch_single_accumulation_stock(stock_meta: Dict[str, Any]) -> Optional[Dict
             "recent_quarters_trend": stock_meta.get("recent_quarters_trend", "Consistent 4-Quarter Growth"),
             "divergence_note": stock_meta.get("divergence_note", "Business expanding while price dipped on macro sentiment."),
             "promoter_integrity_note": stock_meta.get("promoter_integrity_note", "Zero promoter pledge, high corporate governance."),
+            "is_earnings_declining": is_earnings_declining,
             "delivery_pct": delivery_pct,
             "whale_note": f"Demat accumulation active on {exchange}. Institutional absorption during sentiment pullbacks."
         }
