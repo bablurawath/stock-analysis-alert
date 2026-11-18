@@ -59,6 +59,11 @@
                             </div>
                         </div>
                         <div className="flex items-center space-x-3">
+                            <a href="/api/admin/export-fno-csv" download className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md transition duration-200" title="Admin only: Download CSV of all 184+ F&O stocks with last quarter CE/PE moves">
+                                <i className="fa-solid fa-file-csv text-base"></i>
+                                <span className="hidden md:inline">Admin: Download All 184 F&O CSV</span>
+                                <span className="md:hidden">184 CSV</span>
+                            </a>
                             <a href="https://t.me/krishstockalert" target="_blank" className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-md transition duration-200">
                                 <i className="fa-brands fa-telegram text-base"></i>
                                 <span>Join Telegram Alerts</span>
@@ -537,10 +542,230 @@
         }
 
         // ====================================================================
+        // 4B. F&O OPTIONS LEADERBOARD (TOP 25 & ALL 184+)
+        // ====================================================================
+        function FnoLeaderboardView({ onSelectStock }) {
+            const [items, setItems] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState('TOP_CE');
+            const [search, setSearch] = useState('');
+            const [sortBy, setSortBy] = useState('DEFAULT');
+
+            useEffect(() => {
+                fetch('/api/fno/last-quarter-leaderboard')
+                    .then(r => r.json())
+                    .then(data => {
+                        setItems(data.items || []);
+                        setLoading(false);
+                    })
+                    .catch(e => {
+                        console.error(e);
+                        setLoading(false);
+                    });
+            }, []);
+
+            const filtered = useMemo(() => {
+                let list = [...items];
+                if (search.trim()) {
+                    const q = search.trim().toUpperCase();
+                    list = list.filter(i => i.symbol.toUpperCase().includes(q));
+                }
+
+                if (activeTab === 'TOP_CE') {
+                    list = list.filter(i => i.spot_pct > 0).sort((a, b) => b.max_ce_pct - a.max_ce_pct).slice(0, 25);
+                } else if (activeTab === 'TOP_PE') {
+                    list = list.filter(i => i.spot_pct < 0).sort((a, b) => b.max_pe_pct - a.max_pe_pct).slice(0, 25);
+                } else if (activeTab === 'TOP_STRADDLE') {
+                    list = list.sort((a, b) => b.straddle_roi - a.straddle_roi).slice(0, 25);
+                } else if (activeTab === 'IV_CRUSH') {
+                    list = list.filter(i => Math.abs(i.spot_pct) < 1.3).sort((a, b) => Math.abs(a.spot_pct) - Math.abs(b.spot_pct));
+                } else {
+                    if (sortBy === 'CE_RUN') list.sort((a, b) => b.max_ce_pct - a.max_ce_pct);
+                    else if (sortBy === 'PE_RUN') list.sort((a, b) => b.max_pe_pct - a.max_pe_pct);
+                    else if (sortBy === 'SPOT_MOVE') list.sort((a, b) => Math.abs(b.spot_pct) - Math.abs(a.spot_pct));
+                    else if (sortBy === 'STRADDLE') list.sort((a, b) => b.straddle_roi - a.straddle_roi);
+                }
+                return list;
+            }, [items, activeTab, search, sortBy]);
+
+            const topCe = useMemo(() => [...items].sort((a, b) => b.max_ce_pct - a.max_ce_pct)[0], [items]);
+            const topPe = useMemo(() => [...items].sort((a, b) => b.max_pe_pct - a.max_pe_pct)[0], [items]);
+            const topStraddle = useMemo(() => [...items].sort((a, b) => b.straddle_roi - a.straddle_roi)[0], [items]);
+            const ivCrushCount = useMemo(() => items.filter(i => Math.abs(i.spot_pct) < 1.3).length, [items]);
+
+            return (
+                <div className="space-y-4">
+                    {/* Top KPIs Banner */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="glass-panel p-3.5 rounded-2xl border border-emerald-500/30">
+                            <span className="text-[10px] text-emerald-400 uppercase font-bold block flex items-center gap-1">
+                                <i className="fa-solid fa-arrow-trend-up"></i> Top Call Winner
+                            </span>
+                            <strong className="text-white text-base font-mono block mt-1">{topCe ? topCe.symbol : '—'}</strong>
+                            <span className="text-xs text-emerald-400 font-mono font-black block mt-0.5">+{topCe ? topCe.max_ce_pct : 0}% 🚀</span>
+                        </div>
+                        <div className="glass-panel p-3.5 rounded-2xl border border-rose-500/30">
+                            <span className="text-[10px] text-rose-400 uppercase font-bold block flex items-center gap-1">
+                                <i className="fa-solid fa-arrow-trend-down"></i> Top Put Spike
+                            </span>
+                            <strong className="text-white text-base font-mono block mt-1">{topPe ? topPe.symbol : '—'}</strong>
+                            <span className="text-xs text-rose-400 font-mono font-black block mt-0.5">+{topPe ? topPe.max_pe_pct : 0}% 💥</span>
+                        </div>
+                        <div className="glass-panel p-3.5 rounded-2xl border border-indigo-500/30">
+                            <span className="text-[10px] text-indigo-400 uppercase font-bold block flex items-center gap-1">
+                                <i className="fa-solid fa-layer-group"></i> Best Straddle ROI
+                            </span>
+                            <strong className="text-white text-base font-mono block mt-1">{topStraddle ? topStraddle.symbol : '—'}</strong>
+                            <span className="text-xs text-indigo-300 font-mono font-black block mt-0.5">+{topStraddle ? topStraddle.straddle_roi : 0}%</span>
+                        </div>
+                        <div className="glass-panel p-3.5 rounded-2xl border border-amber-500/30">
+                            <span className="text-[10px] text-amber-400 uppercase font-bold block flex items-center gap-1">
+                                <i className="fa-solid fa-shield-halved"></i> IV Crush Traps
+                            </span>
+                            <strong className="text-white text-base font-mono block mt-1">{ivCrushCount} Stocks</strong>
+                            <span className="text-xs text-amber-300 font-mono block mt-0.5">Muted Move (&lt; ±1.3%)</span>
+                        </div>
+                    </div>
+
+                    {/* Sub-Tabs & Search Toolbar */}
+                    <div className="glass-panel p-3.5 rounded-2xl border border-gray-800 flex flex-col md:flex-row items-center justify-between gap-3">
+                        <div className="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-semibold">
+                            <button 
+                                onClick={() => setActiveTab('TOP_CE')} 
+                                className={`px-3.5 py-2 rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'TOP_CE' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/30 font-bold' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                                <span>🚀 Top 25 Bullish Calls</span>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('TOP_PE')} 
+                                className={`px-3.5 py-2 rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'TOP_PE' ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-md shadow-rose-600/30 font-bold' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                                <span>💥 Top 25 Bearish Puts</span>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('TOP_STRADDLE')} 
+                                className={`px-3.5 py-2 rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'TOP_STRADDLE' ? 'bg-indigo-600 text-white shadow font-bold' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                                <span>🎯 Top 25 Straddles</span>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('IV_CRUSH')} 
+                                className={`px-3.5 py-2 rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'IV_CRUSH' ? 'bg-amber-600 text-white shadow font-bold' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                                <span>🛑 IV Crush Traps</span>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('ALL')} 
+                                className={`px-3.5 py-2 rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'ALL' ? 'bg-blue-600 text-white shadow font-bold' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                                <span>🌐 All 184+ Universe</span>
+                            </button>
+                        </div>
+
+                        <div className="flex items-center space-x-2 w-full md:w-auto">
+                            <input 
+                                type="text" 
+                                value={search} 
+                                onChange={e => setSearch(e.target.value)} 
+                                placeholder="Filter Ticker (e.g. INFY)..." 
+                                className="bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 w-full md:w-48"
+                            />
+                            {activeTab === 'ALL' && (
+                                <select 
+                                    value={sortBy} 
+                                    onChange={e => setSortBy(e.target.value)} 
+                                    className="bg-gray-950 border border-gray-800 rounded-xl px-2.5 py-1.5 text-xs text-gray-300 focus:outline-none">
+                                    <option value="DEFAULT">Sort By</option>
+                                    <option value="CE_RUN">Highest Call Run %</option>
+                                    <option value="PE_RUN">Highest Put Run %</option>
+                                    <option value="SPOT_MOVE">Highest Spot Move %</option>
+                                    <option value="STRADDLE">Highest Straddle ROI %</option>
+                                </select>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Table View */}
+                    {loading ? (
+                        <div className="glass-panel p-16 text-center text-gray-400 rounded-2xl">
+                            <i className="fa-solid fa-circle-notch fa-spin text-3xl text-purple-500 mb-3"></i>
+                            <p className="text-xs">Loading complete institutional F&O derivatives database...</p>
+                        </div>
+                    ) : (
+                        <div className="glass-panel rounded-2xl border border-gray-800 overflow-hidden shadow-2xl">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-xs">
+                                    <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] border-b border-gray-800 font-mono tracking-wider">
+                                        <tr>
+                                            <th className="px-4 py-3">#</th>
+                                            <th className="px-4 py-3">Symbol / Quarter</th>
+                                            <th className="px-4 py-3 text-center">Spot Reaction</th>
+                                            <th className="px-4 py-3 text-center">ATM Strike</th>
+                                            <th className="px-4 py-3 text-center text-emerald-400">Call (CE) Run</th>
+                                            <th className="px-4 py-3 text-center text-rose-400">Put (PE) Run</th>
+                                            <th className="px-4 py-3 text-center text-indigo-300">Straddle ROI</th>
+                                            <th className="px-4 py-3 text-right">3-Day Tape</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-900/80 font-mono text-[11px] text-gray-300">
+                                        {filtered.map((stk, idx) => (
+                                            <tr key={stk.symbol} className="hover:bg-gray-900/50 transition">
+                                                <td className="px-4 py-3 text-gray-500 font-bold">{idx + 1}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="font-extrabold text-white text-xs">{stk.symbol}</div>
+                                                    <div className="text-[10px] text-gray-400 flex items-center space-x-1 mt-0.5">
+                                                        <span>{stk.quarter}</span>
+                                                        <span>•</span>
+                                                        <span className="text-gray-500">{stk.timing || stk.reaction_date}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                    <span className={`px-2 py-0.5 rounded-md font-bold text-xs ${stk.spot_pct >= 0 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'}`}>
+                                                        {stk.spot_pct > 0 ? `+${stk.spot_pct}%` : `${stk.spot_pct}%`}
+                                                    </span>
+                                                    <div className="text-[9px] text-gray-500 mt-0.5">₹{stk.base_spot} ➔ ₹{stk.reaction_spot}</div>
+                                                </td>
+                                                <td className="px-4 py-3 text-center font-bold text-blue-300 whitespace-nowrap">
+                                                    🎯 {stk.atm_strike}
+                                                </td>
+                                                <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                    <div className="text-white font-bold">₹{stk.base_ce} ➔ ₹{stk.max_ce_px}</div>
+                                                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px] border border-emerald-500/30">
+                                                        +{stk.max_ce_pct}% 🚀
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                    <div className="text-white font-bold">₹{stk.base_pe} ➔ ₹{stk.max_pe_px}</div>
+                                                    <span className={`inline-block mt-0.5 px-2 py-0.5 rounded font-bold text-[10px] border ${stk.max_pe_pct >= 0 ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
+                                                        {stk.max_pe_pct > 0 ? `+${stk.max_pe_pct}%` : `${stk.max_pe_pct}%`} 💥
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                    <span className={`font-extrabold text-xs ${stk.straddle_roi >= 0 ? 'text-indigo-300' : 'text-gray-400'}`}>
+                                                        +{stk.straddle_roi}%
+                                                    </span>
+                                                    <div className="text-[9px] text-gray-500 mt-0.5">{stk.category}</div>
+                                                </td>
+                                                <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                    <button 
+                                                        onClick={() => onSelectStock(stk)} 
+                                                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 text-xs font-bold transition flex items-center space-x-1 ml-auto shadow-sm">
+                                                        <span>3-Day Tape</span>
+                                                        <i className="fa-solid fa-chevron-right text-[9px]"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ====================================================================
         // 4. MODAL DIALOG COMPONENT (Full 360° Deep-Dive)
         // ====================================================================
         function DetailModal({ item, onClose }) {
             if (!item) return null;
+            const [optDayTab, setOptDayTab] = useState('result_day');
 
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -681,24 +906,181 @@
                                             </table>
                                         </div>
                                         
-                                        {/* Visual Hourly Step Chain for the latest quarter */}
-                                        {item.earnings_volatility.quarter_moves[0] && item.earnings_volatility.quarter_moves[0].hourly_progression && item.earnings_volatility.quarter_moves[0].hourly_progression.length > 0 && (
-                                            <div className="bg-gray-900/70 p-3 border-t border-gray-800">
-                                                <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2 flex items-center justify-between">
-                                                    <span><i className="fa-solid fa-chart-area mr-1 text-blue-400"></i> Latest Quarter Intraday Hour-by-Hour Step Progression ({item.earnings_volatility.quarter_moves[0].quarter} - {item.earnings_volatility.quarter_moves[0].reaction_date}):</span>
-                                                    <span className="text-amber-400 font-mono">Base: ₹{item.earnings_volatility.quarter_moves[0].base_price}</span>
-                                                </div>
-                                                <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[11px] font-mono">
-                                                    {item.earnings_volatility.quarter_moves[0].hourly_progression.map((hp, h_idx) => (
-                                                        <div key={h_idx} className="bg-gray-950 p-2 rounded-lg border border-gray-800 min-w-[90px] text-center flex-shrink-0">
-                                                            <div className="text-[9px] text-gray-500 font-sans truncate">{hp.time || (hp.hour ? hp.hour.split(' ')[0] : '')}</div>
-                                                            <div className={`font-bold mt-0.5 ${hp.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                                {hp.pct > 0 ? `+${hp.pct}%` : `${hp.pct}%`}
+                                        {/* 3-Day CE & PE Options Intraday Progression Section */}
+                                        {item.earnings_volatility.quarter_moves[0] && (
+                                            <div className="bg-gray-900/90 p-3.5 border-t border-gray-800">
+                                                {item.earnings_volatility.quarter_moves[0].options_3day_report ? (
+                                                    (() => {
+                                                        const optReport = item.earnings_volatility.quarter_moves[0].options_3day_report;
+                                                        const activeDay = optReport[optDayTab] || optReport.result_day;
+                                                        const hourlySteps = activeDay && activeDay.hourly ? activeDay.hourly : [];
+
+                                                        return (
+                                                            <div>
+                                                                {/* Header with Strikes and Base Premiums */}
+                                                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2.5 mb-2.5 border-b border-gray-800/80 gap-2">
+                                                                    <div>
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <span className="text-[10px] uppercase tracking-wider font-extrabold text-blue-400 flex items-center gap-1">
+                                                                                <i className="fa-solid fa-bolt-lightning text-amber-400"></i>
+                                                                                3-Day Options Hourly Tracker ({item.earnings_volatility.quarter_moves[0].quarter})
+                                                                            </span>
+                                                                            <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px] font-bold border border-blue-500/30">
+                                                                                🎯 {optReport.atm_strike} CE & PE
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                                                                            Pre-Results Base: <span className="text-gray-200">CE: ₹{optReport.base_ce_prem}</span> • <span className="text-gray-200">PE: ₹{optReport.base_pe_prem}</span> (Spot: ₹{item.earnings_volatility.quarter_moves[0].base_price})
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* 3-Day Switcher Tabs */}
+                                                                    <div className="inline-flex rounded-lg bg-gray-950 p-0.5 border border-gray-800 text-[10px] font-semibold">
+                                                                        <button 
+                                                                            onClick={() => setOptDayTab('day_minus_1')}
+                                                                            className={`px-2.5 py-1 rounded-md transition ${optDayTab === 'day_minus_1' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}>
+                                                                            Day -1 (Pre)
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => setOptDayTab('result_day')}
+                                                                            className={`px-2.5 py-1 rounded-md transition ${optDayTab === 'result_day' ? 'bg-amber-600 text-white shadow font-bold' : 'text-gray-400 hover:text-white'}`}>
+                                                                            Result Day
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => setOptDayTab('day_plus_1')}
+                                                                            className={`px-2.5 py-1 rounded-md transition ${optDayTab === 'day_plus_1' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}>
+                                                                            Day +1 (Post)
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Upgraded Side-by-Side Hero Call vs Put Cards */}
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                                                    {/* CALL (CE) HERO CARD */}
+                                                                    <div className="bg-gradient-to-br from-emerald-950/40 via-gray-950 to-gray-950 border border-emerald-500/40 rounded-xl p-3.5 shadow-lg relative overflow-hidden">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <span className="font-mono text-xs font-black px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                                                                                <i className="fa-solid fa-arrow-trend-up"></i>
+                                                                                CALL • {optReport.atm_strike} CE
+                                                                            </span>
+                                                                            <span className="text-[10px] font-mono text-gray-400">
+                                                                                Base Entry: <strong className="text-white">₹{optReport.base_ce_prem}</strong>
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex items-end justify-between mt-2">
+                                                                            <div>
+                                                                                <span className="text-[10px] text-gray-500 block uppercase font-medium">Max Intraday Spike</span>
+                                                                                <span className="text-xl font-mono font-black text-white">₹{optReport.max_ce_price}</span>
+                                                                            </div>
+                                                                            <div className="text-right">
+                                                                                <span className="text-base font-mono font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/30">
+                                                                                    +{optReport.max_ce_pct}% 🚀
+                                                                                </span>
+                                                                                <span className="text-[10px] text-gray-500 block mt-0.5 font-mono">Low: ₹{optReport.min_ce_price} ({optReport.min_ce_pct}%)</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="w-full bg-gray-900 h-1.5 rounded-full mt-3 overflow-hidden">
+                                                                            <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style={{ width: `${Math.min(100, Math.max(10, optReport.max_ce_pct / 3))}%` }}></div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* PUT (PE) HERO CARD */}
+                                                                    <div className="bg-gradient-to-br from-rose-950/40 via-gray-950 to-gray-950 border border-rose-500/40 rounded-xl p-3.5 shadow-lg relative overflow-hidden">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <span className="font-mono text-xs font-black px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1.5">
+                                                                                <i className="fa-solid fa-arrow-trend-down"></i>
+                                                                                PUT • {optReport.atm_strike} PE
+                                                                            </span>
+                                                                            <span className="text-[10px] font-mono text-gray-400">
+                                                                                Base Entry: <strong className="text-white">₹{optReport.base_pe_prem}</strong>
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex items-end justify-between mt-2">
+                                                                            <div>
+                                                                                <span className="text-[10px] text-gray-500 block uppercase font-medium">Max Intraday Spike</span>
+                                                                                <span className="text-xl font-mono font-black text-white">₹{optReport.max_pe_price}</span>
+                                                                            </div>
+                                                                            <div className="text-right">
+                                                                                <span className={`text-base font-mono font-black px-2 py-0.5 rounded-lg border ${optReport.max_pe_pct >= 0 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30'}`}>
+                                                                                    {optReport.max_pe_pct > 0 ? `+${optReport.max_pe_pct}%` : `${optReport.max_pe_pct}%`}
+                                                                                </span>
+                                                                                <span className="text-[10px] text-gray-500 block mt-0.5 font-mono">Low: ₹{optReport.min_pe_price} ({optReport.min_pe_pct}%)</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="w-full bg-gray-900 h-1.5 rounded-full mt-3 overflow-hidden">
+                                                                            <div className="bg-gradient-to-r from-rose-500 to-amber-500 h-full rounded-full" style={{ width: `${Math.min(100, Math.max(10, Math.abs(optReport.max_pe_pct) / 2))}%` }}></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Hourly Breakdown Tape for Active Day */}
+                                                                <div className="overflow-x-auto rounded-xl border border-gray-800 bg-gray-950/90 shadow-inner">
+                                                                    <table className="w-full text-[11px] text-left font-mono">
+                                                                        <thead className="bg-gray-900 text-gray-400 uppercase text-[9px] border-b border-gray-800 tracking-wider">
+                                                                            <tr>
+                                                                                <th className="px-3 py-2">Market Hour</th>
+                                                                                <th className="px-3 py-2 text-center">Spot (Underlying)</th>
+                                                                                <th className="px-3 py-2 text-center text-emerald-400">Call ({optReport.atm_strike} CE)</th>
+                                                                                <th className="px-3 py-2 text-center text-rose-400">Put ({optReport.atm_strike} PE)</th>
+                                                                                <th className="px-3 py-2 text-right text-indigo-300">Straddle Combined</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody className="divide-y divide-gray-900 text-gray-300">
+                                                                            {hourlySteps.map((hp, h_idx) => (
+                                                                                <tr key={h_idx} className="hover:bg-gray-900/60 transition">
+                                                                                    <td className="px-3 py-2 text-gray-400 whitespace-nowrap text-[10px] font-sans flex items-center gap-1.5">
+                                                                                        <i className="fa-regular fa-clock text-gray-600 text-[10px]"></i>
+                                                                                        <span>{hp.hour || hp.time}</span>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 text-center whitespace-nowrap">
+                                                                                        <span className="text-white font-bold">₹{hp.close}</span>
+                                                                                        <span className={`ml-1 text-[10px] ${hp.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                                            ({hp.pct > 0 ? `+${hp.pct}%` : `${hp.pct}%`})
+                                                                                        </span>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 text-center whitespace-nowrap">
+                                                                                        <span className="text-white font-bold">₹{hp.ce_px}</span>
+                                                                                        <span className={`ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-extrabold ${hp.ce_pct >= 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}`}>
+                                                                                            {hp.ce_pct > 0 ? `+${hp.ce_pct}%` : `${hp.ce_pct}%`}
+                                                                                        </span>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 text-center whitespace-nowrap">
+                                                                                        <span className="text-white font-bold">₹{hp.pe_px}</span>
+                                                                                        <span className={`ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-extrabold ${hp.pe_pct >= 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}`}>
+                                                                                            {hp.pe_pct > 0 ? `+${hp.pe_pct}%` : `${hp.pe_pct}%`}
+                                                                                        </span>
+                                                                                    </td>
+                                                                                    <td className={`px-3 py-2 text-right font-extrabold whitespace-nowrap ${hp.straddle_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                                        <span>₹{hp.straddle_px}</span>
+                                                                                        <span className="text-[10px] ml-1">({hp.straddle_pct > 0 ? `+${hp.straddle_pct}%` : `${hp.straddle_pct}%`})</span>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
                                                             </div>
-                                                            <div className="text-[8px] text-gray-400 mt-0.5 truncate">₹{hp.close}</div>
+                                                        );
+                                                    })()
+                                                ) : (
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2 flex items-center justify-between">
+                                                            <span><i className="fa-solid fa-chart-area mr-1 text-blue-400"></i> Latest Quarter Intraday Hour-by-Hour Step Progression ({item.earnings_volatility.quarter_moves[0].quarter} - {item.earnings_volatility.quarter_moves[0].reaction_date}):</span>
+                                                            <span className="text-amber-400 font-mono">Base: ₹{item.earnings_volatility.quarter_moves[0].base_price}</span>
                                                         </div>
-                                                    ))}
-                                                </div>
+                                                        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[11px] font-mono">
+                                                            {item.earnings_volatility.quarter_moves[0].hourly_progression.map((hp, h_idx) => (
+                                                                <div key={h_idx} className="bg-gray-950 p-2 rounded-lg border border-gray-800 min-w-[90px] text-center flex-shrink-0">
+                                                                    <div className="text-[9px] text-gray-500 font-sans truncate">{hp.time || (hp.hour ? hp.hour.split(' ')[0] : '')}</div>
+                                                                    <div className={`font-bold mt-0.5 ${hp.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                        {hp.pct > 0 ? `+${hp.pct}%` : `${hp.pct}%`}
+                                                                    </div>
+                                                                    <div className="text-[8px] text-gray-400 mt-0.5 truncate">₹{hp.close}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -765,6 +1147,7 @@
             const [activeFilter, setActiveFilter] = useState('ALL');
             const [selectedItem, setSelectedItem] = useState(null);
             const [broadcasting, setBroadcasting] = useState(false);
+            const [broadcastingLQ, setBroadcastingLQ] = useState(false);
 
             const handleManualBroadcast = async () => {
                 setBroadcasting(true);
@@ -776,6 +1159,19 @@
                     alert('Broadcast error: ' + e);
                 } finally {
                     setBroadcasting(false);
+                }
+            };
+
+            const handleBroadcastLastQuarter = async () => {
+                setBroadcastingLQ(true);
+                try {
+                    const res = await fetch('/api/broadcast/fno-last-quarter', { method: 'POST' });
+                    const json = await res.json();
+                    alert(`Top 25 Broadcast: ${json.message}`);
+                } catch (e) {
+                    alert('Broadcast error: ' + e);
+                } finally {
+                    setBroadcastingLQ(false);
                 }
             };
 
@@ -826,6 +1222,35 @@
                 const interval = setInterval(fetchData, 60000);
                 return () => clearInterval(interval);
             }, []);
+
+            // Open F&O Leaderboard stock in 360 Deep-Dive modal
+            const handleOpenLeaderboardStock = async (stock) => {
+                setSelectedItem({
+                    symbol: stock.symbol,
+                    company_name: `${stock.symbol} (NSE F&O Derivative)`,
+                    subject: `Last Quarter (${stock.quarter}) Reaction: Spot ${stock.spot_pct >= 0 ? '+' : ''}${stock.spot_pct}% | Strike: ${stock.atm_strike} CE & PE`,
+                    current_price: stock.reaction_spot || stock.base_spot,
+                    delivery_pct: 55,
+                    rsi: 50,
+                    support_1: Math.round(stock.base_spot * 0.95),
+                    resistance_1: Math.round(stock.base_spot * 1.05),
+                    earnings_volatility: null,
+                    ai_summary: `• Symbol: ${stock.symbol} (${stock.quarter})\n• Spot Move: ${stock.spot_pct}%\n• ATM Strike: ${stock.atm_strike} CE & PE\n• Max Call (CE) Run: +${stock.max_ce_pct}%\n• Max Put (PE) Run: +${stock.max_pe_pct}%\n• Straddle Max ROI: +${stock.straddle_roi}%\n• Result Category: ${stock.category}`
+                });
+
+                try {
+                    const res = await fetch(`/api/earnings-volatility/${encodeURIComponent(stock.symbol)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setSelectedItem(prev => ({
+                            ...prev,
+                            earnings_volatility: data
+                        }));
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            };
 
             // Quick live technical scan on demand (Dual Exchange: NSE & BSE)
             const handleSearchLiveStock = async (query) => {
@@ -955,6 +1380,13 @@
                                     <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-amber-200 font-extrabold">{fnoResults.length}</span>
                                 </button>
                                 <button 
+                                    onClick={() => setActiveFilter('FNO_LEADERS')} 
+                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'FNO_LEADERS' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30' : 'bg-gray-800/90 text-purple-300 hover:text-purple-200 border border-purple-500/30'}`}>
+                                    <i className="fa-solid fa-chart-simple text-xs text-purple-300"></i>
+                                    <span>⚡ Options Leaders</span>
+                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-purple-200 font-extrabold">Top 25 &amp; 184+</span>
+                                </button>
+                                <button 
                                     onClick={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }} 
                                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'ACCUMULATION' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30' : 'bg-gray-800/90 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30'}`}>
                                     <i className="fa-solid fa-gem text-xs text-emerald-300"></i>
@@ -1007,10 +1439,27 @@
                                     <button 
                                         onClick={handleManualBroadcast}
                                         disabled={broadcasting}
-                                        className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/20">
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/20"
+                                        title="Broadcast today's scheduled F&O earnings radar">
                                         <i className={`fa-brands fa-telegram ${broadcasting ? 'fa-circle-notch fa-spin' : ''}`}></i>
-                                        <span>{broadcasting ? 'Broadcasting...' : 'Broadcast to Telegram'}</span>
+                                        <span>{broadcasting ? 'Sending...' : "Today's Radar"}</span>
                                     </button>
+                                    <button 
+                                        onClick={handleBroadcastLastQuarter}
+                                        disabled={broadcastingLQ}
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-amber-500/20"
+                                        title="Broadcast Top 25 Bullish & Bearish Options Winners from last quarter">
+                                        <i className={`fa-solid fa-tower-broadcast ${broadcastingLQ ? 'fa-circle-notch fa-spin' : ''}`}></i>
+                                        <span>{broadcastingLQ ? 'Sending...' : 'Broadcast Top 25'}</span>
+                                    </button>
+                                    <a 
+                                        href="/api/admin/export-fno-csv" 
+                                        download
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20"
+                                        title="Admin: Download CSV containing all 184+ F&O stocks with last quarter CE/PE results">
+                                        <i className="fa-solid fa-file-csv"></i>
+                                        <span>Admin: Download All 184 CSV</span>
+                                    </a>
                                 </div>
                             </div>
                         )}
@@ -1090,7 +1539,9 @@
 
                     {/* Cards Grid */}
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1 w-full">
-                        {activeFilter === 'ACCUMULATION' ? (
+                        {activeFilter === 'FNO_LEADERS' ? (
+                            <FnoLeaderboardView onSelectStock={handleOpenLeaderboardStock} />
+                        ) : activeFilter === 'ACCUMULATION' ? (
                             loadingAccumulation && accumulationStocks.length === 0 ? (
                                 <div className="text-center py-20 text-gray-400">
                                     <i className="fa-solid fa-circle-notch fa-spin text-4xl text-emerald-500 mb-3"></i>

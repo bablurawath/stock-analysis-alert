@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 if sys.platform == "win32":
@@ -27,7 +27,10 @@ from exchange_client import fetch_latest_announcements
 from fno_service import (
     fetch_today_fno_results,
     get_historical_earnings_moves,
-    broadcast_today_fno_results
+    broadcast_today_fno_results,
+    broadcast_last_quarter_fno_report,
+    generate_all_fno_csv,
+    get_fno_last_quarter_leaderboard_data
 )
 from accumulation_service import scan_accumulation_basket
 
@@ -131,6 +134,26 @@ def api_fno_results_today():
 def api_broadcast_fno_today(force: bool = False):
     res = broadcast_today_fno_results(force=force)
     return JSONResponse(content=res)
+
+@app.post("/api/broadcast/fno-last-quarter")
+@app.get("/api/broadcast/fno-last-quarter")
+def api_broadcast_fno_last_quarter():
+    res = broadcast_last_quarter_fno_report()
+    return JSONResponse(content=res)
+
+@app.get("/api/admin/export-fno-csv")
+def api_admin_export_fno_csv(force: bool = False):
+    csv_content = generate_all_fno_csv(force_refresh=force)
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=fno_last_quarter_all_184.csv"}
+    )
+
+@app.get("/api/fno/last-quarter-leaderboard")
+def api_fno_last_quarter_leaderboard():
+    data = get_fno_last_quarter_leaderboard_data()
+    return JSONResponse(content={"count": len(data), "items": data})
 
 @app.get("/api/earnings-volatility/{symbol}")
 def api_earnings_volatility(symbol: str):
