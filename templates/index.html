@@ -476,9 +476,15 @@
                                     </div>
 
                                     <div className="flex items-center justify-between text-[10px] text-gray-400 mt-1.5 px-0.5 font-medium">
-                                        <span>Breakeven: <strong className="text-amber-300 font-mono">±{item.strike_setup.breakeven_pct}%</strong></span>
+                                        <span>Breakeven: <strong className="text-amber-300 font-mono">±{item.strike_setup.breakeven_pct}%</strong> {item.strike_setup.edge_ratio && <span className="text-emerald-400 font-bold">({item.strike_setup.edge_ratio}x edge)</span>}</span>
                                         <span>🛡️ <strong className="text-gray-300">Sizing:</strong> {item.strike_setup.account_guideline || '1 lot / ₹3L-5L account'}</span>
                                     </div>
+                                    {item.strike_setup.timing_rule && (
+                                        <div className="text-[10px] text-indigo-300 mt-1.5 pt-1.5 border-t border-gray-800/80 px-0.5 flex items-center space-x-1 font-medium">
+                                            <i className="fa-solid fa-clock text-[9px] text-indigo-400"></i>
+                                            <span>{item.strike_setup.timing_rule}</span>
+                                        </div>
+                                    )}
                                 </div>
                             )
                         )}

@@ -181,6 +181,10 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
     straddle_wins = sum(1 for q in q_moves if abs(q.get('pct', 0)) >= straddle_be)
     straddle_pop = round((straddle_wins / max(len(q_moves), 1)) * 100)
     
+    strangle_edge = round(avg_abs / strangle_be, 2) if strangle_be > 0 else 1.0
+    straddle_edge = round(avg_abs / straddle_be, 2) if straddle_be > 0 else 1.0
+    timing_rule = "Enter 09:25–09:35 AM • Peak exit 09:45–10:45 AM • Hard cut 11:30 AM"
+
     if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
         cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
@@ -191,6 +195,8 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'atm_strike': atm,
             'strikes_label': f'{otm_c} CE + {otm_p} PE',
             'breakeven_pct': strangle_be,
+            'edge_ratio': strangle_edge,
+            'timing_rule': timing_rule,
             'lot_size': lot_size,
             'est_call_prem': otm_ce_prem,
             'est_put_prem': otm_pe_prem,
@@ -202,7 +208,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'grade': 'HIGH_75_80',
             'grade_label': '75-80% WIN RATE',
             'color': 'emerald',
-            'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters.'
+            'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
         cap_req = int(round((atm_tot_prem * lot_size) / 100.0) * 100)
@@ -214,6 +220,8 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'atm_strike': atm,
             'strikes_label': f'{atm} CE + {atm} PE',
             'breakeven_pct': straddle_be,
+            'edge_ratio': straddle_edge,
+            'timing_rule': timing_rule,
             'lot_size': lot_size,
             'est_call_prem': atm_ce_prem,
             'est_put_prem': atm_pe_prem,
@@ -225,7 +233,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'grade': 'HIGH_75',
             'grade_label': '75% WIN RATE',
             'color': 'emerald',
-            'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%).'
+            'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
         cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
@@ -237,6 +245,8 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'atm_strike': atm,
             'strikes_label': f'{otm_c} CE + {otm_p} PE',
             'breakeven_pct': strangle_be,
+            'edge_ratio': strangle_edge,
+            'timing_rule': timing_rule,
             'lot_size': lot_size,
             'est_call_prem': otm_ce_prem,
             'est_put_prem': otm_pe_prem,
@@ -248,30 +258,37 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'grade': 'MODERATE',
             'grade_label': '50-70% MODERATE',
             'color': 'amber',
-            'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}%.'
+            'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
-        cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
+        # For low volatility names, suggest hedged directional debit spread alternative
+        spread_prem = round(step * 0.45, 1) if step >= 1 else round(cmp * 0.008, 1)
+        spread_cap = int(round((spread_prem * lot_size) / 100.0) * 100)
+        dir_bias = vol.get('avg_dir_move', 0.0)
+        is_bullish = dir_bias >= 0
+        spread_label = f"Bull Call Spread ({atm} CE / {otm_c} CE)" if is_bullish else f"Bear Put Spread ({atm} PE / {otm_p} PE)"
         return {
-            'strategy': 'AVOID (IV Crush Trap)',
+            'strategy': 'Directional Spread (IV Hedge)',
             'pop_pct': max(strangle_pop, straddle_pop),
-            'call_strike': otm_c,
-            'put_strike': otm_p,
+            'call_strike': otm_c if is_bullish else atm,
+            'put_strike': otm_p if not is_bullish else atm,
             'atm_strike': atm,
-            'strikes_label': 'No Trade Recommended',
-            'breakeven_pct': strangle_be,
+            'strikes_label': spread_label,
+            'breakeven_pct': round((spread_prem / cmp) * 100, 2),
+            'edge_ratio': strangle_edge,
+            'timing_rule': timing_rule,
             'lot_size': lot_size,
             'est_call_prem': otm_ce_prem,
             'est_put_prem': otm_pe_prem,
-            'est_total_prem': otm_tot_prem,
-            'capital_required': cap_req,
-            'stop_loss_amount': int(round((cap_req * 0.35) / 100.0) * 100),
-            'target_profit_amount': int(round((cap_req * 0.60) / 100.0) * 100),
-            'account_guideline': 'AVOID - High probability of capital erosion due to IV crush',
-            'grade': 'AVOID',
-            'grade_label': 'AVOID (<40% POP)',
-            'color': 'rose',
-            'reason': f'Historical swing (±{avg_abs}%) is too low to beat IV crush (needs ±{strangle_be}%). Options decay trap.'
+            'est_total_prem': spread_prem,
+            'capital_required': spread_cap,
+            'stop_loss_amount': int(round((spread_cap * 0.40) / 100.0) * 100),
+            'target_profit_amount': int(round((spread_cap * 0.70) / 100.0) * 100),
+            'account_guideline': 'Naked Straddle AVOIDED (IV crush trap). Use hedged Debit Spread to cap downside.',
+            'grade': 'AVOID_NAKED',
+            'grade_label': 'HEDGED SPREAD (LOW IV SWING)',
+            'color': 'amber',
+            'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
 def get_ist_today_str() -> str:
@@ -1016,10 +1033,16 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
         final_r_pe = r_prog[-1]["pe_px"] if r_prog else pe_base
         final_r_pe_pct = r_prog[-1]["pe_pct"] if r_prog else 0.0
 
+        # 10-Day Pre-Earnings Run-Up Momentum
+        p10_idx = max(0, base_idx - 10)
+        p10_close = daily_candles[p10_idx]["close"]
+        pre_runup_10d_pct = round(((base_price - p10_close) / p10_close) * 100, 2) if (p10_close and p10_close > 0) else 0.0
+
         options_pkg = {
             "atm_strike": atm,
             "call_strike_label": f"{atm} CE",
             "put_strike_label": f"{atm} PE",
+            "pre_runup_10d_pct": pre_runup_10d_pct,
             "base_ce_prem": ce_base,
             "base_pe_prem": pe_base,
             "base_straddle": round(ce_base + pe_base, 2),
