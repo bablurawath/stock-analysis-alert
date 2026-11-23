@@ -1434,6 +1434,300 @@
         }
 
         // ====================================================================
+        // 4D. 5%+ BIG MOVERS & 4-QUARTER CONSISTENCY TRACKER
+        // ====================================================================
+        function Fno5PctMoverCard({ item, onSelect }) {
+            const isBullish = item.is_bullish;
+            const badgeBg = isBullish 
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+
+            return (
+                <div className="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border border-gray-800/80 hover:border-amber-500/40">
+                    <div>
+                        {/* 1. Header Bar: Symbol, Move Badge, Timing & Sizing */}
+                        <div className="flex items-start justify-between mb-3 border-b border-gray-800/80 pb-3">
+                            <div className="flex-1 mr-2">
+                                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                    <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/30 tracking-wide">
+                                        {item.symbol}
+                                    </span>
+                                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md flex items-center space-x-1 border ${badgeBg}`}>
+                                        <i className={`fa-solid ${isBullish ? 'fa-arrow-trend-up text-emerald-400' : 'fa-arrow-trend-down text-rose-400'}`}></i>
+                                        <span>{isBullish ? 'BULLISH SURGE' : 'BEARISH CRASH'}</span>
+                                    </span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono">
+                                        {item.consistency_label}
+                                    </span>
+                                </div>
+                                <h3 className="text-sm font-bold text-white mt-1.5 leading-snug line-clamp-1">
+                                    {item.company_name}
+                                </h3>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                                <div className={`text-lg font-mono font-black ${isBullish ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {item.spot_pct > 0 ? `+${item.spot_pct}%` : `${item.spot_pct}%`}
+                                </div>
+                                <span className="inline-block text-[10px] font-semibold text-gray-400 font-mono">
+                                    {item.quarter} ({item.timing})
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* 2. Side-by-Side Comparison Box (Last Quarter vs 4Q Average) */}
+                        <div className="grid grid-cols-2 gap-2 p-2.5 bg-gray-900/80 rounded-xl border border-gray-800 mb-3 text-xs">
+                            <div className="border-r border-gray-800/80 pr-2">
+                                <div className="text-[10px] text-gray-500 uppercase font-semibold">Last Quarter Reaction</div>
+                                <div className="mt-1 flex items-baseline space-x-1.5">
+                                    <span className={`text-sm font-mono font-black ${isBullish ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        {item.spot_pct > 0 ? `+${item.spot_pct}%` : `${item.spot_pct}%`}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 font-mono">
+                                        (₹{item.base_spot} ➔ ₹{item.reaction_spot})
+                                    </span>
+                                </div>
+                                <div className="text-[10px] text-gray-400 mt-0.5">{item.reaction_date}</div>
+                            </div>
+                            <div className="pl-2">
+                                <div className="text-[10px] text-gray-500 uppercase font-semibold flex items-center justify-between">
+                                    <span>Past 4Q Avg Swing</span>
+                                    <i className="fa-solid fa-clock-rotate-left text-amber-400 text-[10px]"></i>
+                                </div>
+                                <div className="mt-1 flex items-baseline space-x-1.5">
+                                    <span className="text-sm font-mono font-black text-amber-300">
+                                        ±{item.avg_abs_4q}%
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 font-mono">
+                                        ({item.avg_dir_4q >= 0 ? `+${item.avg_dir_4q}%` : `${item.avg_dir_4q}%`} net)
+                                    </span>
+                                </div>
+                                <div className="text-[10px] text-emerald-400 font-semibold mt-0.5">
+                                    {item.is_serial_mover ? 'Consistently Volatile' : 'Recent Breakout'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Past 4 Quarters Individual Tape (4-Tile Strip) */}
+                        <div className="bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80 mb-3">
+                            <div className="text-[10px] text-gray-400 font-semibold mb-1.5 flex items-center justify-between">
+                                <span><i className="fa-solid fa-chart-column mr-1 text-blue-400"></i> Individual 4-Quarter Tape</span>
+                                <span className="text-[9px] text-gray-500">Highlighted if ≥ 5%</span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1.5 text-center font-mono">
+                                {(item.quarter_moves || []).slice(0, 4).map((q, idx) => {
+                                    const isBig = Math.abs(q.pct) >= 5.0;
+                                    const qColor = q.pct >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                                    return (
+                                        <div key={idx} className={`p-1.5 rounded bg-gray-900 border ${isBig ? 'border-amber-500/60 shadow-sm' : 'border-gray-800'}`} title={`${q.quarter}: ${q.pct}% on ${q.date || 'Result'}`}>
+                                            <span className="text-[9px] text-gray-500 block truncate">{q.quarter}</span>
+                                            <span className={`text-[11px] font-extrabold block mt-0.5 ${qColor}`}>
+                                                {q.pct > 0 ? `+${q.pct}%` : `${q.pct}%`}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 4. Options Performance Radar Box */}
+                        <div className={`p-2.5 rounded-xl border text-xs mb-3 shadow-inner ${isBullish ? 'bg-gradient-to-r from-emerald-950/40 to-gray-950 border-emerald-500/30' : 'bg-gradient-to-r from-rose-950/40 to-gray-950 border-rose-500/30'}`}>
+                            <div className="flex items-center justify-between text-[11px] mb-1 font-semibold">
+                                <span className="text-gray-300">💥 Derivatives Play ({item.atm_strike} Strike):</span>
+                                <span className="text-[10px] text-gray-400 font-mono">Lot Size: {item.lot_size}</span>
+                            </div>
+                            <div className="text-xs font-mono font-bold text-white leading-snug">
+                                {item.option_play}
+                            </div>
+                            <div className="mt-1.5 text-[10px] text-gray-400 flex items-center justify-between font-mono pt-1 border-t border-gray-800/80">
+                                <span>Call Run: <strong className={item.max_ce_pct > 100 ? 'text-emerald-400' : 'text-gray-300'}>+{item.max_ce_pct}%</strong></span>
+                                <span>Put Run: <strong className={item.max_pe_pct > 100 ? 'text-rose-400' : 'text-gray-300'}>+{item.max_pe_pct}%</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 5. Footer Actions */}
+                    <div className="pt-2 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
+                        <span className="text-[11px] text-gray-500">Result: {item.result_date}</span>
+                        <button
+                            onClick={() => onSelect({
+                                symbol: item.symbol,
+                                company_name: item.company_name,
+                                subject: `${item.quarter} Reaction: Spot ${item.spot_pct > 0 ? '+' : ''}${item.spot_pct}% | 4Q Avg: ±${item.avg_abs_4q}%`,
+                                current_price: item.reaction_spot || item.base_spot,
+                                delivery_pct: 55,
+                                rsi: 50,
+                                support_1: Math.round(item.base_spot * 0.95),
+                                resistance_1: Math.round(item.base_spot * 1.05),
+                                ai_summary: `• Symbol: ${item.symbol}\n• Last Quarter Move: ${item.spot_pct}%\n• 4Q Average Swing: ±${item.avg_abs_4q}%\n• Consistency: ${item.consistency_label}\n• Option Surge: ${item.option_play}`
+                            })}
+                            className="px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-semibold border border-amber-500/30 transition text-xs flex items-center space-x-1">
+                            <span>360° Hourly Tape</span>
+                            <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function Fno5PctMoversView({ onSelectStock }) {
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [filterType, setFilterType] = useState('ALL');
+            const [sortBy, setSortBy] = useState('LAST_MOVE_DESC');
+            const [search, setSearch] = useState('');
+
+            useEffect(() => {
+                fetch('/api/fno/5pct-movers')
+                    .then(r => r.json())
+                    .then(res => {
+                        setData(res);
+                        setLoading(false);
+                    })
+                    .catch(e => {
+                        console.error('5% Movers fetch error:', e);
+                        setLoading(false);
+                    });
+            }, []);
+
+            const filteredMovers = useMemo(() => {
+                if (!data || !data.movers) return [];
+                let list = [...data.movers];
+
+                // Search query
+                if (search.trim()) {
+                    const q = search.trim().toUpperCase();
+                    list = list.filter(m => m.symbol.includes(q) || m.company_name.toUpperCase().includes(q));
+                }
+
+                // Sub-filter
+                if (filterType === 'BULLISH') list = list.filter(m => m.is_bullish);
+                if (filterType === 'BEARISH') list = list.filter(m => !m.is_bullish);
+                if (filterType === 'SERIAL') list = list.filter(m => m.is_serial_mover);
+
+                // Sort
+                if (sortBy === 'LAST_MOVE_DESC') {
+                    list.sort((a, b) => Math.abs(b.spot_pct) - Math.abs(a.spot_pct));
+                } else if (sortBy === '4Q_AVG_DESC') {
+                    list.sort((a, b) => b.avg_abs_4q - a.avg_abs_4q);
+                } else if (sortBy === 'CALL_RUN_DESC') {
+                    list.sort((a, b) => b.max_ce_pct - a.max_ce_pct);
+                } else if (sortBy === 'PUT_RUN_DESC') {
+                    list.sort((a, b) => b.max_pe_pct - a.max_pe_pct);
+                }
+
+                return list;
+            }, [data, filterType, sortBy, search]);
+
+            if (loading && !data) {
+                return (
+                    <div className="text-center py-20 text-gray-400">
+                        <i className="fa-solid fa-circle-notch fa-spin text-4xl text-amber-500 mb-3"></i>
+                        <p className="text-sm font-medium">Loading all F&amp;O stocks with ≥5% earnings day moves and 4-quarter averages...</p>
+                    </div>
+                );
+            }
+
+            const totalCount = data ? data.count : 47;
+            const bullCount = data ? data.bullish_count : 29;
+            const bearCount = data ? data.bearish_count : 18;
+            const serialCount = data ? data.serial_count : 29;
+            const qLabel = data ? data.last_quarter_label : 'Last Quarter';
+
+            return (
+                <div className="space-y-6">
+                    {/* Header Banner */}
+                    <div className="bg-gradient-to-r from-amber-950/40 via-orange-950/30 to-gray-900 border border-amber-500/30 rounded-2xl p-5 shadow-2xl space-y-4">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div className="flex items-center space-x-3.5">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-amber-500/30 border border-amber-400/30">
+                                    <i className="fa-solid fa-fire"></i>
+                                </div>
+                                <div>
+                                    <div className="flex items-center space-x-2">
+                                        <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+                                            🔥 5%+ Earnings Volatility Champions ({qLabel} &amp; 4Q Average)
+                                        </h3>
+                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                            {totalCount} STOCKS MOVED ≥ 5%
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1 max-w-3xl leading-relaxed">
+                                        Exactly <strong>{totalCount} F&amp;O stocks</strong> moved ≥5.0% on result day in {qLabel} (<strong>{bullCount} Bullish Rallies</strong> up to +12.2% &amp; <strong>{bearCount} Bearish Drops</strong> down to -19.1%).
+                                        Each card displays the <strong>Last Quarter move AND the 4-Quarter Average Swing</strong> with full quarter-by-quarter tape to spot serial runners!
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Live Search & Sort Control */}
+                            <div className="flex items-center space-x-2 flex-wrap gap-2 w-full md:w-auto">
+                                <div className="relative flex-1 md:w-48">
+                                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-500 text-xs"></i>
+                                    <input
+                                        type="text"
+                                        value={search}
+                                        onChange={e => setSearch(e.target.value)}
+                                        placeholder="Filter symbol (e.g. DIXON)..."
+                                        className="w-full pl-8 pr-3 py-1.5 bg-gray-900 border border-gray-700 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
+                                    />
+                                </div>
+
+                                <select
+                                    value={sortBy}
+                                    onChange={e => setSortBy(e.target.value)}
+                                    className="px-3 py-1.5 bg-gray-900 border border-gray-700 text-gray-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-amber-500">
+                                    <option value="LAST_MOVE_DESC">Sort: Largest Last Qtr Move</option>
+                                    <option value="4Q_AVG_DESC">Sort: Highest 4Q Avg Swing</option>
+                                    <option value="CALL_RUN_DESC">Sort: Highest Call (CE) Gain</option>
+                                    <option value="PUT_RUN_DESC">Sort: Highest Put (PE) Gain</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Filter Tabs */}
+                        <div className="flex items-center space-x-2 overflow-x-auto pt-3 border-t border-gray-800/80">
+                            {[
+                                { id: 'ALL', label: `All 5%+ Movers (${totalCount})`, icon: 'fa-layer-group' },
+                                { id: 'BULLISH', label: `🟢 Bullish Rallies ≥5% (${bullCount})`, icon: 'fa-arrow-trend-up', color: 'emerald' },
+                                { id: 'BEARISH', label: `🔻 Bearish Drops ≤-5% (${bearCount})`, icon: 'fa-arrow-trend-down', color: 'rose' },
+                                { id: 'SERIAL', label: `⭐ Serial Movers (≥2 Qtrs ≥5%) (${serialCount})`, icon: 'fa-star', color: 'amber' }
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setFilterType(tab.id)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${filterType === tab.id
+                                            ? (tab.color === 'emerald' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : (tab.color === 'rose' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'bg-amber-600 text-white shadow-md shadow-amber-600/30'))
+                                            : 'bg-gray-800/80 text-gray-400 hover:text-white border border-gray-700/60'
+                                        }`}>
+                                    <i className={`fa-solid ${tab.icon} text-xs`}></i>
+                                    <span>{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Cards Grid */}
+                    {filteredMovers.length === 0 ? (
+                        <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6">
+                            <i className="fa-solid fa-filter text-amber-500 text-4xl mb-3"></i>
+                            <p className="text-base font-semibold text-gray-300">
+                                No stocks matched your search "{search}".
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Try clearing the search or selecting "All 5%+ Movers".
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredMovers.map(item => (
+                                <Fno5PctMoverCard key={item.symbol} item={item} onSelect={onSelectStock} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ====================================================================
         // 5. MAIN APP COMPONENT
         // ====================================================================
         function App() {
@@ -1728,6 +2022,13 @@
                                     <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-purple-200 font-extrabold">Top 25 &amp; 184+</span>
                                 </button>
                                 <button
+                                    onClick={() => setActiveFilter('5PCT_MOVERS')}
+                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === '5PCT_MOVERS' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/30' : 'bg-gray-800/90 text-amber-300 hover:text-amber-200 border border-amber-500/30'}`}>
+                                    <i className="fa-solid fa-fire text-xs text-amber-300"></i>
+                                    <span>🔥 5%+ Big Movers</span>
+                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-amber-200 font-extrabold">47</span>
+                                </button>
+                                <button
                                     onClick={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }}
                                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'ACCUMULATION' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30' : 'bg-gray-800/90 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30'}`}>
                                     <i className="fa-solid fa-gem text-xs text-emerald-300"></i>
@@ -1881,6 +2182,8 @@
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1 w-full">
                         {activeFilter === 'FNO_LEADERS' ? (
                             <FnoLeaderboardView onSelectStock={handleOpenLeaderboardStock} />
+                        ) : activeFilter === '5PCT_MOVERS' ? (
+                            <Fno5PctMoversView onSelectStock={handleOpenLeaderboardStock} />
                         ) : activeFilter === 'CATALYSTS' ? (
                             <NewsCatalystView
                                 catalysts={catalysts}

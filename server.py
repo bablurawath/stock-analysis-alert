@@ -30,7 +30,8 @@ from fno_service import (
     broadcast_today_fno_results,
     broadcast_last_quarter_fno_report,
     generate_all_fno_csv,
-    get_fno_last_quarter_leaderboard_data
+    get_fno_last_quarter_leaderboard_data,
+    get_fno_5pct_movers_data
 )
 from accumulation_service import scan_accumulation_basket
 from news_catalyst_service import (
@@ -159,6 +160,11 @@ def api_admin_export_fno_csv(force: bool = False):
 def api_fno_last_quarter_leaderboard():
     data = get_fno_last_quarter_leaderboard_data()
     return JSONResponse(content={"count": len(data), "items": data})
+
+@app.get("/api/fno/5pct-movers")
+def api_fno_5pct_movers(refresh: bool = False):
+    data = get_fno_5pct_movers_data(force_refresh=refresh)
+    return JSONResponse(content=data)
 
 @app.get("/api/earnings-volatility/{symbol}")
 def api_earnings_volatility(symbol: str):

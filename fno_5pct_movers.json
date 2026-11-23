@@ -1,0 +1,2312 @@
+{
+  "count": 47,
+  "bullish_count": 29,
+  "bearish_count": 18,
+  "serial_count": 29,
+  "last_quarter_label": "Q2 FY27",
+  "movers": [
+    {
+      "symbol": "PIIND",
+      "company_name": "PIIND (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "04-Nov-2026",
+      "reaction_date": "05-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 2187.0,
+      "reaction_spot": 1770.0,
+      "spot_pct": -19.07,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 2200,
+      "lot_size": 150,
+      "base_ce": 34.99,
+      "max_ce_px": 36.59,
+      "max_ce_pct": 4.6,
+      "base_pe": 32.8,
+      "max_pe_px": 477.7,
+      "max_pe_pct": 1356.4,
+      "option_play": "\ud83d\udca5 2200 PE exploded +1356.4% (\u20b932.8 \u2794 \u20b9477.7)",
+      "avg_abs_4q": 9.38,
+      "avg_dir_4q": -9.38,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -19.07,
+          "date": "04-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -9.05,
+          "date": "11-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -7.15,
+          "date": "19-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.23,
+          "date": "12-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "CUMMINSIND",
+      "company_name": "CUMMINSIND (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "04-Nov-2026",
+      "reaction_date": "05-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 4725.7,
+      "reaction_spot": 4058.9,
+      "spot_pct": -14.11,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 4700,
+      "lot_size": 300,
+      "base_ce": 75.61,
+      "max_ce_px": 69.99,
+      "max_ce_pct": -7.4,
+      "base_pe": 70.89,
+      "max_pe_px": 765.1,
+      "max_pe_pct": 979.3,
+      "option_play": "\ud83d\udca5 4700 PE exploded +979.3% (\u20b970.9 \u2794 \u20b9765.1)",
+      "avg_abs_4q": 7.64,
+      "avg_dir_4q": 0.23,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -14.11,
+          "date": "04-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -0.7,
+          "date": "05-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 11.24,
+          "date": "27-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 4.5,
+          "date": "04-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "PAGEIND",
+      "company_name": "PAGEIND (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "12-Nov-2026",
+      "reaction_date": "12-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 36570.0,
+      "reaction_spot": 31850.0,
+      "spot_pct": -12.91,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 36500,
+      "lot_size": 15,
+      "base_ce": 585.12,
+      "max_ce_px": 725.9,
+      "max_ce_pct": 24.1,
+      "base_pe": 548.55,
+      "max_pe_px": 5175.11,
+      "max_pe_pct": 843.4,
+      "option_play": "\ud83d\udca5 36500 PE exploded +843.4% (\u20b9548.5 \u2794 \u20b95175.1)",
+      "avg_abs_4q": 5.33,
+      "avg_dir_4q": -3.44,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -12.91,
+          "date": "12-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -4.64,
+          "date": "13-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.25,
+          "date": "21-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 3.53,
+          "date": "05-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "SYNGENE",
+      "company_name": "SYNGENE (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "27-Oct-2026",
+      "reaction_date": "28-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 366.2,
+      "reaction_spot": 410.85,
+      "spot_pct": 12.19,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 370,
+      "lot_size": 1000,
+      "base_ce": 5.86,
+      "max_ce_px": 42.82,
+      "max_ce_pct": 630.7,
+      "base_pe": 5.49,
+      "max_pe_px": 15.37,
+      "max_pe_pct": 180.0,
+      "option_play": "\ud83d\ude80 370 CE exploded +630.7% (\u20b95.9 \u2794 \u20b942.8)",
+      "avg_abs_4q": 8.06,
+      "avg_dir_4q": 2.13,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 12.19,
+          "date": "27-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -3.63,
+          "date": "29-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 8.21,
+          "date": "29-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -8.23,
+          "date": "22-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "DIVISLAB",
+      "company_name": "DIVISLAB (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "07-Nov-2026",
+      "reaction_date": "09-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 10320.5,
+      "reaction_spot": 11565.5,
+      "spot_pct": 12.06,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 10250,
+      "lot_size": 100,
+      "base_ce": 165.13,
+      "max_ce_px": 1417.13,
+      "max_ce_pct": 758.2,
+      "base_pe": 154.81,
+      "max_pe_px": 332.9,
+      "max_pe_pct": 115.0,
+      "option_play": "\ud83d\ude80 10250 CE exploded +758.2% (\u20b9165.1 \u2794 \u20b91417.1)",
+      "avg_abs_4q": 5.99,
+      "avg_dir_4q": 5.04,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 12.06,
+          "date": "07-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 6.57,
+          "date": "01-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -1.89,
+          "date": "23-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 3.42,
+          "date": "11-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "INDIACEM",
+      "company_name": "INDIACEM (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "17-Oct-2026",
+      "reaction_date": "21-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 294.35,
+      "reaction_spot": 329.8,
+      "spot_pct": 12.04,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 295,
+      "lot_size": 2800,
+      "base_ce": 4.71,
+      "max_ce_px": 59.0,
+      "max_ce_pct": 1152.7,
+      "base_pe": 4.42,
+      "max_pe_px": 4.37,
+      "max_pe_pct": -1.1,
+      "option_play": "\ud83d\ude80 295 CE exploded +1152.7% (\u20b94.7 \u2794 \u20b959.0)",
+      "avg_abs_4q": 7.28,
+      "avg_dir_4q": 2.1,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 12.04,
+          "date": "17-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -4.34,
+          "date": "18-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 6.72,
+          "date": "25-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -6.03,
+          "date": "23-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "DIXON",
+      "company_name": "DIXON (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "02-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 11000.0,
+      "reaction_spot": 12319.0,
+      "spot_pct": 11.99,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 11000,
+      "lot_size": 50,
+      "base_ce": 176.0,
+      "max_ce_px": 1434.24,
+      "max_ce_pct": 714.9,
+      "base_pe": 165.0,
+      "max_pe_px": 106.8,
+      "max_pe_pct": -35.3,
+      "option_play": "\ud83d\ude80 11000 CE exploded +714.9% (\u20b9176.0 \u2794 \u20b91434.2)",
+      "avg_abs_4q": 6.2,
+      "avg_dir_4q": 5.19,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 11.99,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -2.02,
+          "date": "31-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 9.73,
+          "date": "12-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 1.05,
+          "date": "29-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "BSOFT",
+      "company_name": "BSOFT (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "28-Oct-2026",
+      "reaction_date": "29-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 306.1,
+      "reaction_spot": 342.5,
+      "spot_pct": 11.89,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 310,
+      "lot_size": 1000,
+      "base_ce": 4.9,
+      "max_ce_px": 40.56,
+      "max_ce_pct": 727.8,
+      "base_pe": 4.59,
+      "max_pe_px": 11.22,
+      "max_pe_pct": 144.4,
+      "option_play": "\ud83d\ude80 310 CE exploded +727.8% (\u20b94.9 \u2794 \u20b940.6)",
+      "avg_abs_4q": 5.06,
+      "avg_dir_4q": 3.68,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 11.89,
+          "date": "28-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 3.75,
+          "date": "28-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.77,
+          "date": "06-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 1.83,
+          "date": "28-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "company_name": "RELIANCE (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "02-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1164.9,
+      "reaction_spot": 1300.0,
+      "spot_pct": 11.6,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1160,
+      "lot_size": 250,
+      "base_ce": 18.64,
+      "max_ce_px": 147.91,
+      "max_ce_pct": 693.5,
+      "base_pe": 17.47,
+      "max_pe_px": 17.28,
+      "max_pe_pct": -1.1,
+      "option_play": "\ud83d\ude80 1160 CE exploded +693.5% (\u20b918.6 \u2794 \u20b9147.9)",
+      "avg_abs_4q": 4.45,
+      "avg_dir_4q": 2.78,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 11.6,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -0.31,
+          "date": "17-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 2.86,
+          "date": "24-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -3.04,
+          "date": "16-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "LTTS",
+      "company_name": "LTTS (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "19-Oct-2026",
+      "reaction_date": "21-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 3611.3,
+      "reaction_spot": 3996.3,
+      "spot_pct": 10.66,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 3600,
+      "lot_size": 100,
+      "base_ce": 57.78,
+      "max_ce_px": 472.68,
+      "max_ce_pct": 718.1,
+      "base_pe": 54.17,
+      "max_pe_px": 42.72,
+      "max_pe_pct": -21.1,
+      "option_play": "\ud83d\ude80 3600 CE exploded +718.1% (\u20b957.8 \u2794 \u20b9472.7)",
+      "avg_abs_4q": 6.93,
+      "avg_dir_4q": 1.67,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 10.66,
+          "date": "19-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 6.53,
+          "date": "14-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.83,
+          "date": "22-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -7.7,
+          "date": "15-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "MARICO",
+      "company_name": "MARICO (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "02-Nov-2026",
+      "reaction_date": "03-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 798.55,
+      "reaction_spot": 878.4,
+      "spot_pct": 10.0,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 800,
+      "lot_size": 1200,
+      "base_ce": 12.78,
+      "max_ce_px": 92.09,
+      "max_ce_pct": 620.6,
+      "base_pe": 11.98,
+      "max_pe_px": 12.55,
+      "max_pe_pct": 4.8,
+      "option_play": "\ud83d\ude80 800 CE exploded +620.6% (\u20b912.8 \u2794 \u20b992.1)",
+      "avg_abs_4q": 4.19,
+      "avg_dir_4q": 2.26,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 10.0,
+          "date": "02-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -2.63,
+          "date": "04-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 2.89,
+          "date": "05-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -1.23,
+          "date": "27-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "ASTRAL",
+      "company_name": "ASTRAL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "05-Nov-2026",
+      "reaction_date": "06-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1388.0,
+      "reaction_spot": 1253.6,
+      "spot_pct": -9.68,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 1380,
+      "lot_size": 275,
+      "base_ce": 22.21,
+      "max_ce_px": 58.83,
+      "max_ce_pct": 164.9,
+      "base_pe": 20.82,
+      "max_pe_px": 148.71,
+      "max_pe_pct": 614.3,
+      "option_play": "\ud83d\udca5 1380 PE exploded +614.3% (\u20b920.8 \u2794 \u20b9148.7)",
+      "avg_abs_4q": 6.69,
+      "avg_dir_4q": -2.32,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -9.68,
+          "date": "05-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 8.74,
+          "date": "12-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -6.26,
+          "date": "18-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.09,
+          "date": "05-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "GNFC",
+      "company_name": "GNFC (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "02-Nov-2026",
+      "reaction_date": "03-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 511.0,
+      "reaction_spot": 465.05,
+      "spot_pct": -8.99,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 510,
+      "lot_size": 1300,
+      "base_ce": 8.18,
+      "max_ce_px": 7.98,
+      "max_ce_pct": -2.4,
+      "base_pe": 7.67,
+      "max_pe_px": 45.22,
+      "max_pe_pct": 489.6,
+      "option_play": "\ud83d\udca5 510 PE exploded +489.6% (\u20b97.7 \u2794 \u20b945.2)",
+      "avg_abs_4q": 4.34,
+      "avg_dir_4q": -1.33,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -8.99,
+          "date": "02-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 0.86,
+          "date": "05-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 5.17,
+          "date": "18-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.35,
+          "date": "10-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "SONACOMS",
+      "company_name": "SONACOMS (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "26-Oct-2026",
+      "reaction_date": "27-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 781.9,
+      "reaction_spot": 851.85,
+      "spot_pct": 8.95,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 780,
+      "lot_size": 950,
+      "base_ce": 12.51,
+      "max_ce_px": 100.91,
+      "max_ce_pct": 706.6,
+      "base_pe": 11.73,
+      "max_pe_px": 37.77,
+      "max_pe_pct": 222.0,
+      "option_play": "\ud83d\ude80 780 CE exploded +706.6% (\u20b912.5 \u2794 \u20b9100.9)",
+      "avg_abs_4q": 5.35,
+      "avg_dir_4q": 2.6,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 8.95,
+          "date": "26-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -0.25,
+          "date": "23-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -5.24,
+          "date": "30-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 6.95,
+          "date": "23-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "TECHM",
+      "company_name": "TECHM (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "15-Oct-2026",
+      "reaction_date": "16-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1650.0,
+      "reaction_spot": 1790.0,
+      "spot_pct": 8.48,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1650,
+      "lot_size": 600,
+      "base_ce": 26.4,
+      "max_ce_px": 140.87,
+      "max_ce_pct": 433.6,
+      "base_pe": 24.75,
+      "max_pe_px": 105.99,
+      "max_pe_pct": 328.2,
+      "option_play": "\ud83d\ude80 1650 CE exploded +433.6% (\u20b926.4 \u2794 \u20b9140.9)",
+      "avg_abs_4q": 4.51,
+      "avg_dir_4q": 3.23,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 8.48,
+          "date": "15-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 4.14,
+          "date": "16-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.55,
+          "date": "22-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 2.86,
+          "date": "16-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "KEI",
+      "company_name": "KEI (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "21-Oct-2026",
+      "reaction_date": "22-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 4230.4,
+      "reaction_spot": 3873.0,
+      "spot_pct": -8.45,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 4200,
+      "lot_size": 125,
+      "base_ce": 67.69,
+      "max_ce_px": 280.82,
+      "max_ce_pct": 314.9,
+      "base_pe": 63.46,
+      "max_pe_px": 527.28,
+      "max_pe_pct": 730.9,
+      "option_play": "\ud83d\udca5 4200 PE exploded +730.9% (\u20b963.5 \u2794 \u20b9527.3)",
+      "avg_abs_4q": 5.26,
+      "avg_dir_4q": -0.51,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -8.45,
+          "date": "21-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 9.49,
+          "date": "03-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -0.79,
+          "date": "04-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.31,
+          "date": "21-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "HCLTECH",
+      "company_name": "HCLTECH (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "12-Oct-2026",
+      "reaction_date": "13-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1223.0,
+      "reaction_spot": 1326.0,
+      "spot_pct": 8.42,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1220,
+      "lot_size": 350,
+      "base_ce": 19.57,
+      "max_ce_px": 119.73,
+      "max_ce_pct": 511.8,
+      "base_pe": 18.34,
+      "max_pe_px": 37.64,
+      "max_pe_pct": 105.2,
+      "option_play": "\ud83d\ude80 1220 CE exploded +511.8% (\u20b919.6 \u2794 \u20b9119.7)",
+      "avg_abs_4q": 5.96,
+      "avg_dir_4q": -1.76,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 8.42,
+          "date": "12-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -4.46,
+          "date": "13-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -10.82,
+          "date": "21-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -0.16,
+          "date": "12-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "NESTLEIND",
+      "company_name": "NESTLEIND (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "15-Oct-2026",
+      "reaction_date": "15-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 1383.2,
+      "reaction_spot": 1275.8,
+      "spot_pct": -7.76,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 1380,
+      "lot_size": 40,
+      "base_ce": 22.13,
+      "max_ce_px": 18.21,
+      "max_ce_pct": -17.7,
+      "base_pe": 20.75,
+      "max_pe_px": 125.17,
+      "max_pe_pct": 503.2,
+      "option_play": "\ud83d\udca5 1380 PE exploded +503.2% (\u20b920.8 \u2794 \u20b9125.2)",
+      "avg_abs_4q": 5.34,
+      "avg_dir_4q": 1.46,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -7.76,
+          "date": "15-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 2.87,
+          "date": "22-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 7.27,
+          "date": "21-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 3.46,
+          "date": "30-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "ZEEL",
+      "company_name": "ZEEL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "02-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 66.4,
+      "reaction_spot": 61.58,
+      "spot_pct": -7.26,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 67,
+      "lot_size": 3000,
+      "base_ce": 1.2,
+      "max_ce_px": 3.8,
+      "max_ce_pct": 216.7,
+      "base_pe": 1.13,
+      "max_pe_px": 5.63,
+      "max_pe_pct": 398.2,
+      "option_play": "\ud83d\udca5 67 PE exploded +398.2% (\u20b91.1 \u2794 \u20b95.6)",
+      "avg_abs_4q": 4.99,
+      "avg_dir_4q": -2.85,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -7.26,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -3.03,
+          "date": "10-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -5.39,
+          "date": "19-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 4.29,
+          "date": "22-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "KALYANKJIL",
+      "company_name": "KALYANKJIL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "10-Nov-2026",
+      "reaction_date": "12-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 663.75,
+      "reaction_spot": 710.9,
+      "spot_pct": 7.1,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 660,
+      "lot_size": 1000,
+      "base_ce": 10.62,
+      "max_ce_px": 54.36,
+      "max_ce_pct": 411.9,
+      "base_pe": 9.96,
+      "max_pe_px": 53.51,
+      "max_pe_pct": 437.2,
+      "option_play": "\ud83d\ude80 660 CE exploded +411.9% (\u20b910.6 \u2794 \u20b954.4)",
+      "avg_abs_4q": 7.27,
+      "avg_dir_4q": 5.42,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 7.1,
+          "date": "10-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -3.7,
+          "date": "04-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 3.26,
+          "date": "08-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 15.02,
+          "date": "06-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "RBLBANK",
+      "company_name": "RBLBANK (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "12-Oct-2026",
+      "reaction_date": "13-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 417.7,
+      "reaction_spot": 388.05,
+      "spot_pct": -7.1,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 420,
+      "lot_size": 2500,
+      "base_ce": 6.68,
+      "max_ce_px": 6.6,
+      "max_ce_pct": -1.2,
+      "base_pe": 6.27,
+      "max_pe_px": 36.79,
+      "max_pe_pct": 486.8,
+      "option_play": "\ud83d\udca5 420 PE exploded +486.8% (\u20b96.3 \u2794 \u20b936.8)",
+      "avg_abs_4q": 4.14,
+      "avg_dir_4q": -4.09,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -7.1,
+          "date": "12-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 0.1,
+          "date": "17-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.68,
+          "date": "25-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -6.7,
+          "date": "17-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "ATUL",
+      "company_name": "ATUL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "23-Oct-2026",
+      "reaction_date": "23-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 5999.5,
+      "reaction_spot": 5576.0,
+      "spot_pct": -7.06,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 6000,
+      "lot_size": 75,
+      "base_ce": 95.99,
+      "max_ce_px": 149.75,
+      "max_ce_pct": 56.0,
+      "base_pe": 89.99,
+      "max_pe_px": 690.28,
+      "max_pe_pct": 667.1,
+      "option_play": "\ud83d\udca5 6000 PE exploded +667.1% (\u20b990.0 \u2794 \u20b9690.3)",
+      "avg_abs_4q": 3.3,
+      "avg_dir_4q": -0.57,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -7.06,
+          "date": "23-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 4.53,
+          "date": "24-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -0.69,
+          "date": "24-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 0.94,
+          "date": "23-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "BALKRISIND",
+      "company_name": "BALKRISIND (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "04-Nov-2026",
+      "reaction_date": "05-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 2243.7,
+      "reaction_spot": 2401.9,
+      "spot_pct": 7.05,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 2250,
+      "lot_size": 300,
+      "base_ce": 35.9,
+      "max_ce_px": 162.47,
+      "max_ce_pct": 352.6,
+      "base_pe": 33.66,
+      "max_pe_px": 99.87,
+      "max_pe_pct": 196.7,
+      "option_play": "\ud83d\ude80 2250 CE exploded +352.6% (\u20b935.9 \u2794 \u20b9162.5)",
+      "avg_abs_4q": 5.83,
+      "avg_dir_4q": 3.1,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 7.05,
+          "date": "04-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 10.82,
+          "date": "29-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -3.56,
+          "date": "08-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -1.91,
+          "date": "28-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "POLICYBZR",
+      "company_name": "POLICYBZR (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "02-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1000.1,
+      "reaction_spot": 931.0,
+      "spot_pct": -6.91,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 1000,
+      "lot_size": 450,
+      "base_ce": 16.0,
+      "max_ce_px": 31.9,
+      "max_ce_pct": 99.4,
+      "base_pe": 15.0,
+      "max_pe_px": 79.61,
+      "max_pe_pct": 430.7,
+      "option_play": "\ud83d\udca5 1000 PE exploded +430.7% (\u20b915.0 \u2794 \u20b979.6)",
+      "avg_abs_4q": 3.93,
+      "avg_dir_4q": -3.93,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -6.91,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -1.3,
+          "date": "05-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -1.04,
+          "date": "06-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -6.47,
+          "date": "02-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "AUBANK",
+      "company_name": "AUBANK (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "24-Oct-2026",
+      "reaction_date": "26-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 932.9,
+      "reaction_spot": 869.0,
+      "spot_pct": -6.85,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 940,
+      "lot_size": 1000,
+      "base_ce": 14.93,
+      "max_ce_px": 28.72,
+      "max_ce_pct": 92.4,
+      "base_pe": 13.99,
+      "max_pe_px": 92.1,
+      "max_pe_pct": 558.3,
+      "option_play": "\ud83d\udca5 940 PE exploded +558.3% (\u20b914.0 \u2794 \u20b992.1)",
+      "avg_abs_4q": 3.55,
+      "avg_dir_4q": -1.16,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -6.85,
+          "date": "24-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 4.8,
+          "date": "25-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -1.94,
+          "date": "27-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -0.63,
+          "date": "20-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "TATACONSUM",
+      "company_name": "TATACONSUM (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "26-Oct-2026",
+      "reaction_date": "27-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 936.5,
+      "reaction_spot": 1000.0,
+      "spot_pct": 6.78,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 940,
+      "lot_size": 450,
+      "base_ce": 14.98,
+      "max_ce_px": 61.45,
+      "max_ce_pct": 310.2,
+      "base_pe": 14.05,
+      "max_pe_px": 13.6,
+      "max_pe_pct": -3.2,
+      "option_play": "\ud83d\ude80 940 CE exploded +310.2% (\u20b915.0 \u2794 \u20b961.5)",
+      "avg_abs_4q": 4.89,
+      "avg_dir_4q": 4.89,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 6.78,
+          "date": "26-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 1.78,
+          "date": "24-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 8.06,
+          "date": "08-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 2.94,
+          "date": "27-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "DRREDDY",
+      "company_name": "DRREDDY (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "23-Oct-2026",
+      "reaction_date": "26-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1229.5,
+      "reaction_spot": 1310.9,
+      "spot_pct": 6.62,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1220,
+      "lot_size": 125,
+      "base_ce": 19.67,
+      "max_ce_px": 100.03,
+      "max_ce_pct": 408.5,
+      "base_pe": 18.44,
+      "max_pe_px": 18.66,
+      "max_pe_pct": 1.2,
+      "option_play": "\ud83d\ude80 1220 CE exploded +408.5% (\u20b919.7 \u2794 \u20b9100.0)",
+      "avg_abs_4q": 3.4,
+      "avg_dir_4q": 2.52,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 6.62,
+          "date": "23-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -1.39,
+          "date": "22-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -0.37,
+          "date": "12-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 5.21,
+          "date": "21-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "ABFRL",
+      "company_name": "ABFRL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "05-Nov-2026",
+      "reaction_date": "06-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 41.78,
+      "reaction_spot": 39.02,
+      "spot_pct": -6.61,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 42,
+      "lot_size": 2600,
+      "base_ce": 0.75,
+      "max_ce_px": 0.53,
+      "max_ce_pct": -29.3,
+      "base_pe": 0.71,
+      "max_pe_px": 3.27,
+      "max_pe_pct": 360.6,
+      "option_play": "\ud83d\udca5 42 PE exploded +360.6% (\u20b90.7 \u2794 \u20b93.3)",
+      "avg_abs_4q": 4.29,
+      "avg_dir_4q": -4.29,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -6.61,
+          "date": "05-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -3.95,
+          "date": "08-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -3.7,
+          "date": "25-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.92,
+          "date": "05-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "DALBHARAT",
+      "company_name": "DALBHARAT (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "26-Oct-2026",
+      "reaction_date": "27-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 1625.8,
+      "reaction_spot": 1519.0,
+      "spot_pct": -6.57,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 1650,
+      "lot_size": 325,
+      "base_ce": 26.01,
+      "max_ce_px": 20.32,
+      "max_ce_pct": -21.9,
+      "base_pe": 24.39,
+      "max_pe_px": 177.32,
+      "max_pe_pct": 627.0,
+      "option_play": "\ud83d\udca5 1650 PE exploded +627.0% (\u20b924.4 \u2794 \u20b9177.3)",
+      "avg_abs_4q": 3.39,
+      "avg_dir_4q": -2.45,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -6.57,
+          "date": "26-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -2.37,
+          "date": "24-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.73,
+          "date": "28-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 1.87,
+          "date": "21-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "EXIDEIND",
+      "company_name": "EXIDEIND (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "04-Nov-2026",
+      "reaction_date": "04-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 346.25,
+      "reaction_spot": 368.4,
+      "spot_pct": 6.4,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 350,
+      "lot_size": 1200,
+      "base_ce": 5.54,
+      "max_ce_px": 22.52,
+      "max_ce_pct": 306.5,
+      "base_pe": 5.19,
+      "max_pe_px": 15.34,
+      "max_pe_pct": 195.6,
+      "option_play": "\ud83d\ude80 350 CE exploded +306.5% (\u20b95.5 \u2794 \u20b922.5)",
+      "avg_abs_4q": 2.74,
+      "avg_dir_4q": 2.53,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 6.4,
+          "date": "04-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 3.91,
+          "date": "30-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -0.42,
+          "date": "04-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 0.23,
+          "date": "30-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "TATACOMM",
+      "company_name": "TATACOMM (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "15-Oct-2026",
+      "reaction_date": "15-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 1658.9,
+      "reaction_spot": 1763.7,
+      "spot_pct": 6.32,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1650,
+      "lot_size": 250,
+      "base_ce": 26.54,
+      "max_ce_px": 160.97,
+      "max_ce_pct": 506.5,
+      "base_pe": 24.88,
+      "max_pe_px": 25.36,
+      "max_pe_pct": 1.9,
+      "option_play": "\ud83d\ude80 1650 CE exploded +506.5% (\u20b926.5 \u2794 \u20b9161.0)",
+      "avg_abs_4q": 4.66,
+      "avg_dir_4q": 0.33,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 6.32,
+          "date": "15-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -3.16,
+          "date": "22-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 3.65,
+          "date": "22-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -5.51,
+          "date": "21-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "ESCORTS",
+      "company_name": "ESCORTS (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "02-Nov-2026",
+      "reaction_date": "02-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 2576.4,
+      "reaction_spot": 2423.2,
+      "spot_pct": -5.95,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 2600,
+      "lot_size": 275,
+      "base_ce": 41.22,
+      "max_ce_px": 87.91,
+      "max_ce_pct": 113.3,
+      "base_pe": 38.65,
+      "max_pe_px": 200.86,
+      "max_pe_pct": 419.7,
+      "option_play": "\ud83d\udca5 2600 PE exploded +419.7% (\u20b938.6 \u2794 \u20b9200.9)",
+      "avg_abs_4q": 2.41,
+      "avg_dir_4q": -0.57,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -5.95,
+          "date": "02-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 1.6,
+          "date": "03-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.87,
+          "date": "07-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 1.22,
+          "date": "10-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "WIPRO",
+      "company_name": "WIPRO (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "15-Oct-2026",
+      "reaction_date": "16-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 174.05,
+      "reaction_spot": 184.4,
+      "spot_pct": 5.95,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 175,
+      "lot_size": 1500,
+      "base_ce": 2.78,
+      "max_ce_px": 10.38,
+      "max_ce_pct": 273.4,
+      "base_pe": 2.61,
+      "max_pe_px": 6.85,
+      "max_pe_pct": 162.5,
+      "option_play": "\ud83d\ude80 175 CE exploded +273.4% (\u20b92.8 \u2794 \u20b910.4)",
+      "avg_abs_4q": 4.45,
+      "avg_dir_4q": -1.47,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.95,
+          "date": "15-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -0.98,
+          "date": "16-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.83,
+          "date": "16-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -8.04,
+          "date": "16-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "DELHIVERY",
+      "company_name": "DELHIVERY (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "02-Nov-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 386.0,
+      "reaction_spot": 408.75,
+      "spot_pct": 5.89,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 390,
+      "lot_size": 1100,
+      "base_ce": 6.18,
+      "max_ce_px": 32.01,
+      "max_ce_pct": 418.0,
+      "base_pe": 5.79,
+      "max_pe_px": 6.72,
+      "max_pe_pct": 16.1,
+      "option_play": "\ud83d\ude80 390 CE exploded +418.0% (\u20b96.2 \u2794 \u20b932.0)",
+      "avg_abs_4q": 2.12,
+      "avg_dir_4q": 1.61,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.89,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -1.02,
+          "date": "08-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.8,
+          "date": "16-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 0.76,
+          "date": "31-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "HUDCO",
+      "company_name": "HUDCO (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "04-Nov-2026",
+      "reaction_date": "04-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 144.62,
+      "reaction_spot": 153.06,
+      "spot_pct": 5.84,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 145,
+      "lot_size": 3500,
+      "base_ce": 2.31,
+      "max_ce_px": 16.6,
+      "max_ce_pct": 618.6,
+      "base_pe": 2.17,
+      "max_pe_px": 2.19,
+      "max_pe_pct": 0.9,
+      "option_play": "\ud83d\ude80 145 CE exploded +618.6% (\u20b92.3 \u2794 \u20b916.6)",
+      "avg_abs_4q": 4.26,
+      "avg_dir_4q": 1.24,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.84,
+          "date": "04-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 3.39,
+          "date": "27-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 1.76,
+          "date": "14-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -6.04,
+          "date": "29-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "TATAELXSI",
+      "company_name": "TATAELXSI (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "13-Oct-2026",
+      "reaction_date": "14-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 3426.7,
+      "reaction_spot": 3623.1,
+      "spot_pct": 5.73,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 3450,
+      "lot_size": 100,
+      "base_ce": 54.83,
+      "max_ce_px": 251.74,
+      "max_ce_pct": 359.1,
+      "base_pe": 51.4,
+      "max_pe_px": 210.44,
+      "max_pe_pct": 309.4,
+      "option_play": "\ud83d\ude80 3450 CE exploded +359.1% (\u20b954.8 \u2794 \u20b9251.7)",
+      "avg_abs_4q": 5.42,
+      "avg_dir_4q": -2.55,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.73,
+          "date": "13-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -4.78,
+          "date": "14-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -6.2,
+          "date": "21-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -4.97,
+          "date": "13-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "JSWENERGY",
+      "company_name": "JSWENERGY (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "28-Oct-2026",
+      "reaction_date": "29-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 483.0,
+      "reaction_spot": 510.0,
+      "spot_pct": 5.59,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 480,
+      "lot_size": 1000,
+      "base_ce": 7.73,
+      "max_ce_px": 34.02,
+      "max_ce_pct": 340.1,
+      "base_pe": 7.25,
+      "max_pe_px": 20.76,
+      "max_pe_pct": 186.3,
+      "option_play": "\ud83d\ude80 480 CE exploded +340.1% (\u20b97.7 \u2794 \u20b934.0)",
+      "avg_abs_4q": 5.3,
+      "avg_dir_4q": -2.5,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.59,
+          "date": "28-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -0.79,
+          "date": "22-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -6.95,
+          "date": "11-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -7.87,
+          "date": "23-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "VBL",
+      "company_name": "VBL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "30-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 414.8,
+      "reaction_spot": 392.0,
+      "spot_pct": -5.5,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 410,
+      "lot_size": 750,
+      "base_ce": 6.64,
+      "max_ce_px": 6.83,
+      "max_ce_pct": 2.9,
+      "base_pe": 6.22,
+      "max_pe_px": 19.42,
+      "max_pe_pct": 212.2,
+      "option_play": "\ud83d\udca5 410 PE exploded +212.2% (\u20b96.2 \u2794 \u20b919.4)",
+      "avg_abs_4q": 5.5,
+      "avg_dir_4q": -2.6,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -5.5,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -7.43,
+          "date": "28-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 5.79,
+          "date": "27-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -3.26,
+          "date": "03-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "TRENT",
+      "company_name": "TRENT (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "29-Oct-2026",
+      "reaction_date": "30-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 2861.7,
+      "reaction_spot": 3017.3,
+      "spot_pct": 5.44,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 2850,
+      "lot_size": 100,
+      "base_ce": 45.79,
+      "max_ce_px": 198.19,
+      "max_ce_pct": 332.8,
+      "base_pe": 42.93,
+      "max_pe_px": 62.93,
+      "max_pe_pct": 46.6,
+      "option_play": "\ud83d\ude80 2850 CE exploded +332.8% (\u20b945.8 \u2794 \u20b9198.2)",
+      "avg_abs_4q": 3.31,
+      "avg_dir_4q": 0.89,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.44,
+          "date": "29-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -0.7,
+          "date": "06-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -4.13,
+          "date": "22-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 2.96,
+          "date": "04-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "LALPATHLAB",
+      "company_name": "LALPATHLAB (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "04-Nov-2026",
+      "reaction_date": "04-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 1925.7,
+      "reaction_spot": 2029.4,
+      "spot_pct": 5.39,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1950,
+      "lot_size": 175,
+      "base_ce": 30.81,
+      "max_ce_px": 100.31,
+      "max_ce_pct": 225.6,
+      "base_pe": 28.89,
+      "max_pe_px": 92.01,
+      "max_pe_pct": 218.5,
+      "option_play": "\ud83d\ude80 1950 CE exploded +225.6% (\u20b930.8 \u2794 \u20b9100.3)",
+      "avg_abs_4q": 3.22,
+      "avg_dir_4q": 2.12,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.39,
+          "date": "04-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 4.27,
+          "date": "24-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -2.19,
+          "date": "30-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 1.02,
+          "date": "30-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "SAIL",
+      "company_name": "SAIL (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "27-Oct-2026",
+      "reaction_date": "28-Oct-2026",
+      "timing": "T+1 Next Day",
+      "base_spot": 171.2,
+      "reaction_spot": 162.0,
+      "spot_pct": -5.37,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 170,
+      "lot_size": 4000,
+      "base_ce": 2.74,
+      "max_ce_px": 2.67,
+      "max_ce_pct": -2.6,
+      "base_pe": 2.57,
+      "max_pe_px": 9.62,
+      "max_pe_pct": 274.3,
+      "option_play": "\ud83d\udca5 170 PE exploded +274.3% (\u20b92.6 \u2794 \u20b99.6)",
+      "avg_abs_4q": 1.97,
+      "avg_dir_4q": -1.53,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -5.37,
+          "date": "27-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 0.72,
+          "date": "24-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.17,
+          "date": "15-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -1.63,
+          "date": "30-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "MOTHERSON",
+      "company_name": "MOTHERSON (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "05-Nov-2026",
+      "reaction_date": "05-Nov-2026",
+      "timing": "Intraday",
+      "base_spot": 159.49,
+      "reaction_spot": 168.0,
+      "spot_pct": 5.34,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 160,
+      "lot_size": 4400,
+      "base_ce": 2.55,
+      "max_ce_px": 8.48,
+      "max_ce_pct": 232.5,
+      "base_pe": 2.39,
+      "max_pe_px": 5.74,
+      "max_pe_pct": 140.2,
+      "option_play": "\ud83d\ude80 160 CE exploded +232.5% (\u20b92.5 \u2794 \u20b98.5)",
+      "avg_abs_4q": 2.58,
+      "avg_dir_4q": 2.58,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.34,
+          "date": "05-Nov-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 0.42,
+          "date": "06-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.52,
+          "date": "20-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 4.04,
+          "date": "10-Feb-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "UNIONBANK",
+      "company_name": "UNIONBANK (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "19-Oct-2026",
+      "reaction_date": "19-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 171.68,
+      "reaction_spot": 180.7,
+      "spot_pct": 5.25,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 170,
+      "lot_size": 4200,
+      "base_ce": 2.75,
+      "max_ce_px": 12.31,
+      "max_ce_pct": 347.6,
+      "base_pe": 2.58,
+      "max_pe_px": 2.69,
+      "max_pe_pct": 4.3,
+      "option_play": "\ud83d\ude80 170 CE exploded +347.6% (\u20b92.8 \u2794 \u20b912.3)",
+      "avg_abs_4q": 5.38,
+      "avg_dir_4q": 1.68,
+      "consistency_5pct": 3,
+      "consistency_label": "\u2b50 3/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.25,
+          "date": "19-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 1.0,
+          "date": "15-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -7.39,
+          "date": "23-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 7.87,
+          "date": "14-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "SRF",
+      "company_name": "SRF (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "21-Oct-2026",
+      "reaction_date": "21-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 2432.0,
+      "reaction_spot": 2305.0,
+      "spot_pct": -5.22,
+      "is_bullish": false,
+      "play_type": "BEARISH_SHOCK",
+      "atm_strike": 2450,
+      "lot_size": 375,
+      "base_ce": 38.91,
+      "max_ce_px": 72.94,
+      "max_ce_pct": 87.5,
+      "base_pe": 36.48,
+      "max_pe_px": 243.27,
+      "max_pe_pct": 566.9,
+      "option_play": "\ud83d\udca5 2450 PE exploded +566.9% (\u20b936.5 \u2794 \u20b9243.3)",
+      "avg_abs_4q": 4.54,
+      "avg_dir_4q": -0.64,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": -5.22,
+          "date": "21-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -2.44,
+          "date": "22-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 7.8,
+          "date": "05-May-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.68,
+          "date": "20-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "CHOLAFIN",
+      "company_name": "CHOLAFIN (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "28-Oct-2026",
+      "reaction_date": "28-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 1469.0,
+      "reaction_spot": 1545.2,
+      "spot_pct": 5.19,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 1460,
+      "lot_size": 625,
+      "base_ce": 23.5,
+      "max_ce_px": 149.74,
+      "max_ce_pct": 537.2,
+      "base_pe": 22.04,
+      "max_pe_px": 39.59,
+      "max_pe_pct": 79.6,
+      "option_play": "\ud83d\ude80 1460 CE exploded +537.2% (\u20b923.5 \u2794 \u20b9149.7)",
+      "avg_abs_4q": 2.48,
+      "avg_dir_4q": 0.43,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.19,
+          "date": "28-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": -1.8,
+          "date": "28-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.62,
+          "date": "30-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -2.29,
+          "date": "30-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "HDFCAMC",
+      "company_name": "HDFCAMC (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "15-Oct-2026",
+      "reaction_date": "15-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 2296.9,
+      "reaction_spot": 2415.0,
+      "spot_pct": 5.14,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 2300,
+      "lot_size": 150,
+      "base_ce": 36.75,
+      "max_ce_px": 122.9,
+      "max_ce_pct": 234.4,
+      "base_pe": 34.45,
+      "max_pe_px": 36.11,
+      "max_pe_pct": 4.8,
+      "option_play": "\ud83d\ude80 2300 CE exploded +234.4% (\u20b936.8 \u2794 \u20b9122.9)",
+      "avg_abs_4q": 2.64,
+      "avg_dir_4q": 2.61,
+      "consistency_5pct": 1,
+      "consistency_label": "\u26a1 Breakout (1/4 Qtrs)",
+      "is_serial_mover": false,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.14,
+          "date": "15-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 2.61,
+          "date": "15-Jul-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": -0.06,
+          "date": "16-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": 2.75,
+          "date": "14-Jan-2026"
+        }
+      ]
+    },
+    {
+      "symbol": "NAVINFLUOR",
+      "company_name": "NAVINFLUOR (NSE F&O)",
+      "quarter": "Q2 FY27",
+      "result_date": "30-Oct-2026",
+      "reaction_date": "30-Oct-2026",
+      "timing": "Intraday",
+      "base_spot": 8260.5,
+      "reaction_spot": 8680.0,
+      "spot_pct": 5.08,
+      "is_bullish": true,
+      "play_type": "BULLISH_RUNNER",
+      "atm_strike": 8250,
+      "lot_size": 150,
+      "base_ce": 132.17,
+      "max_ce_px": 487.4,
+      "max_ce_pct": 268.8,
+      "base_pe": 123.91,
+      "max_pe_px": 87.98,
+      "max_pe_pct": -29.0,
+      "option_play": "\ud83d\ude80 8250 CE exploded +268.8% (\u20b9132.2 \u2794 \u20b9487.4)",
+      "avg_abs_4q": 5.9,
+      "avg_dir_4q": 3.93,
+      "consistency_5pct": 2,
+      "consistency_label": "\u2b50 2/4 Qtrs \u22655%",
+      "is_serial_mover": true,
+      "quarter_moves": [
+        {
+          "quarter": "Q2 FY27",
+          "pct": 5.08,
+          "date": "30-Oct-2026"
+        },
+        {
+          "quarter": "Q1 FY27",
+          "pct": 13.67,
+          "date": "05-Aug-2026"
+        },
+        {
+          "quarter": "Q4 FY26",
+          "pct": 0.92,
+          "date": "29-Apr-2026"
+        },
+        {
+          "quarter": "Q3 FY26",
+          "pct": -3.94,
+          "date": "09-Feb-2026"
+        }
+      ]
+    }
+  ]
+}

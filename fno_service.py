@@ -571,6 +571,158 @@ def get_fno_last_quarter_leaderboard_data() -> List[Dict[str, Any]]:
 
     return items
 
+_CACHE_5PCT_MOVERS = None
+_CACHE_5PCT_TIMESTAMP = 0
+FNO_5PCT_FILE = BASE_DIR / "fno_5pct_movers.json"
+
+def get_fno_5pct_movers_data(force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Returns structured list of all F&O stocks whose earnings day spot reaction
+    moved >= 5.0% in either direction in the last quarter, along with their
+    4-quarter average swing, quarter-by-quarter breakdown, and option runs.
+    """
+    global _CACHE_5PCT_MOVERS, _CACHE_5PCT_TIMESTAMP
+    now_ts = time.time()
+    if not force_refresh:
+        if _CACHE_5PCT_MOVERS and (now_ts - _CACHE_5PCT_TIMESTAMP < 14400):
+            return _CACHE_5PCT_MOVERS
+        if FNO_5PCT_FILE.exists():
+            try:
+                mtime = FNO_5PCT_FILE.stat().st_mtime
+                if now_ts - mtime < 14400:
+                    with open(FNO_5PCT_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        _CACHE_5PCT_MOVERS = data
+                        _CACHE_5PCT_TIMESTAMP = mtime
+                        return data
+            except Exception:
+                pass
+
+    if not FNO_CSV_FILE.exists():
+        generate_all_fno_csv()
+
+    raw_movers = []
+    try:
+        with open(FNO_CSV_FILE, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                try:
+                    spot_pct = float(row.get("Spot Move (%)") or 0.0)
+                    if abs(spot_pct) >= 5.0:
+                        raw_movers.append(row)
+                except Exception:
+                    continue
+    except Exception as e:
+        print(f"[5% Movers CSV Read Error] {e}")
+
+    # Sort raw movers by magnitude of move
+    raw_movers.sort(key=lambda x: abs(float(x.get("Spot Move (%)", 0) or 0)), reverse=True)
+
+    # Batch fetch historical 4-quarter volatility in parallel
+    unique_syms = list({r.get("Symbol", "") for r in raw_movers if r.get("Symbol")})
+    vol_map = {}
+    with ThreadPoolExecutor(max_workers=16) as ex:
+        futures = {ex.submit(get_historical_earnings_moves, sym): sym for sym in unique_syms}
+        for fut in futures:
+            s = futures[fut]
+            try:
+                vol_map[s] = fut.result()
+            except Exception:
+                vol_map[s] = None
+
+    enriched_movers = []
+    for r in raw_movers:
+        sym = r.get("Symbol", "")
+        spot_pct = float(r.get("Spot Move (%)") or 0.0)
+        is_bullish = spot_pct > 0
+        atm_strike = int(float(r.get("ATM Strike") or 0.0))
+        max_ce_pct = float(r.get("Max Call Run (%)") or 0.0)
+        max_pe_pct = float(r.get("Max Put Run (%)") or 0.0)
+        base_spot = float(r.get("Base Spot Price (INR)") or 0.0)
+        reaction_spot = float(r.get("Reaction Spot Price (INR)") or 0.0)
+        base_ce = float(r.get("Base Call Premium (INR)") or 0.0)
+        max_ce_px = float(r.get("Max Call Price (INR)") or 0.0)
+        base_pe = float(r.get("Base Put Premium (INR)") or 0.0)
+        max_pe_px = float(r.get("Max Put Price (INR)") or 0.0)
+        lot_size = get_fno_lot_size(sym, base_spot)
+
+        # Get full 4-quarter history from pre-fetched map
+        vol = vol_map.get(sym) or {}
+        avg_abs = vol.get("avg_abs_move", abs(spot_pct))
+        avg_dir = vol.get("avg_dir_move", spot_pct)
+        q_moves = vol.get("quarter_moves", [])
+
+        # Count how many of the 4 quarters moved >= 5.0%
+        consistency_5pct = sum(1 for q in q_moves if abs(q.get("pct", 0.0)) >= 5.0)
+        consistency_label = f"⭐ {consistency_5pct}/{len(q_moves)} Qtrs ≥5%" if consistency_5pct >= 2 else f"⚡ Breakout ({consistency_5pct}/{len(q_moves)} Qtrs)"
+
+        # Option setup takeaway
+        if is_bullish:
+            option_play = f"🚀 {atm_strike} CE exploded +{max_ce_pct:.1f}% (₹{base_ce:.1f} ➔ ₹{max_ce_px:.1f})"
+            play_type = "BULLISH_RUNNER"
+        else:
+            option_play = f"💥 {atm_strike} PE exploded +{max_pe_pct:.1f}% (₹{base_pe:.1f} ➔ ₹{max_pe_px:.1f})"
+            play_type = "BEARISH_SHOCK"
+
+        enriched_movers.append({
+            "symbol": sym,
+            "company_name": f"{sym} (NSE F&O)",
+            "quarter": r.get("Quarter", "Last Quarter"),
+            "result_date": r.get("Result Date", ""),
+            "reaction_date": r.get("Reaction Date", ""),
+            "timing": r.get("Reaction Timing", "T+1"),
+            "base_spot": base_spot,
+            "reaction_spot": reaction_spot,
+            "spot_pct": spot_pct,
+            "is_bullish": is_bullish,
+            "play_type": play_type,
+            "atm_strike": atm_strike,
+            "lot_size": lot_size,
+            "base_ce": base_ce,
+            "max_ce_px": max_ce_px,
+            "max_ce_pct": max_ce_pct,
+            "base_pe": base_pe,
+            "max_pe_px": max_pe_px,
+            "max_pe_pct": max_pe_pct,
+            "option_play": option_play,
+            "avg_abs_4q": avg_abs,
+            "avg_dir_4q": avg_dir,
+            "consistency_5pct": consistency_5pct,
+            "consistency_label": consistency_label,
+            "is_serial_mover": consistency_5pct >= 2,
+            "quarter_moves": [
+                {
+                    "quarter": q.get("quarter", f"Q{idx+1}"),
+                    "pct": q.get("pct", 0.0),
+                    "date": q.get("result_date", "")
+                } for idx, q in enumerate(q_moves[:4])
+            ]
+        })
+
+    bullish_movers = [m for m in enriched_movers if m["is_bullish"]]
+    bearish_movers = [m for m in enriched_movers if not m["is_bullish"]]
+    serial_movers = [m for m in enriched_movers if m["is_serial_mover"]]
+
+    data = {
+        "count": len(enriched_movers),
+        "bullish_count": len(bullish_movers),
+        "bearish_count": len(bearish_movers),
+        "serial_count": len(serial_movers),
+        "last_quarter_label": enriched_movers[0]["quarter"] if enriched_movers else "Last Quarter",
+        "movers": enriched_movers
+    }
+
+    _CACHE_5PCT_MOVERS = data
+    _CACHE_5PCT_TIMESTAMP = now_ts
+
+    try:
+        with open(FNO_5PCT_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"[5% Movers File Save Error] {e}")
+
+    return data
+
 def broadcast_last_quarter_fno_report(basket: List[str] = None, top_limit: int = 25) -> Dict[str, Any]:
     """
     Broadcasts the Top 25 F&O stocks based on last quarter results to Telegram:
