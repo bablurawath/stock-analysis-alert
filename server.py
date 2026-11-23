@@ -33,6 +33,10 @@ from fno_service import (
     get_fno_last_quarter_leaderboard_data
 )
 from accumulation_service import scan_accumulation_basket
+from news_catalyst_service import (
+    get_high_impact_news_catalysts,
+    broadcast_morning_high_impact_news
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_FILE = BASE_DIR / "templates" / "index.html"
@@ -103,11 +107,12 @@ def background_worker():
         try:
             # 1. Process regular watchlist filings
             process_cycle(seen_ids)
-            # 2. Check and broadcast Morning Pre-Market F&O Radar once per day (from 8:30 AM IST)
+            # 2. Check and broadcast Morning Pre-Market F&O Radar & High-Impact News (from 8:30 AM IST)
             ist = timezone(timedelta(hours=5, minutes=30))
             now_ist = datetime.now(ist)
             if now_ist.hour >= 8:
                 broadcast_today_fno_results(force=False)
+                broadcast_morning_high_impact_news(force=False)
         except Exception as e:
             print(f"[Worker Error] {e}")
 
@@ -171,6 +176,17 @@ def api_technicals(symbol: str):
 def api_accumulation(category: str = "ALL", refresh: bool = False):
     stocks = scan_accumulation_basket(category=category, force_refresh=refresh)
     return JSONResponse(content={"category": category.upper(), "count": len(stocks), "stocks": stocks})
+
+@app.get("/api/high-impact-news")
+def api_high_impact_news(refresh: bool = False):
+    catalysts = get_high_impact_news_catalysts(force_refresh=refresh)
+    return JSONResponse(content={"count": len(catalysts), "catalysts": catalysts})
+
+@app.post("/api/broadcast/morning-news")
+@app.get("/api/broadcast/morning-news")
+def api_broadcast_morning_news(force: bool = False):
+    res = broadcast_morning_high_impact_news(force=force)
+    return JSONResponse(content=res)
 
 @app.get("/health")
 def health():

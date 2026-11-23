@@ -1,0 +1,42 @@
+[
+  {
+    "id": "catalyst_aplapollo_case_study",
+    "symbol": "APLAPOLLO",
+    "company_name": "APL Apollo Tubes Limited",
+    "source": "NSE Corporate Disclosure & Case Study",
+    "headline": "Strategic agreement with Tata Steel for 26.6% stake acquisition and business restructuring",
+    "details": "Tata Steel entered strategic agreement to acquire 26.6% promoter stake in APL Apollo Tubes for \u20b915,510 crore at \u20b92,100 per share, transferring tubes & colour coated business. Triggered 20% crash to \u20b91,655; 1800 PE surged +70,000%.",
+    "pdf_url": "https://www.nseindia.com",
+    "announced_at": "High-Impact Benchmark",
+    "is_fno": true,
+    "current_price": 1670.0,
+    "rsi": 19.44,
+    "support_1": 2062.53,
+    "resistance_1": 2155.83,
+    "delivery_pct": 72.0,
+    "classification": {
+      "is_catalyst": true,
+      "direction": "SEVERE_BEARISH",
+      "direction_label": "\ud83d\udd3b SEVERE BEARISH SHOCK (PUT SURGE RISK)",
+      "severity": "CRITICAL_SHOCK",
+      "severity_badge": "\ud83d\udea8 70,000% PE SURGE CASE STUDY",
+      "expected_move": "19% to 22% Downside Collapse",
+      "trigger_keyword": "ACQUISITION & STAKE SALE",
+      "option_focus": "PUT (PE) Spikes",
+      "sentiment_color": "rose"
+    },
+    "option_setup": {
+      "recommended_action": "WATCH PUTS (PE) FOR ASYMMETRIC SURGE",
+      "primary_strike": "1800 PE (Shock Spike)",
+      "extreme_strike": "1700 PE (Deep Crash Run)",
+      "atm_strike": "2100 PE (Pre-crash ATM)",
+      "strikes_display": "1800 PE & 1700 PE",
+      "lot_size": 350,
+      "est_premium": 0.5,
+      "est_capital_required": 175,
+      "execution_warning": "On 20% crash from \u20b92,120 to \u20b91,655, 1800 PE rocketed from \u20b90.20 to \u20b9145+ (+72,400% ROI).",
+      "apl_apollo_reference": "Tata Steel acquired 26.6% promoter stake for \u20b915,510 Cr @ \u20b92,100 + business restructuring."
+    },
+    "timestamp": 1795433752
+  }
+]
