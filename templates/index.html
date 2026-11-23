@@ -110,54 +110,120 @@
         // ====================================================================
         // 2. STATS BANNER COMPONENT
         // ====================================================================
-        function StatsBanner({ items, fnoCount, onSelectFno, accumulationCount, onSelectAccumulation, catalystsCount, onSelectCatalysts }) {
+        function StatsBanner({ items, fnoCount, onSelectFno, accumulationCount, onSelectAccumulation, catalystsCount, onSelectCatalysts, movers5PctCount = 47, onSelectMovers5Pct, onSelectLeaders, onSelectAll, activeFilter }) {
             const total = items.length;
             const bullish = items.filter(i => i.sentiment === 'BULLISH').length;
             const highDelivery = items.filter(i => (i.delivery_pct || 0) >= 60).length;
 
             return (
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 w-full">
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
-                        <div className="glass-panel p-4 rounded-xl cursor-pointer hover:border-amber-500/40 transition" onClick={onSelectFno}>
-                            <div className="text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center space-x-1">
-                                <i className="fa-solid fa-bolt text-xs"></i>
-                                <span>F&O Results Today</span>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        {/* 1. 5%+ Big Movers */}
+                        <div 
+                            className={`glass-panel p-3.5 rounded-xl cursor-pointer transition border ${activeFilter === '5PCT_MOVERS' ? 'border-amber-400 bg-amber-500/10 shadow-lg shadow-amber-500/15' : 'hover:border-amber-500/40 border-gray-800/80'}`} 
+                            onClick={onSelectMovers5Pct}>
+                            <div className="text-amber-400 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center space-x-1">
+                                    <i className="fa-solid fa-fire text-xs"></i>
+                                    <span>5%+ Movers</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">47 STOCKS</span>
                             </div>
-                            <div className="text-xl sm:text-2xl font-bold text-amber-300 mt-1 flex items-center space-x-2">
-                                <span>{fnoCount}</span>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">View</span>
+                            <div className="text-xl font-extrabold text-white mt-1 flex items-baseline justify-between">
+                                <span>{movers5PctCount}</span>
+                                <span className="text-[10px] text-amber-300 font-medium">Dual Tape</span>
                             </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 truncate">Last Qtr &amp; 4Q Avg</div>
                         </div>
-                        <div className="glass-panel p-4 rounded-xl cursor-pointer hover:border-rose-500/40 transition" onClick={onSelectCatalysts}>
-                            <div className="text-rose-400 text-xs font-semibold uppercase tracking-wider flex items-center space-x-1">
-                                <i className="fa-solid fa-newspaper text-xs"></i>
-                                <span>🚨 Breaking News</span>
+
+                        {/* 2. Breaking News */}
+                        <div 
+                            className={`glass-panel p-3.5 rounded-xl cursor-pointer transition border ${activeFilter === 'CATALYSTS' ? 'border-rose-400 bg-rose-500/10 shadow-lg shadow-rose-500/15' : 'hover:border-rose-500/40 border-gray-800/80'}`} 
+                            onClick={onSelectCatalysts}>
+                            <div className="text-rose-400 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center space-x-1">
+                                    <i className="fa-solid fa-newspaper text-xs"></i>
+                                    <span>Breaking News</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-mono font-bold">RADAR</span>
                             </div>
-                            <div className="text-xl sm:text-2xl font-bold text-rose-300 mt-1 flex items-center space-x-2">
+                            <div className="text-xl font-extrabold text-white mt-1 flex items-baseline justify-between">
                                 <span>{catalystsCount || 0}</span>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Radar</span>
+                                <span className="text-[10px] text-rose-300 font-medium">Asymmetric</span>
                             </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 truncate">APL Apollo 70k% Style</div>
                         </div>
-                        <div className="glass-panel p-4 rounded-xl cursor-pointer hover:border-emerald-500/40 transition" onClick={onSelectAccumulation}>
-                            <div className="text-emerald-400 text-xs font-semibold uppercase tracking-wider flex items-center space-x-1">
-                                <i className="fa-solid fa-gem text-xs"></i>
-                                <span>Accumulation</span>
+
+                        {/* 3. F&O Today */}
+                        <div 
+                            className={`glass-panel p-3.5 rounded-xl cursor-pointer transition border ${activeFilter === 'FNO_TODAY' ? 'border-amber-400 bg-amber-500/10 shadow-lg shadow-amber-500/15' : 'hover:border-amber-500/40 border-gray-800/80'}`} 
+                            onClick={onSelectFno}>
+                            <div className="text-amber-400 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center space-x-1">
+                                    <i className="fa-solid fa-bolt text-xs"></i>
+                                    <span>F&amp;O Today</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">PRE-MKT</span>
                             </div>
-                            <div className="text-xl sm:text-2xl font-bold text-emerald-300 mt-1 flex items-center space-x-2">
+                            <div className="text-xl font-extrabold text-white mt-1 flex items-baseline justify-between">
+                                <span>{fnoCount}</span>
+                                <span className="text-[10px] text-amber-300 font-medium">Earnings</span>
+                            </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 truncate">Today's Scheduled</div>
+                        </div>
+
+                        {/* 4. Options Leaders */}
+                        <div 
+                            className={`glass-panel p-3.5 rounded-xl cursor-pointer transition border ${activeFilter === 'FNO_LEADERS' ? 'border-purple-400 bg-purple-500/10 shadow-lg shadow-purple-500/15' : 'hover:border-purple-500/40 border-gray-800/80'}`} 
+                            onClick={onSelectLeaders}>
+                            <div className="text-purple-400 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center space-x-1">
+                                    <i className="fa-solid fa-chart-simple text-xs"></i>
+                                    <span>Options Leaders</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">TOP 25</span>
+                            </div>
+                            <div className="text-xl font-extrabold text-white mt-1 flex items-baseline justify-between">
+                                <span>184+</span>
+                                <span className="text-[10px] text-purple-300 font-medium">CE &amp; PE</span>
+                            </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 truncate">Historical Surges</div>
+                        </div>
+
+                        {/* 5. Accumulation */}
+                        <div 
+                            className={`glass-panel p-3.5 rounded-xl cursor-pointer transition border ${activeFilter === 'ACCUMULATION' ? 'border-emerald-400 bg-emerald-500/10 shadow-lg shadow-emerald-500/15' : 'hover:border-emerald-500/40 border-gray-800/80'}`} 
+                            onClick={onSelectAccumulation}>
+                            <div className="text-emerald-400 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center space-x-1">
+                                    <i className="fa-solid fa-gem text-xs"></i>
+                                    <span>Accumulation</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">4 CAPS</span>
+                            </div>
+                            <div className="text-xl font-extrabold text-white mt-1 flex items-baseline justify-between">
                                 <span>{accumulationCount || 38}</span>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">4 Caps</span>
+                                <span className="text-[10px] text-emerald-300 font-medium">Deep Value</span>
                             </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 truncate">Quality Moats</div>
                         </div>
-                        <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Tracked Filings</div>
-                            <div className="text-xl sm:text-2xl font-bold text-white mt-1">{total}</div>
-                        </div>
-                        <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Whale Delivery</div>
-                            <div className="text-xl sm:text-2xl font-bold text-indigo-400 mt-1 flex items-center space-x-1.5">
-                                <span>{highDelivery}</span>
-                                <i className="fa-solid fa-boxes-packing text-sm"></i>
+
+                        {/* 6. All Filings */}
+                        <div 
+                            className={`glass-panel p-3.5 rounded-xl cursor-pointer transition border ${activeFilter === 'ALL' ? 'border-blue-400 bg-blue-500/10 shadow-lg shadow-blue-500/15' : 'hover:border-blue-500/40 border-gray-800/80'}`} 
+                            onClick={onSelectAll}>
+                            <div className="text-blue-400 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center space-x-1">
+                                    <i className="fa-solid fa-tower-broadcast text-xs"></i>
+                                    <span>Live Feed</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-mono font-bold">STREAM</span>
                             </div>
+                            <div className="text-xl font-extrabold text-white mt-1 flex items-baseline justify-between">
+                                <span>{total}</span>
+                                <span className="text-[10px] text-blue-300 font-medium">{highDelivery} Whales</span>
+                            </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 truncate">Real-Time Filings</div>
                         </div>
                     </div>
                 </section>
@@ -1961,6 +2027,7 @@
                 <div className="flex-1 flex flex-col">
                     <Navbar />
                     <StatsBanner
+                        activeFilter={activeFilter}
                         items={items}
                         fnoCount={fnoResults.length}
                         onSelectFno={() => setActiveFilter('FNO_TODAY')}
@@ -1968,11 +2035,16 @@
                         onSelectAccumulation={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }}
                         catalystsCount={catalysts.length}
                         onSelectCatalysts={() => { setActiveFilter('CATALYSTS'); fetchCatalysts(); }}
+                        movers5PctCount={47}
+                        onSelectMovers5Pct={() => setActiveFilter('5PCT_MOVERS')}
+                        onSelectLeaders={() => setActiveFilter('FNO_LEADERS')}
+                        onSelectAll={() => setActiveFilter('ALL')}
                     />
 
                     {/* Filter & Live Search Bar */}
-                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 w-full">
-                        <div className="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3 shadow-xl">
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 w-full space-y-4">
+                        {/* Search & Scan Toolbar */}
+                        <div className="glass-panel rounded-2xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xl">
                             <div className="relative flex-1 w-full flex items-center">
                                 <i className="fa-solid fa-magnifying-glass absolute left-4 text-gray-500 text-sm"></i>
                                 <input
@@ -1980,7 +2052,7 @@
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') handleSearchLiveStock(); }}
-                                    placeholder="Search ANY NSE or BSE stock (e.g. RELIANCE, BRADYM, TCS, INFY)..."
+                                    placeholder="Search ANY NSE or BSE stock (e.g. RELIANCE, APLAPOLLO, TCS, INFY, BRADYM)..."
                                     className="w-full pl-11 pr-24 py-2.5 bg-gray-900/90 border border-gray-700/80 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-500 transition"
                                 />
                                 {searchTerm.trim() && (
@@ -1994,132 +2066,304 @@
                                 )}
                             </div>
 
-                            <div className="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto">
-                                <button
-                                    onClick={() => setActiveFilter('ALL')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${activeFilter === 'ALL' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
-                                    All ({items.length})
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('FNO_TODAY')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'FNO_TODAY' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30' : 'bg-gray-800/90 text-amber-300 hover:text-amber-200 border border-amber-500/30'}`}>
-                                    <i className="fa-solid fa-bolt text-xs text-amber-300"></i>
-                                    <span>F&O Today</span>
-                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-amber-200 font-extrabold">{fnoResults.length}</span>
-                                </button>
-                                <button
-                                    onClick={() => { setActiveFilter('CATALYSTS'); fetchCatalysts(); }}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'CATALYSTS' ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-md shadow-rose-600/30' : 'bg-gray-800/90 text-rose-300 hover:text-rose-200 border border-rose-500/30'}`}>
-                                    <i className="fa-solid fa-newspaper text-xs text-rose-300"></i>
-                                    <span>🚨 Breaking News</span>
-                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-rose-200 font-extrabold">{catalysts.length}</span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('FNO_LEADERS')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'FNO_LEADERS' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30' : 'bg-gray-800/90 text-purple-300 hover:text-purple-200 border border-purple-500/30'}`}>
-                                    <i className="fa-solid fa-chart-simple text-xs text-purple-300"></i>
-                                    <span>⚡ Options Leaders</span>
-                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-purple-200 font-extrabold">Top 25 &amp; 184+</span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('5PCT_MOVERS')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === '5PCT_MOVERS' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/30' : 'bg-gray-800/90 text-amber-300 hover:text-amber-200 border border-amber-500/30'}`}>
-                                    <i className="fa-solid fa-fire text-xs text-amber-300"></i>
-                                    <span>🔥 5%+ Big Movers</span>
-                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-amber-200 font-extrabold">47</span>
-                                </button>
-                                <button
-                                    onClick={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'ACCUMULATION' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30' : 'bg-gray-800/90 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30'}`}>
-                                    <i className="fa-solid fa-gem text-xs text-emerald-300"></i>
-                                    <span>💎 Quality Accumulation</span>
-                                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-emerald-200 font-extrabold">{accumulationStocks.length || 38}</span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('WHALES')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${activeFilter === 'WHALES' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
-                                    <i className="fa-solid fa-boxes-packing text-xs"></i>
-                                    <span>Whales (&gt;60% Del)</span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('BULLISH')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${activeFilter === 'BULLISH' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
-                                    Bullish
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('BEARISH')}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${activeFilter === 'BEARISH' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
-                                    Bearish
-                                </button>
+                            {/* Popular Scans & Quick Actions */}
+                            <div className="flex items-center space-x-2 overflow-x-auto w-full md:w-auto text-xs text-gray-400">
+                                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide whitespace-nowrap">Popular:</span>
+                                {['APLAPOLLO', 'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'CDSL'].map(sym => (
+                                    <button
+                                        key={sym}
+                                        onClick={() => handleSearchLiveStock(sym)}
+                                        className="px-2 py-1 rounded-lg bg-gray-900/90 hover:bg-blue-600/20 text-gray-300 hover:text-blue-300 border border-gray-800 transition font-mono text-[11px] font-semibold whitespace-nowrap">
+                                        +{sym}
+                                    </button>
+                                ))}
                                 <button
                                     onClick={fetchData}
-                                    className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold border border-gray-700/80 transition" title="Refresh Feed">
+                                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold border border-gray-700/80 transition flex items-center space-x-1"
+                                    title="Refresh Feed">
                                     <i className={`fa-solid fa-arrows-rotate ${loading ? 'fa-spin' : ''}`}></i>
                                 </button>
                             </div>
                         </div>
 
-                        {/* F&O Context Banner */}
-                        {activeFilter === 'FNO_TODAY' && (
-                            <div className="mt-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg border border-amber-500/30">
+                        {/* Command Center Categorized Navigation Dock */}
+                        <div className="glass-panel p-4 rounded-2xl border border-gray-800 shadow-xl space-y-3.5">
+                            {/* Tier 1: Derivatives & Volatility Radars */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase">
+                                    <div className="flex items-center space-x-1.5 text-amber-400">
+                                        <i className="fa-solid fa-bolt text-xs"></i>
+                                        <span>⚡ Derivatives &amp; Volatility Radars</span>
+                                        <span className="text-gray-500 font-normal lowercase tracking-normal hidden sm:inline">| Asymmetric Options &amp; Big Earnings Moves</span>
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-mono">F&amp;O STRATEGY DOCK</span>
+                                </div>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                                    <button
+                                        onClick={() => setActiveFilter('5PCT_MOVERS')}
+                                        className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === '5PCT_MOVERS' ? 'bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-transparent border-amber-400 text-white shadow-md shadow-amber-500/10' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-gray-700 hover:text-white'}`}>
+                                        <div className="flex items-center space-x-2.5 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold ${activeFilter === '5PCT_MOVERS' ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow' : 'bg-gray-800 text-amber-400'}`}>
+                                                <i className="fa-solid fa-fire"></i>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="text-xs font-bold leading-tight">5%+ Big Movers</div>
+                                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">Dual Last Q &amp; 4Q Avg</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-1 flex-shrink-0 ${activeFilter === '5PCT_MOVERS' ? 'bg-amber-400 text-black' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>47</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setActiveFilter('CATALYSTS'); fetchCatalysts(); }}
+                                        className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'CATALYSTS' ? 'bg-gradient-to-r from-rose-500/20 via-pink-500/20 to-transparent border-rose-400 text-white shadow-md shadow-rose-500/10' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-gray-700 hover:text-white'}`}>
+                                        <div className="flex items-center space-x-2.5 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold ${activeFilter === 'CATALYSTS' ? 'bg-gradient-to-br from-rose-600 to-pink-600 text-white shadow' : 'bg-gray-800 text-rose-400'}`}>
+                                                <i className="fa-solid fa-newspaper"></i>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="text-xs font-bold leading-tight">🚨 Breaking News</div>
+                                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">APL Apollo 70,000% PE</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-1 flex-shrink-0 ${activeFilter === 'CATALYSTS' ? 'bg-rose-400 text-black' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}`}>{catalysts.length}</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveFilter('FNO_TODAY')}
+                                        className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'FNO_TODAY' ? 'bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-transparent border-amber-400 text-white shadow-md shadow-amber-500/10' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-gray-700 hover:text-white'}`}>
+                                        <div className="flex items-center space-x-2.5 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold ${activeFilter === 'FNO_TODAY' ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow' : 'bg-gray-800 text-amber-400'}`}>
+                                                <i className="fa-solid fa-calendar-check"></i>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="text-xs font-bold leading-tight">🌅 F&amp;O Today</div>
+                                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">Earnings Pre-Market</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-1 flex-shrink-0 ${activeFilter === 'FNO_TODAY' ? 'bg-amber-400 text-black' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>{fnoResults.length}</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveFilter('FNO_LEADERS')}
+                                        className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'FNO_LEADERS' ? 'bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-transparent border-purple-400 text-white shadow-md shadow-purple-500/10' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-gray-700 hover:text-white'}`}>
+                                        <div className="flex items-center space-x-2.5 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold ${activeFilter === 'FNO_LEADERS' ? 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow' : 'bg-gray-800 text-purple-400'}`}>
+                                                <i className="fa-solid fa-chart-simple"></i>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="text-xs font-bold leading-tight">⚡ Options Leaders</div>
+                                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">Top 25 &amp; 184+ Results</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-1 flex-shrink-0 ${activeFilter === 'FNO_LEADERS' ? 'bg-purple-400 text-black' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'}`}>184+</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="border-t border-gray-800/80"></div>
+
+                            {/* Tier 2: Cash Accumulation & Exchange Filings Stream */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase">
+                                    <div className="flex items-center space-x-1.5 text-emerald-400">
+                                        <i className="fa-solid fa-gem text-xs"></i>
+                                        <span>💎 Cash Investments &amp; Market Stream</span>
+                                        <span className="text-gray-500 font-normal lowercase tracking-normal hidden sm:inline">| Long-Term Moats &amp; Real-Time Disclosures</span>
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-mono">EQUITY &amp; CASH FLOW</span>
+                                </div>
+                                <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+                                    <button
+                                        onClick={() => { setActiveFilter('ACCUMULATION'); fetchAccumulationData(accumulationCategory); }}
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 whitespace-nowrap border ${activeFilter === 'ACCUMULATION' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-400 shadow-md shadow-emerald-600/30' : 'bg-gray-900 text-emerald-300 hover:text-white border-gray-800 hover:border-gray-700'}`}>
+                                        <i className="fa-solid fa-gem text-xs"></i>
+                                        <span>Quality Accumulation</span>
+                                        <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-emerald-200 font-extrabold">{accumulationStocks.length || 38}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveFilter('WHALES')}
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 whitespace-nowrap border ${activeFilter === 'WHALES' ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30' : 'bg-gray-900 text-indigo-300 hover:text-white border-gray-800 hover:border-gray-700'}`}>
+                                        <i className="fa-solid fa-boxes-packing text-xs"></i>
+                                        <span>Whales (&gt;60% Delivery)</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveFilter('ALL')}
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 whitespace-nowrap border ${activeFilter === 'ALL' ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30' : 'bg-gray-900 text-gray-400 hover:text-white border-gray-800 hover:border-gray-700'}`}>
+                                        <i className="fa-solid fa-tower-broadcast text-xs"></i>
+                                        <span>All Filings ({items.length})</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveFilter('BULLISH')}
+                                        className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap border ${activeFilter === 'BULLISH' ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-600/30' : 'bg-gray-900 text-emerald-400 hover:text-white border-gray-800 hover:border-gray-700'}`}>
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        <span>Bullish</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveFilter('BEARISH')}
+                                        className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap border ${activeFilter === 'BEARISH' ? 'bg-rose-600 text-white border-rose-400 shadow-md shadow-rose-600/30' : 'bg-gray-900 text-rose-400 hover:text-white border-gray-800 hover:border-gray-700'}`}>
+                                        <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                                        <span>Bearish</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Active Radar Context Header & Quick Actions Bar */}
+                        {activeFilter === '5PCT_MOVERS' ? (
+                            <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/40 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-orange-500/20">
+                                        <i className="fa-solid fa-fire"></i>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-white">🔥 F&amp;O Big Movers Radar (47 Stocks Moved ≥ 5% Last Quarter)</h3>
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono">DUAL TAPE ENGINE</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Shows Last Quarter actual reaction &amp; CE/PE multi-bagger surge side-by-side with the 4-Quarter Average volatility to reveal consistent high-alpha movers.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2 flex-wrap">
+                                    <button
+                                        onClick={() => setActiveFilter('FNO_LEADERS')}
+                                        className="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-300 border border-purple-500/30 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md">
+                                        <i className="fa-solid fa-chart-simple text-xs"></i>
+                                        <span>View Full 184+ Leaderboard</span>
+                                    </button>
+                                    <a
+                                        href="/api/admin/export-fno-csv"
+                                        download
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20">
+                                        <i className="fa-solid fa-file-csv"></i>
+                                        <span>Download CSV</span>
+                                    </a>
+                                </div>
+                            </div>
+                        ) : activeFilter === 'CATALYSTS' ? (
+                            <div className="bg-gradient-to-r from-rose-500/15 via-pink-500/10 to-transparent border border-rose-500/40 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-600 to-pink-600 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-rose-500/20">
+                                        <i className="fa-solid fa-newspaper"></i>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-white">🚨 Breaking News Catalyst Radar (APL Apollo 70,000% Asymmetric Options Blueprint)</h3>
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-rose-400/20 text-rose-300 border border-rose-400/30 font-mono">3-4 STRIKES DEEP OTM</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Catches severe negative black-swan events (CBI raids, promoter pledged shares, regulatory action) or explosive positive announcements with penny-option strike strategies.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2 flex-wrap">
+                                    <button
+                                        onClick={handleBroadcastMorningNews}
+                                        disabled={broadcastingNews}
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-rose-500/20">
+                                        <i className={`fa-brands fa-telegram ${broadcastingNews ? 'fa-circle-notch fa-spin' : ''}`}></i>
+                                        <span>{broadcastingNews ? 'Broadcasting...' : 'Broadcast Morning Radar'}</span>
+                                    </button>
+                                    <button
+                                        onClick={fetchCatalysts}
+                                        disabled={loadingCatalysts}
+                                        className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md">
+                                        <i className={`fa-solid fa-arrows-rotate ${loadingCatalysts ? 'fa-spin' : ''}`}></i>
+                                        <span>Refresh</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ) : activeFilter === 'FNO_TODAY' ? (
+                            <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/40 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-amber-500/20">
                                         <i className="fa-solid fa-calendar-check"></i>
                                     </div>
                                     <div>
-                                        <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                                            <span>🌅 Morning Pre-Market F&O Radar ({fnoResults.length} Stocks Scheduled Today)</span>
-                                            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">PRE-MARKET BRIEFING</span>
-                                        </h4>
-                                        <p className="text-xs text-gray-400 mt-0.5">High-liquidity F&O stocks scheduled for quarterly financial results today with past 4-quarter reaction moves, CMP, RSI, Floor (S1), Ceiling (R1), and Delivery % before results drop.</p>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-white">🌅 Morning Pre-Market F&amp;O Radar ({fnoResults.length} Stocks Scheduled Today)</h3>
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono">TODAY'S EARNINGS</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            High-liquidity F&amp;O stocks scheduled for quarterly financial results today with past 4-quarter reaction moves, CMP, RSI, Floor (S1), Ceiling (R1), and Delivery % before results drop.
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-2 flex-wrap gap-2">
-                                    <div className="text-xs text-amber-300/80 font-mono bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/20">
-                                        Today: {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                    </div>
+                                <div className="flex items-center space-x-2 flex-wrap">
                                     <button
                                         onClick={handleManualBroadcast}
                                         disabled={broadcasting}
-                                        className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/20"
-                                        title="Broadcast today's scheduled F&O earnings radar">
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/20">
                                         <i className={`fa-brands fa-telegram ${broadcasting ? 'fa-circle-notch fa-spin' : ''}`}></i>
                                         <span>{broadcasting ? 'Sending...' : "Today's Radar"}</span>
                                     </button>
                                     <button
                                         onClick={handleBroadcastLastQuarter}
                                         disabled={broadcastingLQ}
-                                        className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-amber-500/20"
-                                        title="Broadcast Top 25 Bullish & Bearish Options Winners from last quarter">
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-amber-500/20">
                                         <i className={`fa-solid fa-tower-broadcast ${broadcastingLQ ? 'fa-circle-notch fa-spin' : ''}`}></i>
                                         <span>{broadcastingLQ ? 'Sending...' : 'Broadcast Top 25'}</span>
                                     </button>
                                     <a
                                         href="/api/admin/export-fno-csv"
                                         download
-                                        className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20"
-                                        title="Admin: Download CSV containing all 184+ F&O stocks with last quarter CE/PE results">
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20">
                                         <i className="fa-solid fa-file-csv"></i>
-                                        <span>Admin: Download All 184 CSV</span>
+                                        <span>Export CSV</span>
                                     </a>
                                 </div>
                             </div>
-                        )}
-
-                        {/* Quality Accumulation Sub-Tabs Banner (Large, Mid, Small, Micro) */}
-                        {activeFilter === 'ACCUMULATION' && (
-                            <div className="mt-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent border border-emerald-500/30 rounded-2xl p-4 shadow-lg space-y-3">
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/30">
+                        ) : activeFilter === 'FNO_LEADERS' ? (
+                            <div className="bg-gradient-to-r from-purple-500/15 via-indigo-500/10 to-transparent border border-purple-500/40 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-purple-500/20">
+                                        <i className="fa-solid fa-chart-simple"></i>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-white">⚡ F&amp;O Earnings Options Leaderboard (Top 25 &amp; 184+ Stocks)</h3>
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-purple-400/20 text-purple-300 border border-purple-400/30 font-mono">184+ F&amp;O SYMBOLS</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Historical quarterly earnings profit/loss performance across 184+ NSE F&amp;O equities. Analyze ATM &amp; OTM CE/PE moves and spot 10x-50x multi-baggers.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2 flex-wrap">
+                                    <button
+                                        onClick={handleBroadcastLastQuarter}
+                                        disabled={broadcastingLQ}
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-purple-500/20">
+                                        <i className={`fa-solid fa-tower-broadcast ${broadcastingLQ ? 'fa-circle-notch fa-spin' : ''}`}></i>
+                                        <span>{broadcastingLQ ? 'Sending...' : 'Broadcast Top 25'}</span>
+                                    </button>
+                                    <a
+                                        href="/api/admin/export-fno-csv"
+                                        download
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20">
+                                        <i className="fa-solid fa-file-csv"></i>
+                                        <span>Download All 184 CSV</span>
+                                    </a>
+                                </div>
+                            </div>
+                        ) : activeFilter === 'ACCUMULATION' ? (
+                            <div className="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-4 shadow-lg space-y-3">
+                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                    <div className="flex items-center space-x-3.5">
+                                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-500/20">
                                             <i className="fa-solid fa-gem"></i>
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                                                <span>💎 Institutional Quality Accumulation Radar</span>
-                                                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">CASH &amp; DELIVERY</span>
-                                            </h4>
-                                            <p className="text-xs text-gray-400 mt-0.5">Top-tier businesses with strong moats &amp; high ROCE trading in institutional accumulation zones due to market sentiment or temporary macro dips.</p>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="text-sm font-bold text-white">💎 Institutional Quality Accumulation Radar ({accumulationStocks.length || 38} Stocks)</h3>
+                                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 font-mono">CASH &amp; DELIVERY</span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                Top-tier businesses with strong moats &amp; high ROCE trading in institutional accumulation zones due to market sentiment or temporary macro dips.
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-2">
@@ -2162,23 +2406,34 @@
                                     ))}
                                 </div>
                             </div>
+                        ) : (
+                            <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-500/30 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
+                                        <i className="fa-solid fa-tower-broadcast"></i>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-white">
+                                                {activeFilter === 'WHALES' ? '🐋 Whale Delivery Absorption Stream (>60% Delivery)' :
+                                                 activeFilter === 'BULLISH' ? '🟢 Bullish Exchange Disclosures Stream' :
+                                                 activeFilter === 'BEARISH' ? '🔻 Bearish Exchange Disclosures Stream' :
+                                                 '📋 Verified Corporate Disclosures & Market Stream'}
+                                            </h3>
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-blue-400/20 text-blue-300 border border-blue-400/30 font-mono">LIVE FEED</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Real-time automated sentiment analysis, verified PDF disclosures, and institutional delivery volume tracking from NSE &amp; BSE.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-gray-400 font-mono bg-black/40 px-3 py-1.5 rounded-lg border border-gray-800">
+                                    Showing: <span className="text-white font-bold">{filteredItems.length}</span> filings
+                                </div>
+                            </div>
                         )}
-
-                        {/* Quick Stock Chips */}
-                        <div className="mt-3 flex items-center space-x-2 overflow-x-auto text-xs text-gray-400">
-                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Popular Scans:</span>
-                            {['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'BRADYM', 'TATAMOTORS', 'ICICIBANK', 'CDSL'].map(sym => (
-                                <button
-                                    key={sym}
-                                    onClick={() => handleSearchLiveStock(sym)}
-                                    className="px-2.5 py-1 rounded-lg bg-gray-900 hover:bg-blue-600/20 text-gray-300 hover:text-blue-300 border border-gray-800 transition font-mono font-semibold">
-                                    +{sym}
-                                </button>
-                            ))}
-                        </div>
                     </section>
 
-                    {/* Cards Grid */}
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1 w-full">
                         {activeFilter === 'FNO_LEADERS' ? (
                             <FnoLeaderboardView onSelectStock={handleOpenLeaderboardStock} />
