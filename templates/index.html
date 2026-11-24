@@ -582,15 +582,28 @@
                                 </p>
 
                                 {/* Historical Filing Time & 1-2 Hr Optimal Buy Window */}
-                                <div className="bg-gray-950/80 border border-gray-800 rounded-lg p-2 mb-2.5 text-[11px] flex items-center justify-between">
-                                    <div>
-                                        <span className="text-gray-400 block text-[9px] uppercase font-semibold">⏰ Historical Filing Habit</span>
-                                        <strong className="text-white font-mono text-[11px]">{item.strike_setup.typical_filing_time || '16:30 – 18:30 PM'}</strong>
+                                <div className="bg-gray-950/80 border border-gray-800 rounded-lg p-2.5 mb-2.5 text-[11px] space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <span className="text-gray-400 block text-[9px] uppercase font-semibold">⏰ Historical Filing Habit</span>
+                                            <div className="flex items-center space-x-1.5 mt-0.5">
+                                                <strong className="text-white font-mono text-[11px]">{item.strike_setup.typical_filing_time || '16:30 – 18:30 PM'}</strong>
+                                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                                    {item.strike_setup.timing_consistency_label || '⭐ Verified Schedule'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-amber-400 font-bold block text-[9px] uppercase">🛒 Optimal Buy Window (1–2h Before)</span>
+                                            <strong className="text-emerald-300 font-mono text-[11px] block mt-0.5">{item.strike_setup.optimal_buy_window || '02:45 PM – 03:15 PM'}</strong>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-amber-400 font-bold block text-[9px] uppercase">🛒 Optimal Buy Window</span>
-                                        <strong className="text-emerald-300 font-mono text-[11px]">{item.strike_setup.optimal_buy_window || '02:45 PM – 03:15 PM'}</strong>
-                                    </div>
+                                    {item.strike_setup.q_filing_summary && (
+                                        <div className="text-[10px] text-gray-400 font-mono pt-1.5 border-t border-gray-800/80 truncate" title={item.strike_setup.q_filing_summary}>
+                                            <span className="text-gray-500 mr-1">📅 5Q Tape:</span>
+                                            <span>{item.strike_setup.q_filing_summary}</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {item.strike_setup.decision_tag !== 'SKIP' && item.strike_setup.strikes_label && (

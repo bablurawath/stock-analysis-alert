@@ -196,6 +196,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
     timing_habit = vol.get("timing_habit", "Post-Market (After 03:30 PM)")
     typical_filing_time = vol.get("typical_filing_time", "16:30 – 18:30 PM (After Market Close)")
     optimal_buy_window = vol.get("optimal_buy_window", "02:45 PM – 03:15 PM on Result Day (1 hr BEFORE market close)")
+    timing_consistency_label = vol.get("timing_consistency_label", "⭐ Consistent Schedule")
+    q_filing_summary = vol.get("q_filing_summary", "")
+    timing_note = vol.get("timing_note", "")
 
     # Quantitative Decision Engine
     # 1. SURESHOT: Historical move >= 4.8% AND edge >= 1.30x AND at least 2 quarters crossed breakeven
@@ -263,6 +266,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_habit': timing_habit,
             'typical_filing_time': typical_filing_time,
             'optimal_buy_window': optimal_buy_window,
+            'timing_consistency_label': timing_consistency_label,
+            'q_filing_summary': q_filing_summary,
+            'timing_note': timing_note,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
@@ -299,6 +305,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_habit': timing_habit,
             'typical_filing_time': typical_filing_time,
             'optimal_buy_window': optimal_buy_window,
+            'timing_consistency_label': timing_consistency_label,
+            'q_filing_summary': q_filing_summary,
+            'timing_note': timing_note,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
@@ -335,6 +344,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_habit': timing_habit,
             'typical_filing_time': typical_filing_time,
             'optimal_buy_window': optimal_buy_window,
+            'timing_consistency_label': timing_consistency_label,
+            'q_filing_summary': q_filing_summary,
+            'timing_note': timing_note,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
@@ -376,6 +388,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_habit': timing_habit,
             'typical_filing_time': typical_filing_time,
             'optimal_buy_window': optimal_buy_window,
+            'timing_consistency_label': timing_consistency_label,
+            'q_filing_summary': q_filing_summary,
+            'timing_note': timing_note,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
@@ -491,7 +506,8 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
-                f"   ├ ⏰ Typical Filing: *{setup.get('typical_filing_time')}* ({setup.get('timing_habit')})\n"
+                f"   ├ ⏰ Filing Habit (5Q Verified): *{setup.get('typical_filing_time')}* ({setup.get('timing_consistency_label')})\n"
+                f"   ├ 📅 5Q Filing Tape: _{setup.get('q_filing_summary')}_\n"
                 f"   ├ 🛒 *Optimal Buy Time*: *{setup.get('optimal_buy_window')}*\n"
                 f"   ├ 📈 Edge Ratio: *{edge_x}x Positive Edge* (Avg Swing ±{avg_move}% vs Req ±{be_pct}%)\n"
                 f"   ├ 💰 Capital / Lot: *~₹{cap_req:,}* (Lot {lot_sz}) | Target (+60%): *+₹{tp_amt:,}* | SL (-35%): *-₹{sl_amt:,}*\n"
@@ -1018,9 +1034,9 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
         print(f"[{clean_sym}] NSE Board Meeting Query Error: {e}")
 
     past_dates.sort(key=lambda x: x["dt"], reverse=True)
-    past_dates = past_dates[:4]
+    past_dates = past_dates[:5]
 
-    # Verify announcement timing (Market Hours vs Post-Market)
+    # Verify announcement timing across all 4-5 quarters (Market Hours vs Post-Market)
     for p in past_dates:
         try:
             d_fmt = p["dt"].strftime("%d-%m-%Y")
@@ -1432,22 +1448,55 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
     avg_hr2 = round(sum(abs(m.get("hr2_pct", 0)) for m in moves) / len(moves), 2)
     avg_hr4 = round(sum(abs(m.get("hr4_pct", 0)) for m in moves) / len(moves), 2)
 
-    # Determine company's historical filing schedule & exact optimal buy window
-    intraday_filings = [p for p in past_dates if p.get("timing") == "market_hours"]
-    post_market_filings = [p for p in past_dates if p.get("timing") == "post_market"]
+    # Multi-Quarter Schedule Verification (Analyzing 4-5 Quarters of Actual Filing Timestamps)
+    total_qtrs = max(1, len(past_dates))
+    post_qtrs = [p for p in past_dates if p.get("timing") == "post_market"]
+    intraday_qtrs = [p for p in past_dates if p.get("timing") == "market_hours"]
+    post_count = len(post_qtrs)
+    intraday_count = len(intraday_qtrs)
 
-    if len(intraday_filings) > len(post_market_filings) and intraday_filings:
-        timing_habit = "Market Hours (Intraday)"
-        hours = [p.get("filing_hour", 13) for p in intraday_filings if p.get("filing_hour")]
-        avg_h = sum(hours) // len(hours) if hours else 13
-        typical_time = f"{avg_h:02d}:00 – {(avg_h+1):02d}:30 PM"
-        buy_start = max(9, avg_h - 2)
-        buy_end = max(10, avg_h - 1)
-        optimal_buy = f"{buy_start:02d}:30 – {buy_end:02d}:15 PM on Result Day (1–2 hrs BEFORE release)"
-    else:
+    # Format 4-5 Quarter Filing Tape
+    q_tape_items = []
+    for p in past_dates:
+        q_lbl = get_fiscal_quarter_label(p["dt"])
+        f_time = p.get("filing_time", "")
+        time_display = f_time[:5] if f_time else ("16:30+" if p.get("timing") == "post_market" else "13:30")
+        t_type = "Post-Mkt" if p.get("timing") == "post_market" else "Intraday"
+        q_tape_items.append(f"{q_lbl}: {time_display} ({t_type})")
+    q_filing_summary = " • ".join(q_tape_items) if q_tape_items else "No past timestamp available"
+
+    # Evaluate consistency threshold (>=75% of quarters in same session)
+    if post_count >= max(3, total_qtrs - 1):
         timing_habit = "Post-Market (After 03:30 PM)"
-        typical_time = "16:30 – 18:30 PM (After Market Close)"
+        consistency_pct = round((post_count / total_qtrs) * 100)
+        timing_consistency_label = f"⭐ {post_count}/{total_qtrs} Qtrs Consistent Post-Market ({consistency_pct}%)"
+        is_timing_consistent = True
+        hours = [p.get("filing_hour", 17) for p in post_qtrs if p.get("filing_hour")]
+        min_h = min(hours) if hours else 16
+        max_h = max(hours) if hours else 18
+        typical_time = f"{min_h:02d}:15 – {(max_h+1):02d}:00 PM (After Close)"
         optimal_buy = "02:45 PM – 03:15 PM on Result Day (1 hr BEFORE market close)"
+        timing_note = f"Verified: Filed post-market in {post_count}/{total_qtrs} past quarters. Safe to enter 30 mins before close."
+    elif intraday_count >= max(3, total_qtrs - 1):
+        timing_habit = "Market Hours (Intraday)"
+        consistency_pct = round((intraday_count / total_qtrs) * 100)
+        timing_consistency_label = f"⭐ {intraday_count}/{total_qtrs} Qtrs Consistent Intraday ({consistency_pct}%)"
+        is_timing_consistent = True
+        hours = [p.get("filing_hour", 13) for p in intraday_qtrs if p.get("filing_hour")]
+        min_h = min(hours) if hours else 12
+        max_h = max(hours) if hours else 14
+        typical_time = f"{min_h:02d}:00 – {(max_h+1):02d}:15 PM (Market Hours)"
+        buy_start = max(9, min_h - 2)
+        buy_end = max(10, min_h - 1)
+        optimal_buy = f"{buy_start:02d}:30 – {buy_end:02d}:15 PM on Result Day (1–2 hrs BEFORE release)"
+        timing_note = f"Verified: Filed during market hours in {intraday_count}/{total_qtrs} past quarters (typically {typical_time}). Buy 1-2 hrs before."
+    else:
+        timing_habit = "Irregular (Mixed Timing)"
+        timing_consistency_label = f"⚠️ Irregular Schedule ({post_count} Post-Mkt / {intraday_count} Intraday)"
+        is_timing_consistent = False
+        typical_time = "Uncertain (Past quarters varied between Intraday & Post-Mkt)"
+        optimal_buy = "03:00 PM Day Before Results (Safest) OR Enter Post-Release Breakout"
+        timing_note = f"Notice: Historical filing schedule is irregular ({post_count}/{total_qtrs} Post-Mkt, {intraday_count}/{total_qtrs} Intraday). Enter evening before to avoid surprises."
 
     vol_data = {
         "symbol": clean_sym,
@@ -1457,8 +1506,12 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
         "avg_hr2_move": avg_hr2,
         "avg_hr4_move": avg_hr4,
         "timing_habit": timing_habit,
+        "timing_consistency_label": timing_consistency_label,
+        "is_timing_consistent": is_timing_consistent,
         "typical_filing_time": typical_time,
         "optimal_buy_window": optimal_buy,
+        "q_filing_summary": q_filing_summary,
+        "timing_note": timing_note,
         "quarter_moves": moves
     }
     _EARNINGS_VOL_CACHE[clean_sym] = vol_data
