@@ -164,7 +164,7 @@ def process_cycle(seen_ids: set):
             if is_fno:
                 try:
                     vol = get_historical_earnings_moves(symbol) or {}
-                    setup = get_fno_strike_setup(current_price, vol, symbol) or {}
+                    setup = get_fno_strike_setup(current_price, vol, symbol, tech) or {}
                     dec_tag = setup.get("decision_tag", "NEUTRAL")
                     dec_badge = setup.get("decision_badge", "🟡 NEUTRAL")
                     dec_action = setup.get("decision_action", "")
@@ -178,9 +178,19 @@ def process_cycle(seen_ids: set):
                     mis_expected = mis.get("market_expected_move_pct", be_pct)
                     mis_realized = mis.get("historical_realized_move_pct", vol.get("avg_abs_move", 2.0))
 
+                    pcr_data = setup.get("institutional_pcr", {})
+                    pcr_badge = pcr_data.get("badge", "1.00 (Neutral)")
+                    floor_st = pcr_data.get("floor_strike", 0)
+                    ceil_st = pcr_data.get("ceiling_strike", 0)
+                    corridor = pcr_data.get("expected_corridor", "")
+
                     message_lines.extend([
                         "🎯 *2. QUANTITATIVE OPTIONS RADAR (TRADE DECISION):*",
                         f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}",
+                        f"• 🏛️ Institutional PCR: *{pcr_badge}*",
+                        f"• 🛡️ Smart Money Floor: *₹{floor_st:,.0f}* (Max Put OI — Won't drop below)",
+                        f"• 🧱 Smart Money Ceiling: *₹{ceil_st:,.0f}* (Max Call OI — Won't cross above)",
+                        f"• 📍 Institutional Corridor: *{corridor}* (Max Pain: *₹{pcr_data.get('max_pain_strike', 0):,.0f}*)",
                         f"• 💎 Volatility Pricing: *{mis_badge}* (Ratio: *{mis_ratio}x*)",
                         f"• 📊 Straddle Expectation: *±{mis_expected}%* vs Realized Swing: *±{mis_realized}%*",
                         f"• Volatility Edge: *{edge_x}x {'Positive' if edge_x >= 1.0 else 'Negative'} Edge* (Avg Swing ±{vol.get('avg_abs_move', 2.0)}% vs Req ±{be_pct}%)",

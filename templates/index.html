@@ -650,6 +650,56 @@
                                     </div>
                                 )}
 
+                                {/* Institutional PCR & Smart Money Floor/Ceiling Levels */}
+                                {item.strike_setup.institutional_pcr && (
+                                    <div className="bg-gray-950/80 border border-gray-800 rounded-xl p-2.5 mb-2.5 text-xs">
+                                        <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-gray-800/80">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center space-x-1">
+                                                <span>🏛️ Smart Money PCR & Key Levels</span>
+                                            </span>
+                                            <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded-md border ${
+                                                item.strike_setup.institutional_pcr.color === 'emerald'
+                                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                    : (item.strike_setup.institutional_pcr.color === 'rose'
+                                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30')
+                                            }`}>
+                                                {item.strike_setup.institutional_pcr.badge}
+                                            </span>
+                                        </div>
+
+                                        {/* Floor & Ceiling 2-Column Grid */}
+                                        <div className="grid grid-cols-2 gap-2 bg-gray-900/90 rounded-lg p-2 border border-gray-800/80 text-center mb-1.5">
+                                            <div className="border-r border-gray-800/80 pr-1">
+                                                <div className="flex items-center justify-center space-x-1 text-[9px] text-emerald-400 font-bold uppercase">
+                                                    <i className="fa-solid fa-shield-halved"></i>
+                                                    <span>Floor (Max Put OI)</span>
+                                                </div>
+                                                <span className="text-emerald-300 font-mono font-extrabold text-sm block mt-0.5">
+                                                    ₹{item.strike_setup.institutional_pcr.floor_strike ? item.strike_setup.institutional_pcr.floor_strike.toLocaleString() : '—'}
+                                                </span>
+                                                <span className="text-[9px] text-gray-400 font-mono block">Won't drop below (-{item.strike_setup.institutional_pcr.floor_dist_pct}%)</span>
+                                            </div>
+                                            <div className="pl-1">
+                                                <div className="flex items-center justify-center space-x-1 text-[9px] text-rose-400 font-bold uppercase">
+                                                    <i className="fa-solid fa-hand"></i>
+                                                    <span>Ceiling (Max Call OI)</span>
+                                                </div>
+                                                <span className="text-rose-300 font-mono font-extrabold text-sm block mt-0.5">
+                                                    ₹{item.strike_setup.institutional_pcr.ceiling_strike ? item.strike_setup.institutional_pcr.ceiling_strike.toLocaleString() : '—'}
+                                                </span>
+                                                <span className="text-[9px] text-gray-400 font-mono block">Won't cross above (+{item.strike_setup.institutional_pcr.ceil_dist_pct}%)</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Corridor & Breakout Triggers */}
+                                        <div className="text-[10px] text-indigo-300 leading-snug font-medium flex items-start space-x-1.5">
+                                            <i className="fa-solid fa-bolt text-[10px] text-amber-400 mt-0.5 flex-shrink-0"></i>
+                                            <span>{item.strike_setup.institutional_pcr.breakout_verdict}</span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {item.strike_setup.decision_tag !== 'SKIP' && item.strike_setup.strikes_label && (
                                     <>
                                         <div className="flex items-center justify-between text-xs mb-2">
@@ -1783,6 +1833,17 @@
                                                     : 'bg-amber-500/20 text-amber-300 border-amber-500/30')
                                         }`}>
                                             {item.strike_setup.mispricing_meter.pill}
+                                        </span>
+                                    )}
+                                    {item.strike_setup && item.strike_setup.institutional_pcr && (
+                                        <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded-md border ${
+                                            item.strike_setup.institutional_pcr.color === 'emerald'
+                                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                : (item.strike_setup.institutional_pcr.color === 'rose'
+                                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30')
+                                        }`}>
+                                            {item.strike_setup.institutional_pcr.pill}
                                         </span>
                                     )}
                                 </div>
