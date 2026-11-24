@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+from email.utils import parsedate_to_datetime
 from technicals import get_stock_technicals
 from telegram_client import send_telegram_alert
 from fno_service import NSE_FNO_SYMBOLS, get_fno_lot_size, get_strike_step
@@ -27,9 +28,14 @@ NSE_HEADERS = {
 
 # Mapping common company names and media aliases to official NSE F&O symbols
 COMPANY_ALIASES = {
+    # Telecom & Key Movers
+    "VODAFONE": "IDEA", "VODAFONE IDEA": "IDEA", "VI ": "IDEA", "IDEA": "IDEA",
+    "INDUS TOWERS": "INDUSTOWER", "BHARTI AIRTEL": "BHARTIARTL", "AIRTEL": "BHARTIARTL",
+    "TATA TELE": "TTML",
+    # Large Cap & F&O Leaders
     "RELIANCE": "RELIANCE", "TATA MOTORS": "TATAMOTORS", "TATA STEEL": "TATASTEEL", "TCS": "TCS",
     "TATA CONSULTANCY": "TCS", "INFOSYS": "INFY", "HDFC BANK": "HDFCBANK", "ICICI BANK": "ICICIBANK",
-    "STATE BANK OF INDIA": "SBIN", "SBI ": "SBIN", "BHARTI AIRTEL": "BHARTIARTL", "AIRTEL": "BHARTIARTL",
+    "STATE BANK OF INDIA": "SBIN", "SBI ": "SBIN",
     "LARSEN & TOUBRO": "LT", "LARSEN": "LT", "L&T": "LT", "ITC ": "ITC", "AXIS BANK": "AXISBANK",
     "KOTAK": "KOTAKBANK", "MARUTI": "MARUTI", "BAJAJ FINANCE": "BAJFINANCE", "ASIAN PAINTS": "ASIANPAINT",
     "HCL TECH": "HCLTECH", "SUN PHARMA": "SUNPHARMA", "TITAN": "TITAN", "ADANI": "ADANIENT",
@@ -65,6 +71,10 @@ BEARISH_SHOCK_KEYWORDS = [
 ]
 
 BULLISH_RUNNER_KEYWORDS = [
+    # Legal, Court & Regulatory Relief (e.g. Vodafone Idea HC quashing demand)
+    "quash", "quashes", "demand quashed", "penalty quashed", "relief", "tax relief",
+    "court relief", "dot demand", "agr", "stay", "favour", "wins case", "arbitration win",
+    "acquitted", "clean chit",
     # Massive Wins & Commercials
     "mega order", "bags order", "contract award", "awarded contract", "l1 bidder",
     "commercial production", "joint venture", "strategic alliance", "raises", "funding", "equity infusion",
@@ -80,6 +90,113 @@ BULLISH_RUNNER_KEYWORDS = [
 def get_ist_now() -> datetime:
     ist = timezone(timedelta(hours=5, minutes=30))
     return datetime.now(ist)
+
+def parse_news_datetime(time_str: str) -> datetime:
+    """Parses various RSS and announcement date formats into an IST-aware datetime."""
+    ist = timezone(timedelta(hours=5, minutes=30))
+    if not time_str or time_str in ["Today", "Morning Breaking", "Benchmark Case Study"]:
+        return datetime.now(ist)
+    try:
+        dt = parsedate_to_datetime(time_str)
+        return dt.astimezone(ist)
+    except Exception:
+        pass
+
+    for fmt in ["%Y-%m-%d %H:%M:%S", "%d-%m-%Y %H:%M:%S", "%Y-%m-%d", "%d-%b-%Y"]:
+        try:
+            naive = datetime.strptime(time_str.split(".")[0], fmt)
+            return naive.replace(tzinfo=ist)
+        except Exception:
+            continue
+
+    return datetime.now(ist)
+
+def evaluate_market_digestion(news_time_str: str, now_ist: Optional[datetime] = None) -> Dict[str, Any]:
+    """
+    Evaluates whether this news has already been digested by the stock market.
+    
+    Rule requested by user:
+    - If news appears before or when market is not open yet:
+      -> is_digested = False, status = 'UN_DIGESTED', actionable_badge = '⏳ ACTIONABLE: MARKET NOT OPEN YET'
+    - Once market opens (09:15 AM) and trades through morning (digest period):
+      -> is_digested = True, status = 'DIGESTED', actionable_badge = '✅ DIGESTED BY MARKET'
+    """
+    if now_ist is None:
+        now_ist = get_ist_now()
+
+    news_dt = parse_news_datetime(news_time_str)
+
+    # Today's market open (09:15) & close (15:30) boundaries
+    m_open = now_ist.replace(hour=9, minute=15, second=0, microsecond=0)
+    m_close = now_ist.replace(hour=15, minute=30, second=0, microsecond=0)
+
+    is_weekend = now_ist.weekday() >= 5
+    is_trading_hours = (not is_weekend) and (m_open <= now_ist <= m_close)
+
+    # Case 1: News published today after market close (after 15:30) or during weekend
+    if is_weekend or news_dt >= m_close or now_ist >= m_close:
+        return {
+            "is_digested": False,
+            "digestion_status": "UN_DIGESTED",
+            "market_phase": "AWAITING_NEXT_OPEN",
+            "digestion_badge": "⏳ AWAITING NEXT OPEN (UN-DIGESTED)",
+            "digestion_note": "News broke after market hours / holiday. Price has NOT reacted yet; reaction expected at 09:15 AM next open."
+        }
+
+    # Case 2: News published before today's market open (< 09:15 AM)
+    if news_dt < m_open:
+        if now_ist < m_open:
+            return {
+                "is_digested": False,
+                "digestion_status": "UN_DIGESTED",
+                "market_phase": "PRE_MARKET_ACTIONABLE",
+                "digestion_badge": "🚨 ACTIONABLE: MARKET NOT OPEN YET",
+                "digestion_note": "Market opens at 09:15 AM. Pre-market reaction pending; prime asymmetric options window."
+            }
+        elif now_ist <= m_open + timedelta(minutes=45):
+            return {
+                "is_digested": False,
+                "digestion_status": "DIGESTING",
+                "market_phase": "OPENING_REACTION",
+                "digestion_badge": "⚡ OPENING REACTION IN PROGRESS (09:15–10:00 AM)",
+                "digestion_note": "Market opened recently; initial volatility and price discovery underway."
+            }
+        else:
+            return {
+                "is_digested": True,
+                "digestion_status": "DIGESTED",
+                "market_phase": "DIGESTED",
+                "digestion_badge": "✅ DIGESTED BY MARKET",
+                "digestion_note": "Market has already traded for >1 hr; price has adjusted to the news. Pre-market edge completed."
+            }
+
+    # Case 3: News published during trading hours today (09:15 to 15:30)
+    if m_open <= news_dt <= m_close:
+        age_mins = (now_ist - news_dt).total_seconds() / 60.0
+        if age_mins <= 45 and is_trading_hours:
+            return {
+                "is_digested": False,
+                "digestion_status": "UN_DIGESTED",
+                "market_phase": "INTRADAY_FRESH",
+                "digestion_badge": "🔥 FRESH INTRADAY BREAKING (<45 mins)",
+                "digestion_note": f"Broke {int(age_mins)} mins ago during live market. Price action currently in motion."
+            }
+        else:
+            return {
+                "is_digested": True,
+                "digestion_status": "DIGESTED",
+                "market_phase": "DIGESTED",
+                "digestion_badge": "✅ DIGESTED BY MARKET",
+                "digestion_note": "Intraday news has been fully absorbed by market liquidity and price is adjusted."
+            }
+
+    return {
+        "is_digested": True,
+        "digestion_status": "DIGESTED",
+        "market_phase": "DIGESTED",
+        "digestion_badge": "✅ DIGESTED BY MARKET",
+        "digestion_note": "Market has digested this event."
+    }
 
 def classify_catalyst(text: str) -> Dict[str, Any]:
     """
@@ -118,7 +235,8 @@ def classify_catalyst(text: str) -> Dict[str, Any]:
     if matched_bullish:
         kw = matched_bullish[0]
         is_critical = any(k in t_lower for k in [
-            "buyback at premium", "usfda eir", "clean clearance", "global giant", "demerger", "mega order"
+            "quash", "quashes", "relief", "court relief", "buyback at premium",
+            "usfda eir", "clean clearance", "global giant", "demerger", "mega order"
         ])
         severity = "CRITICAL_RALLY" if is_critical else "HIGH_IMPACT"
         expected_move = "10% to 20%+ Upside Rally" if is_critical else "4% to 8% Gap-Up"
@@ -168,15 +286,26 @@ def analyze_catalyst_deep(
     2. Detailed Sentiment Analysis (Score -10 to +10, Rating, Driver, Institutional Rationale)
     3. How It Can Affect Price (Direction, Projected Target Range, Mechanism, Session Dynamics, Derivatives/Options Impact)
     4. Actionable Options Strike Setup (Primary & Deep OTM strikes, lot size, capital, warnings)
+    5. Market Digestion Engine: Evaluates if news is UN-DIGESTED (pre-market awaiting open) or DIGESTED
     """
     direction = clf.get("direction", "NEUTRAL")
     kw = clf.get("trigger_keyword", "NEWS")
-    is_critical = clf.get("severity") in ["CRITICAL_SHOCK", "CRITICAL_RALLY"]
     s1 = pivots.get("s1", round(cmp * 0.95, 1)) if cmp > 0 else 0.0
     r1 = pivots.get("r1", round(cmp * 1.05, 1)) if cmp > 0 else 0.0
 
+    # Digestion state
+    if is_case_study:
+        digestion = {
+            "is_digested": True,
+            "digestion_status": "CASE_STUDY",
+            "market_phase": "HISTORICAL_BLUEPRINT",
+            "digestion_badge": "🏛️ BENCHMARK BLUEPRINT",
+            "digestion_note": "Historical case study benchmark for asymmetric options moves."
+        }
+    else:
+        digestion = evaluate_market_digestion(announced_at, get_ist_now())
+
     # 1. News Summary
-    # Extract financial amounts if mentioned in text (e.g. ₹15,510 Cr, $300 mn, 26.6%)
     amounts = re.findall(r'(?:₹|\$|Rs\.?|USD)?\s?\d+(?:,\d+)*(?:\.\d+)?\s?(?:crore|cr|million|mn|billion|bn|%)', headline + " " + details, re.IGNORECASE)
     fin_scope = ", ".join(amounts[:2]) if amounts else "Detailed in official corporate disclosure"
 
@@ -191,8 +320,8 @@ def analyze_catalyst_deep(
     elif direction in ["EXPLOSIVE_BULLISH", "MODERATE_BULLISH"]:
         summary_points = {
             "key_event": f"Positive market trigger: {clean_headline[:140]}.",
-            "financial_quantum": f"Commercial value / capital addition: {fin_scope}.",
-            "strategic_context": f"Order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
+            "financial_quantum": f"Commercial value / liability relief / capital addition: {fin_scope}.",
+            "strategic_context": f"Statutory relief, order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
         }
     else:
         summary_points = {
@@ -224,10 +353,10 @@ def analyze_catalyst_deep(
     elif direction == "EXPLOSIVE_BULLISH":
         score = +8
         rating = "🚀 EXPLOSIVELY BULLISH (+8/10)"
-        driver = f"Mega Order / Value Unlocking ({kw})"
+        driver = f"Statutory Relief / Mega Inflow ({kw})"
         rationale = (
-            "Substantial multi-year revenue accretion, regulatory clearance, or capital infusion. "
-            "Short-covering combined with fresh institutional long accumulation triggers aggressive upward multiple expansion."
+            "Major legal relief (e.g. demand quashed) or large revenue accretion removes existential solvency overhang. "
+            "Aggressive short-covering combined with fresh institutional long accumulation triggers sharp upward re-rating."
         )
         color = "emerald"
     elif direction == "MODERATE_BULLISH":
@@ -263,7 +392,7 @@ def analyze_catalyst_deep(
         move_pct = "-15% to -22% Downside Collapse"
         target_low = round(cmp * 0.78, 1) if cmp > 0 else 0.0
         target_high = round(cmp * 0.85, 1) if cmp > 0 else 0.0
-        target_range = f"₹{target_low:,.0f} – ₹{target_high:,.0f} (Deep breach below S1: ₹{s1:,.0f})"
+        target_range = f"₹{target_low:,.1f} – ₹{target_high:,.1f} (Deep breach below S1: ₹{s1:,.1f})"
         mechanism = (
             "Immediate gap-down driven by opening block sales and margin call liquidations. "
             "Spot price penetrates key support S1 rapidly. Arbitrageurs selling spot shares against derivative hedges "
@@ -275,11 +404,11 @@ def analyze_catalyst_deep(
         )
         derivatives_impact = (
             "Put (PE) options experience explosive Implied Volatility (IV) surges (+50% to +100%+). "
-            "Deep OTM Puts (3-4 strikes away) benefit from violent delta acceleration, turning from ₹0.30–₹2.00 into deep ITM runners."
+            "Deep OTM Puts (3-4 strikes away) benefit from violent delta acceleration, turning from pennies into deep ITM runners."
         )
-        pe_primary = int(atm - step) if step >= 1 else (atm - step)
-        pe_deep = int(atm - (step * 3)) if step >= 1 else (atm - (step * 3))
-        est_prem = round(cmp * 0.012, 1) if cmp >= 100 else 1.0
+        pe_primary = int(atm - step) if step >= 1 else round(atm - step, 2)
+        pe_deep = int(atm - (step * 3)) if step >= 1 else round(atm - (step * 3), 2)
+        est_prem = round(cmp * 0.012, 2) if cmp > 0 else 1.0
         est_cap = int(round((est_prem * lot_sz) / 100.0) * 100) if lot_sz > 0 else 0
 
         option_setup = {
@@ -300,12 +429,12 @@ def analyze_catalyst_deep(
         move_pct = "-4% to -8% Pullback"
         target_low = round(cmp * 0.92, 1) if cmp > 0 else 0.0
         target_high = round(cmp * 0.96, 1) if cmp > 0 else 0.0
-        target_range = f"₹{target_low:,.0f} – ₹{target_high:,.0f} (Testing S1: ₹{s1:,.0f})"
+        target_range = f"₹{target_low:,.1f} – ₹{target_high:,.1f} (Testing S1: ₹{s1:,.1f})"
         mechanism = "Intraday profit booking and selective short buildup. S1 is tested as key support."
         session_behavior = "Gap down likely to face dip-buying near S1 if broader Nifty index is positive."
         derivatives_impact = "Mild IV uptick; Bear Put spreads or ATM Put scalps offer defined risk."
-        pe_primary = int(atm - step) if step >= 1 else (atm - step)
-        est_prem = round(cmp * 0.010, 1) if cmp >= 100 else 1.0
+        pe_primary = int(atm - step) if step >= 1 else round(atm - step, 2)
+        est_prem = round(cmp * 0.010, 2) if cmp > 0 else 1.0
         est_cap = int(round((est_prem * lot_sz) / 100.0) * 100) if lot_sz > 0 else 0
 
         option_setup = {
@@ -323,7 +452,7 @@ def analyze_catalyst_deep(
         move_pct = "+10% to +18%+ Breakout Rally"
         target_low = round(cmp * 1.10, 1) if cmp > 0 else 0.0
         target_high = round(cmp * 1.18, 1) if cmp > 0 else 0.0
-        target_range = f"₹{target_low:,.0f} – ₹{target_high:,.0f} (Decisive breakout above R1: ₹{r1:,.0f})"
+        target_range = f"₹{target_low:,.1f} – ₹{target_high:,.1f} (Decisive breakout above R1: ₹{r1:,.1f})"
         mechanism = (
             "Aggressive institutional pre-market bidding forces gap-up open. Trapped short sellers face forced margin square-offs, "
             "triggering cascading buy-market orders and volume breakout above resistance R1."
@@ -336,9 +465,9 @@ def analyze_catalyst_deep(
             "Call (CE) option premiums surge rapidly as Call writers scramble to cover short positions. "
             "1-2 strike OTM Calls offer high-velocity percentage gains."
         )
-        ce_primary = int(atm + step) if step >= 1 else (atm + step)
-        ce_runner = int(atm + (step * 2)) if step >= 1 else (atm + (step * 2))
-        est_prem = round(cmp * 0.014, 1) if cmp >= 100 else 1.0
+        ce_primary = int(atm + step) if step >= 1 else round(atm + step, 2)
+        ce_runner = int(atm + (step * 2)) if step >= 1 else round(atm + (step * 2), 2)
+        est_prem = round(cmp * 0.014, 2) if cmp > 0 else 1.0
         est_cap = int(round((est_prem * lot_sz) / 100.0) * 100) if lot_sz > 0 else 0
 
         option_setup = {
@@ -359,12 +488,12 @@ def analyze_catalyst_deep(
         move_pct = "+4% to +8% Bullish Push"
         target_low = round(cmp * 1.04, 1) if cmp > 0 else 0.0
         target_high = round(cmp * 1.08, 1) if cmp > 0 else 0.0
-        target_range = f"₹{target_low:,.0f} – ₹{target_high:,.0f} (Testing Ceiling R1: ₹{r1:,.0f})"
+        target_range = f"₹{target_low:,.1f} – ₹{target_high:,.1f} (Testing Ceiling R1: ₹{r1:,.1f})"
         mechanism = "Positive news sentiment attracts steady retail and DII demand. Controlled accumulation above VWAP."
         session_behavior = "Watch for continuation above yesterday's high with sustained buy volume."
         derivatives_impact = "ATM Call options or Bull Call spreads offer attractive reward:risk."
-        ce_primary = int(atm + step) if step >= 1 else (atm + step)
-        est_prem = round(cmp * 0.012, 1) if cmp >= 100 else 1.0
+        ce_primary = int(atm + step) if step >= 1 else round(atm + step, 2)
+        est_prem = round(cmp * 0.012, 2) if cmp > 0 else 1.0
         est_cap = int(round((est_prem * lot_sz) / 100.0) * 100) if lot_sz > 0 else 0
 
         option_setup = {
@@ -380,7 +509,7 @@ def analyze_catalyst_deep(
         }
     else:
         move_pct = "±1% to ±2% Routine Range"
-        target_range = f"₹{round(s1, 0)} – ₹{round(r1, 0)}"
+        target_range = f"₹{round(s1, 1)} – ₹{round(r1, 1)}"
         mechanism = "Price remains within normal daily liquidity and ATR bands."
         session_behavior = "Standard range-bound trading."
         derivatives_impact = "Options volatility crush (theta decay) favors option sellers or neutral strategies."
@@ -420,12 +549,17 @@ def analyze_catalyst_deep(
         "sentiment_analysis": sentiment_analysis,
         "price_impact": price_impact,
         "option_setup": option_setup,
+        # Digestion state
+        "is_digested": digestion["is_digested"],
+        "digestion_status": digestion["digestion_status"],
+        "market_phase": digestion["market_phase"],
+        "digestion_badge": digestion["digestion_badge"],
+        "digestion_note": digestion["digestion_note"],
         "timestamp": int(time.time())
     }
 
 # ====================================================================
 # HISTORICAL REFERENCE BLUEPRINTS & CASE STUDIES
-# These are kept strictly separate from live news and flagged is_case_study: True
 # ====================================================================
 HISTORICAL_BLUEPRINTS: List[Dict[str, Any]] = [
     {
@@ -445,6 +579,11 @@ HISTORICAL_BLUEPRINTS: List[Dict[str, Any]] = [
         "support_1": 1610.0,
         "resistance_1": 1820.0,
         "delivery_pct": 68.4,
+        "is_digested": True,
+        "digestion_status": "CASE_STUDY",
+        "market_phase": "HISTORICAL_BLUEPRINT",
+        "digestion_badge": "🏛️ BENCHMARK BLUEPRINT",
+        "digestion_note": "Historical reference blueprint for asymmetric deep OTM Put multi-baggers.",
         "classification": {
             "is_catalyst": True,
             "direction": "SEVERE_BEARISH",
@@ -506,6 +645,11 @@ HISTORICAL_BLUEPRINTS: List[Dict[str, Any]] = [
         "support_1": 115.0,
         "resistance_1": 135.0,
         "delivery_pct": 52.0,
+        "is_digested": True,
+        "digestion_status": "CASE_STUDY",
+        "market_phase": "HISTORICAL_BLUEPRINT",
+        "digestion_badge": "🏛️ BENCHMARK BLUEPRINT",
+        "digestion_note": "Historical reference blueprint for merger termination crash setups.",
         "classification": {
             "is_catalyst": True,
             "direction": "SEVERE_BEARISH",
@@ -576,11 +720,13 @@ def fetch_financial_news_rss() -> List[Dict[str, Any]]:
     1. Economic Times Stock News
     2. LiveMint Markets
     3. Google News India Financial search (with recency when:1d)
+    4. Google News Telecom & High-Impact (Vodafone Idea, Court orders, DoT demands)
     """
     sources = [
         ("Economic Times", "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms"),
         ("LiveMint Markets", "https://www.livemint.com/rss/markets"),
-        ("Google Financial News", "https://news.google.com/rss/search?q=NSE+stocks+OR+shares+OR+results+OR+order+OR+SEBI+OR+acquisition+when:1d&hl=en-IN&gl=IN&ceid=IN:en")
+        ("Google Financial News", "https://news.google.com/rss/search?q=NSE+stocks+OR+shares+OR+results+OR+order+OR+SEBI+OR+acquisition+OR+quash+when:1d&hl=en-IN&gl=IN&ceid=IN:en"),
+        ("Google High-Impact Radar", "https://news.google.com/rss/search?q=Vodafone+Idea+OR+DoT+demand+OR+Nifty+stocks+news+OR+court+quashes+when:2d&hl=en-IN&gl=IN&ceid=IN:en")
     ]
 
     news_items = []
@@ -606,7 +752,7 @@ def fetch_financial_news_rss() -> List[Dict[str, Any]]:
                 title_upper = title.upper()
                 matched_sym = None
 
-                # 1. Alias lookup
+                # 1. Alias lookup (e.g. Vodafone Idea -> IDEA)
                 for alias, sym in COMPANY_ALIASES.items():
                     if alias in title_upper:
                         matched_sym = sym
@@ -636,15 +782,13 @@ def fetch_financial_news_rss() -> List[Dict[str, Any]]:
 
 def get_high_impact_news_catalysts(force_refresh: bool = False, include_case_studies: bool = True) -> List[Dict[str, Any]]:
     """
-    Scans real-time exchange announcements and breaking financial media for TODAY's high-impact catalysts.
+    Scans real-time exchange announcements and breaking financial media for high-impact catalysts.
     Enriches with:
-    1. News in Summary-Wise (Key Event, Financial Quantum, Strategic Context)
+    1. News in Summary-Wise (Key Event, Financial Scope, Strategic Context)
     2. Detailed Sentiment Analysis (Score -10 to +10, Rating, Driver, Institutional Rationale)
     3. How It Can Affect Price (Direction, Projected Target Range, Mechanism, Session Dynamics, Derivatives/Options Impact)
     4. Actionable Options Setup (Strikes, Lot size, Capital)
-    
-    IMPORTANT: Historical Case Studies (APL Apollo 70,000% PE, ZEEL 33% crash) are kept flagged with is_case_study: True,
-    so live news of the day is never confused with historical benchmarks!
+    5. Market Digestion Engine: Accurately tags is_digested (True/False) based on whether market has opened & digested!
     """
     global NEWS_CACHE_FILE
     now_ts = time.time()
@@ -677,7 +821,6 @@ def get_high_impact_news_catalysts(force_refresh: bool = False, include_case_stu
             continue
 
         clf = classify_catalyst(desc)
-        # Include if catalyst, or if major F&O stock with official filing
         if clf["is_catalyst"] and sym not in seen_symbols:
             seen_symbols.add(sym)
             tech = get_stock_technicals(sym)
@@ -711,7 +854,6 @@ def get_high_impact_news_catalysts(force_refresh: bool = False, include_case_stu
         desc = it["desc"]
 
         clf = classify_catalyst(title + " " + desc)
-        # Even if classification is routine, if it contains fund-raise, jump, result, award, order, penalty, classify it
         if clf["is_catalyst"] and sym not in seen_symbols:
             seen_symbols.add(sym)
             tech = get_stock_technicals(sym)
@@ -737,12 +879,10 @@ def get_high_impact_news_catalysts(force_refresh: bool = False, include_case_stu
             )
             live_catalysts.append(card)
 
-    # 3. Combine live catalysts + historical blueprints (clearly flagged)
+    # 3. Combine live catalysts + historical blueprints
     all_catalysts = []
-    # Live catalysts come first
     all_catalysts.extend(live_catalysts)
 
-    # Blueprint case studies come after (or can be filtered via is_case_study)
     if include_case_studies:
         all_catalysts.extend(HISTORICAL_BLUEPRINTS)
 
@@ -759,8 +899,8 @@ def broadcast_morning_high_impact_news(force: bool = False) -> Dict[str, Any]:
     """
     Broadcasts the Morning Pre-Market High-Impact News Radar to Telegram:
     - Scans live news before market opens (08:30 - 09:15 AM)
-    - Alerts on both SEVERE BEARISH (PE Surge Risk) and EXPLOSIVE BULLISH (CE Runners)
-    - Summarizes what happened, the sentiment score, and how it will affect price
+    - STRICT LIFECYCLE RULE: Only broadcasts UN-DIGESTED news (news that broke when market was closed)!
+    - Once market has opened and digested the news, it is excluded so user is never spammed with stale news.
     """
     now_ist = get_ist_now()
     today_str = now_ist.strftime("%d-%m-%Y")
@@ -775,18 +915,23 @@ def broadcast_morning_high_impact_news(force: bool = False) -> Dict[str, Any]:
             pass
 
     catalysts = get_high_impact_news_catalysts(force_refresh=True)
-    live_items = [c for c in catalysts if not c.get("is_case_study")]
+    # Filter for actionable un-digested news (market has not opened yet to absorb them)
+    actionable_pre_market = [c for c in catalysts if (not c.get("is_digested") and not c.get("is_case_study"))]
+
+    if not actionable_pre_market:
+        return {
+            "status": "NO_ACTIONABLE_DATA",
+            "message": "All earlier news items have already been fully digested by the market. No un-digested pre-market shockers pending open."
+        }
 
     lines = [
-        f"🚨 *MORNING HIGH-IMPACT NEWS & OPTIONS RADAR ({today_str})*",
+        f"🚨 *MORNING PRE-MARKET ACTIONABLE CATALYST RADAR ({today_str})*",
         f"━━━━━━━━━━━━━━━━━━━━━━━━━",
-        f"📡 *Pre-Market Catalyst Alert: Asymmetric Volatility Radar*",
-        f"⏱️ _Scanned: Real-Time Corporate Filings, Regulatory Actions, Stake Deals & Commercials_\n"
+        f"⏳ *Status: AWAITING MARKET REACTION (Market Not Open Yet)*",
+        f"⏱️ _Scanned: Real-Time Corporate Filings & High-Impact News Waiting for 09:15 AM Open_\n"
     ]
 
-    items_to_broadcast = live_items if live_items else catalysts[:3]
-
-    for item in items_to_broadcast[:6]:
+    for item in actionable_pre_market[:6]:
         sym = item["symbol"]
         comp = item["company_name"]
         clf = item.get("classification", {})
@@ -804,13 +949,12 @@ def broadcast_morning_high_impact_news(force: bool = False) -> Dict[str, Any]:
 
         is_bearish = "BEARISH" in clf.get("direction", "")
         dir_icon = "💥" if is_bearish else "🚀"
-        is_cs = "🏛️ [CASE STUDY]" if item.get("is_case_study") else "🔥 [TODAY'S RADAR]"
 
-        lines.append(f"{dir_icon} *{sym}* ({comp[:24]}) — {is_cs}")
+        lines.append(f"{dir_icon} *{sym}* ({comp[:24]}) — *[AWAITING 09:15 AM OPEN]*")
         lines.append(f"   ├ 📋 *Summary*: _{summary.get('key_event', item['headline'])[:100]}_")
         lines.append(f"   ├ 🧠 *Sentiment*: *{sentiment.get('rating', 'Active')}* | Driver: _{sentiment.get('driver', 'Corporate Action')}_")
         lines.append(f"   ├ 🎯 *Price Impact*: *{impact.get('expected_move_pct', 'High Volatility')}* ➔ Target: *{impact.get('target_range', 'S1/R1')}*")
-        lines.append(f"   ├ 📊 *Current Levels*: CMP *₹{cmp:,.1f}* | S1 ₹{s1:,.0f} | R1 ₹{r1:,.0f} (Del {del_pct}%)")
+        lines.append(f"   ├ 📊 *Current Levels*: CMP *₹{cmp:,.1f}* | S1 ₹{s1:,.1f} | R1 ₹{r1:,.1f} (Del {del_pct}%)")
         lines.append(f"   ├ ⚡ *Options Setup*: *{strikes}* (Lot: {lot_sz})")
         lines.append(f"   └ 🛡️ *Timing & Caution*: _{setup.get('execution_warning', '')[:100]}..._\n")
 
@@ -830,12 +974,12 @@ def broadcast_morning_high_impact_news(force: bool = False) -> Dict[str, Any]:
                     log_data = json.load(f)
             except Exception:
                 pass
-        log_data[today_str] = {"timestamp": now_ist.isoformat(), "count": len(items_to_broadcast)}
+        log_data[today_str] = {"timestamp": now_ist.isoformat(), "count": len(actionable_pre_market)}
         try:
             with open(NEWS_BROADCAST_LOG, "w") as f:
                 json.dump(log_data, f, indent=2)
         except Exception:
             pass
-        return {"status": "SUCCESS", "message": f"Successfully broadcasted morning high-impact catalysts to Telegram"}
+        return {"status": "SUCCESS", "message": f"Successfully broadcasted {len(actionable_pre_market)} actionable pre-market catalysts to Telegram"}
     else:
         return {"status": "FAILED", "message": "Failed to send Telegram alert"}

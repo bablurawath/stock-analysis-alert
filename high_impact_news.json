@@ -1,6 +1,6 @@
 [
   {
-    "id": "catalyst_ADANIENT_471087",
+    "id": "catalyst_ADANIENT_465528",
     "symbol": "ADANIENT",
     "company_name": "ADANI ENTERPRISES LIMITED",
     "is_case_study": false,
@@ -14,7 +14,7 @@
     "rsi": 48.43,
     "support_1": 2679.6,
     "resistance_1": 2732.2,
-    "delivery_pct": 51.5,
+    "delivery_pct": 55.5,
     "classification": {
       "is_catalyst": true,
       "direction": "MODERATE_BULLISH",
@@ -28,8 +28,8 @@
     },
     "news_summary": {
       "key_event": "Positive market trigger: Adani Airport raises $300 mn from 360 ONE Asset, taking total equity infusion to $1.35 bn.",
-      "financial_quantum": "Commercial value / capital addition: $300 mn, $1.35 bn.",
-      "strategic_context": "Order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
+      "financial_quantum": "Commercial value / liability relief / capital addition: $300 mn, $1.35 bn.",
+      "strategic_context": "Statutory relief, order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
     },
     "sentiment_analysis": {
       "score": 5,
@@ -41,7 +41,7 @@
     "price_impact": {
       "direction": "MODERATE_BULLISH",
       "expected_move_pct": "+4% to +8% Bullish Push",
-      "target_range": "\u20b92,785 \u2013 \u20b92,892 (Testing Ceiling R1: \u20b92,732)",
+      "target_range": "\u20b92,785.0 \u2013 \u20b92,892.1 (Testing Ceiling R1: \u20b92,732.2)",
       "mechanism": "Positive news sentiment attracts steady retail and DII demand. Controlled accumulation above VWAP.",
       "session_behavior": "Watch for continuation above yesterday's high with sustained buy volume.",
       "derivatives_impact": "ATM Call options or Bull Call spreads offer attractive reward:risk."
@@ -53,14 +53,19 @@
       "atm_strike": "2700 CE",
       "strikes_display": "2750 CE",
       "lot_size": 300,
-      "est_premium": 32.1,
+      "est_premium": 32.13,
       "est_capital_required": 9600,
       "execution_warning": "Avoid chasing morning gap-up; wait for pullback to 5-min VWAP."
     },
-    "timestamp": 1795515681
+    "is_digested": false,
+    "digestion_status": "UN_DIGESTED",
+    "market_phase": "AWAITING_NEXT_OPEN",
+    "digestion_badge": "\u23f3 AWAITING NEXT OPEN (UN-DIGESTED)",
+    "digestion_note": "News broke after market hours / holiday. Price has NOT reacted yet; reaction expected at 09:15 AM next open.",
+    "timestamp": 1795518664
   },
   {
-    "id": "catalyst_PERSISTENT_626767",
+    "id": "catalyst_PERSISTENT_375588",
     "symbol": "PERSISTENT",
     "company_name": "PERSISTENT SYSTEMS LTD",
     "is_case_study": false,
@@ -101,7 +106,7 @@
     "price_impact": {
       "direction": "MODERATE_BEARISH",
       "expected_move_pct": "-4% to -8% Pullback",
-      "target_range": "\u20b95,780 \u2013 \u20b96,031 (Testing S1: \u20b95,898)",
+      "target_range": "\u20b95,779.9 \u2013 \u20b96,031.2 (Testing S1: \u20b95,898.3)",
       "mechanism": "Intraday profit booking and selective short buildup. S1 is tested as key support.",
       "session_behavior": "Gap down likely to face dip-buying near S1 if broader Nifty index is positive.",
       "derivatives_impact": "Mild IV uptick; Bear Put spreads or ATM Put scalps offer defined risk."
@@ -113,14 +118,19 @@
       "atm_strike": "6300 PE",
       "strikes_display": "6200 PE",
       "lot_size": 100,
-      "est_premium": 62.8,
+      "est_premium": 62.83,
       "est_capital_required": 6300,
       "execution_warning": "Watch for reversal wick near S1 before entering fresh short positions."
     },
-    "timestamp": 1795515681
+    "is_digested": false,
+    "digestion_status": "UN_DIGESTED",
+    "market_phase": "AWAITING_NEXT_OPEN",
+    "digestion_badge": "\u23f3 AWAITING NEXT OPEN (UN-DIGESTED)",
+    "digestion_note": "News broke after market hours / holiday. Price has NOT reacted yet; reaction expected at 09:15 AM next open.",
+    "timestamp": 1795518664
   },
   {
-    "id": "catalyst_KOTAKBANK_707339",
+    "id": "catalyst_KOTAKBANK_667373",
     "symbol": "KOTAKBANK",
     "company_name": "KOTAK MAHINDRA BANK LTD",
     "is_case_study": false,
@@ -134,7 +144,7 @@
     "rsi": 68.96,
     "support_1": 504.33,
     "resistance_1": 521.93,
-    "delivery_pct": 51.5,
+    "delivery_pct": 57.5,
     "classification": {
       "is_catalyst": true,
       "direction": "MODERATE_BULLISH",
@@ -148,8 +158,8 @@
     },
     "news_summary": {
       "key_event": "Positive market trigger: NIFTY Option Chain: Live NSE Option Chain Data, OI & Price - Kotak Neo.",
-      "financial_quantum": "Commercial value / capital addition: Detailed in official corporate disclosure.",
-      "strategic_context": "Order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
+      "financial_quantum": "Commercial value / liability relief / capital addition: Detailed in official corporate disclosure.",
+      "strategic_context": "Statutory relief, order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
     },
     "sentiment_analysis": {
       "score": 5,
@@ -161,7 +171,7 @@
     "price_impact": {
       "direction": "MODERATE_BULLISH",
       "expected_move_pct": "+4% to +8% Bullish Push",
-      "target_range": "\u20b9523 \u2013 \u20b9543 (Testing Ceiling R1: \u20b9522)",
+      "target_range": "\u20b9523.0 \u2013 \u20b9543.1 (Testing Ceiling R1: \u20b9521.9)",
       "mechanism": "Positive news sentiment attracts steady retail and DII demand. Controlled accumulation above VWAP.",
       "session_behavior": "Watch for continuation above yesterday's high with sustained buy volume.",
       "derivatives_impact": "ATM Call options or Bull Call spreads offer attractive reward:risk."
@@ -173,11 +183,81 @@
       "atm_strike": "500 CE",
       "strikes_display": "510 CE",
       "lot_size": 400,
-      "est_premium": 6.0,
+      "est_premium": 6.03,
       "est_capital_required": 2400,
       "execution_warning": "Avoid chasing morning gap-up; wait for pullback to 5-min VWAP."
     },
-    "timestamp": 1795515682
+    "is_digested": false,
+    "digestion_status": "UN_DIGESTED",
+    "market_phase": "AWAITING_NEXT_OPEN",
+    "digestion_badge": "\u23f3 AWAITING NEXT OPEN (UN-DIGESTED)",
+    "digestion_note": "News broke after market hours / holiday. Price has NOT reacted yet; reaction expected at 09:15 AM next open.",
+    "timestamp": 1795518665
+  },
+  {
+    "id": "catalyst_IDEA_96133",
+    "symbol": "IDEA",
+    "company_name": "VODAFONE IDEA LIMITED",
+    "is_case_study": false,
+    "source": "Google High-Impact Radar (Breaking)",
+    "headline": "Bombay HC quashes \u20b92,113 crore DoT demand against Vodafone Idea - scanx.trade",
+    "details": "<a href=\"https://news.google.com/rss/articles/CBMi-AFBVV95cUxNMVItbF9IemhqME9fNWFDTXl3ZTVNdkZndU16QkFxc3dhNEVKenNmeU5JVFlBdk5JM3hEMVZGZ0RxTTJLMVR6WDZNVnVlRzdhYy1BQUJKUTJpc3Y2S21nR2tHZDhYVFF1TUMzOFBQUnRKLTl5ZHBRY1pjNUlsV2k3RHRWdTkyT0l3MkwzblVQekRXdVlPSnBIWmlDZ2VlclVnN1U3QWFSMnZVSHlQMUgxbzM0akVRSlMzOTYwRHF2VFN2UTFLZU5TeENsVVd1UXNOeGJJOTY0TmNZVkdRM2Ex",
+    "pdf_url": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxNMVItbF9IemhqME9fNWFDTXl3ZTVNdkZndU16QkFxc3dhNEVKenNmeU5JVFlBdk5JM3hEMVZGZ0RxTTJLMVR6WDZNVnVlRzdhYy1BQUJKUTJpc3Y2S21nR2tHZDhYVFF1TUMzOFBQUnRKLTl5ZHBRY1pjNUlsV2k3RHRWdTkyT0l3MkwzblVQekRXdVlPSnBIWmlDZ2VlclVnN1U3QWFSMnZVSHlQMUgxbzM0akVRSlMzOTYwRHF2VFN2UTFLZU5TeENsVVd1UXNOeGJJOTY0TmNZVkdRM2ExVDdpLXMyRTBmRy10cmV5RnJyb1B6MkRIbA?oc=5",
+    "announced_at": "Tue, 24 Nov 2026 04:22:19 GMT",
+    "is_fno": true,
+    "current_price": 11.91,
+    "rsi": 39.6,
+    "support_1": 12.0,
+    "resistance_1": 12.25,
+    "delivery_pct": 55.5,
+    "classification": {
+      "is_catalyst": true,
+      "direction": "EXPLOSIVE_BULLISH",
+      "direction_label": "\ud83d\ude80 EXPLOSIVE BULLISH (CALL RUNNER)",
+      "severity": "CRITICAL_RALLY",
+      "severity_badge": "\ud83d\udd25 EXPLOSIVE RALLY",
+      "expected_move": "10% to 20%+ Upside Rally",
+      "trigger_keyword": "QUASH",
+      "option_focus": "CALL (CE) Runners",
+      "sentiment_color": "emerald"
+    },
+    "news_summary": {
+      "key_event": "Positive market trigger: Bombay HC quashes \u20b92,113 crore DoT demand against Vodafone Idea - scanx.trade.",
+      "financial_quantum": "Commercial value / liability relief / capital addition: \u20b92,113 crore, \u20b92,113 crore.",
+      "strategic_context": "Statutory relief, order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
+    },
+    "sentiment_analysis": {
+      "score": 8,
+      "rating": "\ud83d\ude80 EXPLOSIVELY BULLISH (+8/10)",
+      "driver": "Statutory Relief / Mega Inflow (QUASH)",
+      "rationale": "Major legal relief (e.g. demand quashed) or large revenue accretion removes existential solvency overhang. Aggressive short-covering combined with fresh institutional long accumulation triggers sharp upward re-rating.",
+      "color": "emerald"
+    },
+    "price_impact": {
+      "direction": "EXPLOSIVE_BULLISH",
+      "expected_move_pct": "+10% to +18%+ Breakout Rally",
+      "target_range": "\u20b913.1 \u2013 \u20b914.1 (Decisive breakout above R1: \u20b912.2)",
+      "mechanism": "Aggressive institutional pre-market bidding forces gap-up open. Trapped short sellers face forced margin square-offs, triggering cascading buy-market orders and volume breakout above resistance R1.",
+      "session_behavior": "09:15\u201309:20 AM: Opening surge tests R1. 09:25\u201309:35 AM: If 15-min candle closes firmly above R1 with volume > 2x average, momentum continuation is confirmed.",
+      "derivatives_impact": "Call (CE) option premiums surge rapidly as Call writers scramble to cover short positions. 1-2 strike OTM Calls offer high-velocity percentage gains."
+    },
+    "option_setup": {
+      "recommended_action": "WATCH CALLS (CE) FOR MOMENTUM BREAKOUT",
+      "primary_strike": "12.5 CE (1-Strike OTM)",
+      "extreme_strike": "13.0 CE (Runner)",
+      "atm_strike": "12.0 CE",
+      "strikes_display": "12.5 CE & 13.0 CE",
+      "lot_size": 40000,
+      "est_premium": 0.17,
+      "est_capital_required": 6800,
+      "execution_warning": "\u26a1 MOMENTUM RULE: Enter only on 15-min candle confirmation above R1 with VWAP support. Trail stop-loss aggressively."
+    },
+    "is_digested": false,
+    "digestion_status": "UN_DIGESTED",
+    "market_phase": "AWAITING_NEXT_OPEN",
+    "digestion_badge": "\u23f3 AWAITING NEXT OPEN (UN-DIGESTED)",
+    "digestion_note": "News broke after market hours / holiday. Price has NOT reacted yet; reaction expected at 09:15 AM next open.",
+    "timestamp": 1795518665
   },
   {
     "id": "blueprint_aplapollo_tata_steel",
@@ -196,6 +276,11 @@
     "support_1": 1610.0,
     "resistance_1": 1820.0,
     "delivery_pct": 68.4,
+    "is_digested": true,
+    "digestion_status": "CASE_STUDY",
+    "market_phase": "HISTORICAL_BLUEPRINT",
+    "digestion_badge": "\ud83c\udfdb\ufe0f BENCHMARK BLUEPRINT",
+    "digestion_note": "Historical reference blueprint for asymmetric deep OTM Put multi-baggers.",
     "classification": {
       "is_catalyst": true,
       "direction": "SEVERE_BEARISH",
@@ -238,7 +323,7 @@
       "est_capital_required": 140,
       "execution_warning": "Historical Blueprint: 3-4 strikes deep OTM puts cost negligible capital (\u20b9140/lot) but yield life-changing 700x returns when black-swan events unfold."
     },
-    "timestamp": 1795515676
+    "timestamp": 1795518658
   },
   {
     "id": "blueprint_zeel_sony_merger",
@@ -257,6 +342,11 @@
     "support_1": 115.0,
     "resistance_1": 135.0,
     "delivery_pct": 52.0,
+    "is_digested": true,
+    "digestion_status": "CASE_STUDY",
+    "market_phase": "HISTORICAL_BLUEPRINT",
+    "digestion_badge": "\ud83c\udfdb\ufe0f BENCHMARK BLUEPRINT",
+    "digestion_note": "Historical reference blueprint for merger termination crash setups.",
     "classification": {
       "is_catalyst": true,
       "direction": "SEVERE_BEARISH",
@@ -299,6 +389,6 @@
       "est_capital_required": 7500,
       "execution_warning": "When mega M&A deals collapse over weekend/pre-market, OTM Puts 3-4 strikes below spot explode exponentially."
     },
-    "timestamp": 1795515676
+    "timestamp": 1795518658
   }
 ]

@@ -131,6 +131,8 @@ _EARNINGS_VOL_CACHE: Dict[str, Any] = {}
 
 def get_strike_step(price: float) -> float:
     """Standard NSE Equity Derivative Option Strike Step Intervals."""
+    if price < 25: return 0.5
+    if price < 50: return 1.0
     if price < 150: return 2.5
     if price < 300: return 5.0
     if price < 700: return 10.0

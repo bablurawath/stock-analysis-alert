@@ -1258,28 +1258,40 @@
             const impact = item.price_impact || {};
             const isBearish = clf.direction === 'SEVERE_BEARISH' || clf.direction === 'MODERATE_BEARISH';
             const isCaseStudy = Boolean(item.is_case_study);
+            const isDigested = Boolean(item.is_digested);
 
             const badgeBg = isBearish 
                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' 
                 : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
 
-            // Sentiment bar calculation (-10 to +10 mapped to 0% - 100%)
             const score = typeof sentiment.score === 'number' ? sentiment.score : (isBearish ? -7 : 7);
             const scorePct = Math.min(100, Math.max(0, ((score + 10) / 20) * 100));
 
             return (
-                <div className={`glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border ${isCaseStudy ? 'border-amber-500/50 bg-gradient-to-b from-amber-950/20 via-gray-900 to-gray-900' : 'border-gray-800/80 hover:border-rose-500/40'}`}>
+                <div className={`glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border ${isCaseStudy ? 'border-amber-500/50 bg-gradient-to-b from-amber-950/20 via-gray-900 to-gray-900' : (!isDigested ? 'border-amber-500/40 bg-gradient-to-b from-amber-950/10 via-gray-900 to-gray-900 shadow-amber-500/10' : 'border-gray-800/80 hover:border-gray-700')}`}>
                     <div>
-                        {/* Case Study Banner if applicable */}
-                        {isCaseStudy && (
-                            <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-between text-xs text-amber-300 font-bold">
-                                <span className="flex items-center space-x-1.5">
-                                    <i className="fa-solid fa-landmark text-amber-400"></i>
-                                    <span>HISTORICAL BENCHMARK CASE STUDY</span>
+                        {/* Digestion Lifecycle Status Header */}
+                        <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-gray-800/70">
+                            {isCaseStudy ? (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 flex items-center space-x-1">
+                                    <i className="fa-solid fa-landmark text-indigo-400"></i>
+                                    <span>🏛️ BENCHMARK BLUEPRINT</span>
                                 </span>
-                                <span className="text-[10px] bg-black/40 px-2 py-0.5 rounded font-mono text-amber-200">BLUEPRINT</span>
-                            </div>
-                        )}
+                            ) : !isDigested ? (
+                                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center space-x-1.5 animate-pulse">
+                                    <i className="fa-solid fa-hourglass-start text-amber-400"></i>
+                                    <span>⏳ ACTIONABLE: MARKET NOT OPEN YET</span>
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-800/90 text-gray-400 border border-gray-700 flex items-center space-x-1">
+                                    <i className="fa-solid fa-check text-emerald-400"></i>
+                                    <span>✅ DIGESTED BY MARKET</span>
+                                </span>
+                            )}
+                            <span className="text-[10px] text-gray-500 font-mono">
+                                {item.announced_at}
+                            </span>
+                        </div>
 
                         {/* 1. Header Bar: Symbol, Severity, Company & Price */}
                         <div className="flex items-start justify-between mb-3 border-b border-gray-800/80 pb-3">
@@ -1318,7 +1330,6 @@
                         <div className="mb-3">
                             <div className="text-[10px] text-gray-500 font-semibold flex items-center justify-between mb-1">
                                 <span><i className="fa-solid fa-satellite-dish mr-1 text-blue-400"></i> {item.source}</span>
-                                <span className="font-mono text-gray-400">{item.announced_at}</span>
                             </div>
                             <h4 className="text-xs font-bold text-gray-100 leading-snug">
                                 {item.headline}
@@ -1473,7 +1484,9 @@
 
                     {/* 5. Footer Actions */}
                     <div className="pt-2.5 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
-                        <span className="text-[11px] text-gray-500">{item.announced_at}</span>
+                        <span className="text-[11px] text-gray-400 font-mono">
+                            {item.symbol} | {item.is_fno ? 'NSE F&O' : 'NSE Cash'}
+                        </span>
                         <div className="flex items-center space-x-2">
                             {item.pdf_url && (
                                 <a href={item.pdf_url} target="_blank" className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-blue-400 font-semibold transition text-xs">
@@ -1492,11 +1505,13 @@
         }
 
         function NewsCatalystView({ catalysts, onSelectStock, onBroadcast, broadcasting, onRefresh, loading, subFilter, setSubFilter }) {
-            const liveItems = catalysts.filter(c => !c.is_case_study);
+            const actionableItems = catalysts.filter(c => !c.is_digested && !c.is_case_study);
+            const digestedItems = catalysts.filter(c => Boolean(c.is_digested) && !c.is_case_study);
             const caseStudyItems = catalysts.filter(c => Boolean(c.is_case_study));
 
             const filtered = catalysts.filter(c => {
-                if (subFilter === 'LIVE_TODAY') return !c.is_case_study;
+                if (subFilter === 'ACTIONABLE') return !c.is_digested && !c.is_case_study;
+                if (subFilter === 'DIGESTED') return Boolean(c.is_digested) && !c.is_case_study;
                 if (subFilter === 'CASE_STUDIES') return Boolean(c.is_case_study);
                 if (subFilter === 'BEARISH') return c.classification && (c.classification.direction === 'SEVERE_BEARISH' || c.classification.direction === 'MODERATE_BEARISH');
                 if (subFilter === 'BULLISH') return c.classification && (c.classification.direction === 'EXPLOSIVE_BULLISH' || c.classification.direction === 'MODERATE_BULLISH');
@@ -1504,7 +1519,8 @@
                 return true;
             });
 
-            const liveCount = liveItems.length;
+            const actionableCount = actionableItems.length;
+            const digestedCount = digestedItems.length;
             const blueprintCount = caseStudyItems.length;
             const bearishCount = catalysts.filter(c => c.classification && (c.classification.direction === 'SEVERE_BEARISH' || c.classification.direction === 'MODERATE_BEARISH')).length;
             const bullishCount = catalysts.filter(c => c.classification && (c.classification.direction === 'EXPLOSIVE_BULLISH' || c.classification.direction === 'MODERATE_BULLISH')).length;
@@ -1522,11 +1538,11 @@
                                     <div className="flex items-center space-x-2 flex-wrap">
                                         <h2 className="text-lg font-extrabold text-white">🚨 High-Impact Catalyst Radar</h2>
                                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold border border-rose-500/30">
-                                            LIVE INTELLIGENCE
+                                            MARKET DIGESTION ENGINE
                                         </span>
                                     </div>
                                     <p className="text-xs text-gray-400 mt-0.5">
-                                        Scans exchange filings &amp; institutional media for M&amp;A dilutions, raids, orders, and clean EIRs with structured 3-part breakdowns: Summary-Wise, Detailed Sentiment (-10 to +10), and Price Impact Dynamics.
+                                        Captures high-impact news before market opens (quashed demands, raids, mega orders) and monitors opening volatility. Once market opens and digests the move, news is archived to keep your pre-market radar clean.
                                     </p>
                                 </div>
                             </div>
@@ -1543,26 +1559,26 @@
                                     disabled={broadcasting}
                                     className="px-4 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-lg shadow-rose-500/25">
                                     <i className={`fa-brands fa-telegram ${broadcasting ? 'fa-circle-notch fa-spin' : ''}`}></i>
-                                    <span>{broadcasting ? 'Broadcasting...' : 'Broadcast Morning Radar'}</span>
+                                    <span>{broadcasting ? 'Broadcasting...' : 'Broadcast Actionable Radar'}</span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* Filter Tabs */}
+                        {/* Filter Tabs with Digestion Engine */}
                         <div className="flex items-center space-x-2 overflow-x-auto pt-3 border-t border-gray-800/80">
                             {[
-                                { id: 'LIVE_TODAY', label: `🔥 Today's Live News (${liveCount})`, icon: 'fa-bolt', color: 'rose' },
-                                { id: 'CASE_STUDIES', label: `🏛️ Blueprint Case Studies (${blueprintCount})`, icon: 'fa-landmark', color: 'amber' },
+                                { id: 'ACTIONABLE', label: `🔥 Actionable Pre-Market (${actionableCount})`, icon: 'fa-hourglass-start', color: 'amber' },
+                                { id: 'DIGESTED', label: `✅ Digested by Market (${digestedCount})`, icon: 'fa-circle-check', color: 'gray' },
+                                { id: 'CASE_STUDIES', label: `🏛️ Blueprint Case Studies (${blueprintCount})`, icon: 'fa-landmark', color: 'indigo' },
                                 { id: 'BEARISH', label: `💥 Bearish Shocks (${bearishCount})`, icon: 'fa-arrow-trend-down', color: 'rose' },
                                 { id: 'BULLISH', label: `🚀 Bullish Momentum (${bullishCount})`, icon: 'fa-arrow-trend-up', color: 'emerald' },
-                                { id: 'ALL', label: `All Items (${catalysts.length})`, icon: 'fa-layer-group' },
-                                { id: 'FNO_ONLY', label: `⚡ F&O Universe Only`, icon: 'fa-chart-pie' }
+                                { id: 'ALL', label: `All Items (${catalysts.length})`, icon: 'fa-layer-group' }
                             ].map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setSubFilter(tab.id)}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${subFilter === tab.id
-                                            ? (tab.color === 'rose' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : (tab.color === 'amber' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md shadow-amber-600/30' : (tab.color === 'emerald' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-blue-600 text-white shadow-md shadow-blue-600/30')))
+                                            ? (tab.color === 'amber' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30' : (tab.color === 'rose' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : (tab.color === 'emerald' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : (tab.color === 'indigo' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-blue-600 text-white shadow-md shadow-blue-600/30'))))
                                             : 'bg-gray-800/80 text-gray-400 hover:text-white border border-gray-700/60'
                                         }`}>
                                     <i className={`fa-solid ${tab.icon} text-xs`}></i>
@@ -1572,7 +1588,7 @@
                         </div>
                     </div>
 
-                    {/* Cards Grid */}
+                    {/* Cards Grid & Digestion States */}
                     {loading && catalysts.length === 0 ? (
                         <div className="text-center py-20 text-gray-400">
                             <i className="fa-solid fa-circle-notch fa-spin text-4xl text-rose-500 mb-3"></i>
@@ -1580,22 +1596,41 @@
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6 space-y-3">
-                            <i className="fa-solid fa-shield-cat text-rose-500 text-4xl mb-2"></i>
-                            <p className="text-base font-semibold text-gray-300">
-                                {subFilter === 'LIVE_TODAY' ? "No severe black-swan shocks detected in today's filings so far." : "No high-impact catalysts matched this filter."}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                                {subFilter === 'LIVE_TODAY' 
-                                    ? "Exchange filings and media streams are routine today. You can click 'Blueprint Case Studies' to study how 70,000% PE surges happen (APL Apollo, ZEEL)."
-                                    : "Try selecting 'All Items' or click 'Refresh Catalysts' to scan real-time announcements."}
-                            </p>
-                            {subFilter === 'LIVE_TODAY' && blueprintCount > 0 && (
-                                <button
-                                    onClick={() => setSubFilter('CASE_STUDIES')}
-                                    className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center space-x-1.5 mx-auto">
-                                    <i className="fa-solid fa-landmark"></i>
-                                    <span>View Blueprint Case Studies (APL Apollo 70k%)</span>
-                                </button>
+                            {subFilter === 'ACTIONABLE' ? (
+                                <>
+                                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mx-auto border border-emerald-500/30">
+                                        <i className="fa-solid fa-circle-check"></i>
+                                    </div>
+                                    <h3 className="text-base font-bold text-gray-200">
+                                        All Market News Has Been Fully Digested
+                                    </h3>
+                                    <p className="text-xs text-gray-400 leading-relaxed">
+                                        Stock prices have already adjusted to earlier disclosures during trading hours. Pre-market asymmetric edge is complete.
+                                        Any fresh corporate announcements breaking after market hours or overnight will automatically appear here as <strong>Actionable</strong> before tomorrow's 09:15 AM opening bell.
+                                    </p>
+                                    <div className="flex items-center justify-center space-x-2 pt-2">
+                                        <button
+                                            onClick={() => setSubFilter('DIGESTED')}
+                                            className="px-3.5 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold transition border border-gray-700">
+                                            View Digested News ({digestedCount})
+                                        </button>
+                                        <button
+                                            onClick={() => setSubFilter('CASE_STUDIES')}
+                                            className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition">
+                                            View Blueprint Case Studies ({blueprintCount})
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <i className="fa-solid fa-shield-cat text-rose-500 text-4xl mb-2"></i>
+                                    <p className="text-base font-semibold text-gray-300">
+                                        No catalysts matched this filter.
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                        Try selecting "All Items" or click "Refresh Catalysts" to scan real-time announcements.
+                                    </p>
+                                </>
                             )}
                         </div>
                     ) : (
@@ -1918,7 +1953,7 @@
             const [broadcastingLQ, setBroadcastingLQ] = useState(false);
             const [catalysts, setCatalysts] = useState([]);
             const [loadingCatalysts, setLoadingCatalysts] = useState(false);
-            const [catalystSubFilter, setCatalystSubFilter] = useState('LIVE_TODAY');
+            const [catalystSubFilter, setCatalystSubFilter] = useState('ACTIONABLE');
             const [broadcastingNews, setBroadcastingNews] = useState(false);
 
             const fetchCatalysts = async (refresh = false) => {
