@@ -1,42 +1,304 @@
 [
   {
-    "id": "catalyst_aplapollo_case_study",
-    "symbol": "APLAPOLLO",
-    "company_name": "APL Apollo Tubes Limited",
-    "source": "NSE Corporate Disclosure & Case Study",
-    "headline": "Strategic agreement with Tata Steel for 26.6% stake acquisition and business restructuring",
-    "details": "Tata Steel entered strategic agreement to acquire 26.6% promoter stake in APL Apollo Tubes for \u20b915,510 crore at \u20b92,100 per share, transferring tubes & colour coated business. Triggered 20% crash to \u20b91,655; 1800 PE surged +70,000%.",
-    "pdf_url": "https://www.nseindia.com",
-    "announced_at": "High-Impact Benchmark",
+    "id": "catalyst_ADANIENT_471087",
+    "symbol": "ADANIENT",
+    "company_name": "ADANI ENTERPRISES LIMITED",
+    "is_case_study": false,
+    "source": "Economic Times (Breaking)",
+    "headline": "Adani Airport raises $300 mn from 360 ONE Asset, taking total equity infusion to $1.35 bn",
+    "details": "Adani Airport Holdings Ltd will raise USD 300 million to enhance its presence in India's aviation sector. This investment will contribute to its target of increasing passenger capacity from 96 million to 200 million. The company operates eight airports, handling about 95.3 million passengers in the last fiscal year. The funds will support modernizi",
+    "pdf_url": "https://economictimes.indiatimes.com/markets/stocks/news/adani-airport-raises-300-mn-from-360-one-asset-taking-total-equity-infusion-to-1-35-bn/articleshow/136104118.cms",
+    "announced_at": "Mon, 23 Nov 2026 18:41:12 +0530",
     "is_fno": true,
-    "current_price": 1670.0,
-    "rsi": 19.44,
-    "support_1": 2062.53,
-    "resistance_1": 2155.83,
-    "delivery_pct": 72.0,
+    "current_price": 2677.9,
+    "rsi": 48.43,
+    "support_1": 2679.6,
+    "resistance_1": 2732.2,
+    "delivery_pct": 51.5,
     "classification": {
       "is_catalyst": true,
-      "direction": "SEVERE_BEARISH",
-      "direction_label": "\ud83d\udd3b SEVERE BEARISH SHOCK (PUT SURGE RISK)",
-      "severity": "CRITICAL_SHOCK",
-      "severity_badge": "\ud83d\udea8 70,000% PE SURGE CASE STUDY",
-      "expected_move": "19% to 22% Downside Collapse",
-      "trigger_keyword": "ACQUISITION & STAKE SALE",
+      "direction": "MODERATE_BULLISH",
+      "direction_label": "\u26a1 BULLISH MOMENTUM",
+      "severity": "HIGH_IMPACT",
+      "severity_badge": "\u26a1 BULLISH IMPACT",
+      "expected_move": "4% to 8% Gap-Up",
+      "trigger_keyword": "RAISES",
+      "option_focus": "CALL (CE) Runners",
+      "sentiment_color": "emerald"
+    },
+    "news_summary": {
+      "key_event": "Positive market trigger: Adani Airport raises $300 mn from 360 ONE Asset, taking total equity infusion to $1.35 bn.",
+      "financial_quantum": "Commercial value / capital addition: $300 mn, $1.35 bn.",
+      "strategic_context": "Order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
+    },
+    "sentiment_analysis": {
+      "score": 5,
+      "rating": "\u26a1 BULLISH MOMENTUM (+5/10)",
+      "driver": "Commercial Expansion / Demand Growth (RAISES)",
+      "rationale": "Healthy operational progress and positive order inflow. Market participants likely to accumulate on dips, providing strong base support above S1.",
+      "color": "teal"
+    },
+    "price_impact": {
+      "direction": "MODERATE_BULLISH",
+      "expected_move_pct": "+4% to +8% Bullish Push",
+      "target_range": "\u20b92,785 \u2013 \u20b92,892 (Testing Ceiling R1: \u20b92,732)",
+      "mechanism": "Positive news sentiment attracts steady retail and DII demand. Controlled accumulation above VWAP.",
+      "session_behavior": "Watch for continuation above yesterday's high with sustained buy volume.",
+      "derivatives_impact": "ATM Call options or Bull Call spreads offer attractive reward:risk."
+    },
+    "option_setup": {
+      "recommended_action": "WATCH CALLS (CE) ON DIPS",
+      "primary_strike": "2750 CE",
+      "extreme_strike": "2750 CE",
+      "atm_strike": "2700 CE",
+      "strikes_display": "2750 CE",
+      "lot_size": 300,
+      "est_premium": 32.1,
+      "est_capital_required": 9600,
+      "execution_warning": "Avoid chasing morning gap-up; wait for pullback to 5-min VWAP."
+    },
+    "timestamp": 1795515681
+  },
+  {
+    "id": "catalyst_PERSISTENT_626767",
+    "symbol": "PERSISTENT",
+    "company_name": "PERSISTENT SYSTEMS LTD",
+    "is_case_study": false,
+    "source": "LiveMint Markets (Breaking)",
+    "headline": "Persistent Systems, Ather Energy shares: Top 2 stocks to buy on 25 Nov; check expected returns, stop loss, target price",
+    "details": "Indian stock market will be closed on Tuesday, 24 November, for Prakash Gurpurb Sri Guru Nanak Dev. The closure follows steep losses on Monday, as the Sensex fell 1.77% and the Nifty 1.75%. Analyst Chandan Taparia recommended Persistent Systems and Ather Energy shares to buy tomorrow.&amp;nbsp;",
+    "pdf_url": "https://www.livemint.com/market/stock-market-news/persistent-systems-ather-energy-shares-top-2-stocks-to-buy-on-25-nov-check-expected-returns-stop-loss-target-price-11795486721247.html",
+    "announced_at": "Tue, 24 Nov 2026 08:45:46 +0530",
+    "is_fno": true,
+    "current_price": 6282.5,
+    "rsi": 67.54,
+    "support_1": 5898.33,
+    "resistance_1": 6282.33,
+    "delivery_pct": 72.9,
+    "classification": {
+      "is_catalyst": true,
+      "direction": "MODERATE_BEARISH",
+      "direction_label": "\u26a0\ufe0f MODERATE BEARISH SLUMP",
+      "severity": "HIGH_IMPACT",
+      "severity_badge": "\u26a0\ufe0f BEARISH IMPACT",
+      "expected_move": "5% to 10% Gap-Down",
+      "trigger_keyword": "LOSS",
       "option_focus": "PUT (PE) Spikes",
       "sentiment_color": "rose"
     },
-    "option_setup": {
-      "recommended_action": "WATCH PUTS (PE) FOR ASYMMETRIC SURGE",
-      "primary_strike": "1800 PE (Shock Spike)",
-      "extreme_strike": "1700 PE (Deep Crash Run)",
-      "atm_strike": "2100 PE (Pre-crash ATM)",
-      "strikes_display": "1800 PE & 1700 PE",
-      "lot_size": 350,
-      "est_premium": 0.5,
-      "est_capital_required": 175,
-      "execution_warning": "On 20% crash from \u20b92,120 to \u20b91,655, 1800 PE rocketed from \u20b90.20 to \u20b9145+ (+72,400% ROI).",
-      "apl_apollo_reference": "Tata Steel acquired 26.6% promoter stake for \u20b915,510 Cr @ \u20b92,100 + business restructuring."
+    "news_summary": {
+      "key_event": "Adverse catalyst reported: Persistent Systems, Ather Energy shares: Top 2 stocks to buy on 25 Nov; check expected returns, stop loss, target price.",
+      "financial_quantum": "Financial scope / quantum involved:  1.77%,  1.75%.",
+      "strategic_context": "Potential risk to operating cash flows, corporate governance overhang, or earnings re-rating."
     },
-    "timestamp": 1795433752
+    "sentiment_analysis": {
+      "score": -5,
+      "rating": "\u26a0\ufe0f BEARISH DRAG (-5/10)",
+      "driver": "Operational / Margin Headwind (LOSS)",
+      "rationale": "Near-term margin compression or temporary operational disruption. Short-term sentiment turns cautious, favoring protective Put hedging and capping immediate upside rallies.",
+      "color": "orange"
+    },
+    "price_impact": {
+      "direction": "MODERATE_BEARISH",
+      "expected_move_pct": "-4% to -8% Pullback",
+      "target_range": "\u20b95,780 \u2013 \u20b96,031 (Testing S1: \u20b95,898)",
+      "mechanism": "Intraday profit booking and selective short buildup. S1 is tested as key support.",
+      "session_behavior": "Gap down likely to face dip-buying near S1 if broader Nifty index is positive.",
+      "derivatives_impact": "Mild IV uptick; Bear Put spreads or ATM Put scalps offer defined risk."
+    },
+    "option_setup": {
+      "recommended_action": "WATCH S1 SUPPORT / BEAR SPREADS",
+      "primary_strike": "6200 PE",
+      "extreme_strike": "6200 PE",
+      "atm_strike": "6300 PE",
+      "strikes_display": "6200 PE",
+      "lot_size": 100,
+      "est_premium": 62.8,
+      "est_capital_required": 6300,
+      "execution_warning": "Watch for reversal wick near S1 before entering fresh short positions."
+    },
+    "timestamp": 1795515681
+  },
+  {
+    "id": "catalyst_KOTAKBANK_707339",
+    "symbol": "KOTAKBANK",
+    "company_name": "KOTAK MAHINDRA BANK LTD",
+    "is_case_study": false,
+    "source": "Google Financial News (Breaking)",
+    "headline": "NIFTY Option Chain: Live NSE Option Chain Data, OI & Price - Kotak Neo",
+    "details": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxQXzh6T0p0bjd0dHdVZm0ybWVldjIzNE45YlhJX2Ryamo3VTdmd2xQRkxYb2tvYjVmNzQwdDVwTEJjekdwbGFvUkhOaFpCZGR6Y3BUSVloSGowREZnbGl1U2lVaTIzdXZVd3ZkMXc2LWphcXlWSEdPUzkyVTVvdk02UXNPT1JmVTJB?oc=5\" target=\"_blank\">NIFTY Option Chain: Live NSE Option Chain Data, OI & Price</a>&nbsp;&nbsp;<font color=\"#6f6f6",
+    "pdf_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQXzh6T0p0bjd0dHdVZm0ybWVldjIzNE45YlhJX2Ryamo3VTdmd2xQRkxYb2tvYjVmNzQwdDVwTEJjekdwbGFvUkhOaFpCZGR6Y3BUSVloSGowREZnbGl1U2lVaTIzdXZVd3ZkMXc2LWphcXlWSEdPUzkyVTVvdk02UXNPT1JmVTJB?oc=5",
+    "announced_at": "Mon, 23 Nov 2026 17:30:08 GMT",
+    "is_fno": true,
+    "current_price": 502.85,
+    "rsi": 68.96,
+    "support_1": 504.33,
+    "resistance_1": 521.93,
+    "delivery_pct": 51.5,
+    "classification": {
+      "is_catalyst": true,
+      "direction": "MODERATE_BULLISH",
+      "direction_label": "\u26a1 BULLISH MOMENTUM",
+      "severity": "HIGH_IMPACT",
+      "severity_badge": "\u26a1 BULLISH IMPACT",
+      "expected_move": "4% to 8% Gap-Up",
+      "trigger_keyword": "VLD",
+      "option_focus": "CALL (CE) Runners",
+      "sentiment_color": "emerald"
+    },
+    "news_summary": {
+      "key_event": "Positive market trigger: NIFTY Option Chain: Live NSE Option Chain Data, OI & Price - Kotak Neo.",
+      "financial_quantum": "Commercial value / capital addition: Detailed in official corporate disclosure.",
+      "strategic_context": "Order pipeline accretion, balance sheet de-leveraging, or institutional accumulation catalyst."
+    },
+    "sentiment_analysis": {
+      "score": 5,
+      "rating": "\u26a1 BULLISH MOMENTUM (+5/10)",
+      "driver": "Commercial Expansion / Demand Growth (VLD)",
+      "rationale": "Healthy operational progress and positive order inflow. Market participants likely to accumulate on dips, providing strong base support above S1.",
+      "color": "teal"
+    },
+    "price_impact": {
+      "direction": "MODERATE_BULLISH",
+      "expected_move_pct": "+4% to +8% Bullish Push",
+      "target_range": "\u20b9523 \u2013 \u20b9543 (Testing Ceiling R1: \u20b9522)",
+      "mechanism": "Positive news sentiment attracts steady retail and DII demand. Controlled accumulation above VWAP.",
+      "session_behavior": "Watch for continuation above yesterday's high with sustained buy volume.",
+      "derivatives_impact": "ATM Call options or Bull Call spreads offer attractive reward:risk."
+    },
+    "option_setup": {
+      "recommended_action": "WATCH CALLS (CE) ON DIPS",
+      "primary_strike": "510 CE",
+      "extreme_strike": "510 CE",
+      "atm_strike": "500 CE",
+      "strikes_display": "510 CE",
+      "lot_size": 400,
+      "est_premium": 6.0,
+      "est_capital_required": 2400,
+      "execution_warning": "Avoid chasing morning gap-up; wait for pullback to 5-min VWAP."
+    },
+    "timestamp": 1795515682
+  },
+  {
+    "id": "blueprint_aplapollo_tata_steel",
+    "symbol": "APLAPOLLO",
+    "company_name": "APL Apollo Tubes Limited",
+    "is_case_study": true,
+    "case_study_title": "\ud83c\udfdb\ufe0f Benchmark Case Study: Tata Steel 26.6% Stake Dilution (-20% Crash / 1800 PE +72,400% Surge)",
+    "source": "NSE Corporate Disclosure & Historical Case Study",
+    "headline": "Strategic agreement with Tata Steel for 26.6% stake acquisition and tubes business transfer",
+    "details": "Tata Steel acquired 26.6% promoter stake for \u20b915,510 Cr @ \u20b92,100 per share with transfer of pipes business. Market feared severe minority shareholder dilution and loss of premium valuation, triggering a 20% crash to \u20b91,655; 1800 PE surged +72,400% from \u20b90.20 to \u20b9145.",
+    "pdf_url": "https://www.nseindia.com",
+    "announced_at": "Benchmark Case Study",
+    "is_fno": true,
+    "current_price": 1680.0,
+    "rsi": 28.5,
+    "support_1": 1610.0,
+    "resistance_1": 1820.0,
+    "delivery_pct": 68.4,
+    "classification": {
+      "is_catalyst": true,
+      "direction": "SEVERE_BEARISH",
+      "direction_label": "\ud83d\udd3b SEVERE BEARISH SHOCK (PUT SURGE BLUEPRINT)",
+      "severity": "CRITICAL_SHOCK",
+      "severity_badge": "\ud83d\udea8 70,000% PE SURGE BLUEPRINT",
+      "expected_move": "19% to 22% Downside Collapse",
+      "trigger_keyword": "STAKE ACQUISITION & DILUTION",
+      "option_focus": "PUT (PE) 70,000% Surge",
+      "sentiment_color": "rose"
+    },
+    "news_summary": {
+      "key_event": "Tata Steel acquired 26.6% promoter stake in APL Apollo Tubes with corporate restructuring of tubes business.",
+      "financial_quantum": "\u20b915,510 crore at \u20b92,100 per share; 26.6% equity dilution for existing shareholders.",
+      "strategic_context": "Market perceived loss of standalone agility, minority shareholder dilution, and valuation de-rating."
+    },
+    "sentiment_analysis": {
+      "score": -9,
+      "rating": "\ud83d\udd3b SEVERELY BEARISH (-9/10)",
+      "driver": "Equity Dilution & Promoter Stake Sale",
+      "rationale": "High-growth premium multiple collapsed as market repriced APL Apollo from an agile consumer brand to a conglomerate subsidiary with dilution overhang.",
+      "color": "rose"
+    },
+    "price_impact": {
+      "direction": "CRASH (-20.5% in 2 Sessions)",
+      "expected_move_pct": "-20% Single-Session Fall",
+      "target_range": "Collapsed from \u20b92,120 to \u20b91,655",
+      "mechanism": "Institutional block selling and retail panic liquidation completely overwhelmed buy orders, breaking all support levels.",
+      "session_behavior": "Stock opened gap-down and was offered down through the day without finding support until \u20b91,655.",
+      "derivatives_impact": "1800 PE traded at \u20b90.20\u2013\u20b90.60 before news; surged to \u20b9145+ when spot touched \u20b91,655 (+72,400% gain, \u20b970,000+ profit per \u20b9100 invested)."
+    },
+    "option_setup": {
+      "recommended_action": "WATCH 3-4 STRIKES DEEP OTM PUTS",
+      "primary_strike": "1800 PE (Penny Option Shock)",
+      "extreme_strike": "1700 PE (Deep Crash Run)",
+      "atm_strike": "2100 PE",
+      "strikes_display": "1800 PE (+72,400%) & 1700 PE",
+      "lot_size": 350,
+      "est_premium": 0.4,
+      "est_capital_required": 140,
+      "execution_warning": "Historical Blueprint: 3-4 strikes deep OTM puts cost negligible capital (\u20b9140/lot) but yield life-changing 700x returns when black-swan events unfold."
+    },
+    "timestamp": 1795515676
+  },
+  {
+    "id": "blueprint_zeel_sony_merger",
+    "symbol": "ZEEL",
+    "company_name": "Zee Entertainment Enterprises Limited",
+    "is_case_study": true,
+    "case_study_title": "\ud83c\udfdb\ufe0f Benchmark Case Study: Sony Merger Termination (-33% Single-Day Crash / 160 PE +1,850% Surge)",
+    "source": "NSE Corporate Disclosure & Historical Case Study",
+    "headline": "Sony officially calls off $10 Billion merger with Zee Entertainment",
+    "details": "Sony Group issued termination letter for the $10 billion mega-merger citing non-fulfillment of closing conditions and initiated arbitration seeking $90M termination fee. ZEEL stock crashed 33% in a single session from \u20b9245 to \u20b9152; 160 PE surged from \u20b92.50 to \u20b948.80 (+1,852%).",
+    "pdf_url": "https://www.nseindia.com",
+    "announced_at": "Benchmark Case Study",
+    "is_fno": true,
+    "current_price": 125.0,
+    "rsi": 32.0,
+    "support_1": 115.0,
+    "resistance_1": 135.0,
+    "delivery_pct": 52.0,
+    "classification": {
+      "is_catalyst": true,
+      "direction": "SEVERE_BEARISH",
+      "direction_label": "\ud83d\udd3b SEVERE BEARISH SHOCK (DEAL CANCELLATION)",
+      "severity": "CRITICAL_SHOCK",
+      "severity_badge": "\ud83d\udea8 33% CRASH CASE STUDY",
+      "expected_move": "30% to 35% Downside Collapse",
+      "trigger_keyword": "MERGER TERMINATION & ARBITRATION",
+      "option_focus": "PUT (PE) 1,850% Surge",
+      "sentiment_color": "rose"
+    },
+    "news_summary": {
+      "key_event": "Sony cancelled the 2-year-long $10B merger deal with Zee and demanded $90M in arbitration damages.",
+      "financial_quantum": "$10 Billion merger cancelled; $90M termination damages claimed by Sony.",
+      "strategic_context": "Loss of global distribution scale, leaving Zee vulnerable to intense domestic OTT streaming competition."
+    },
+    "sentiment_analysis": {
+      "score": -10,
+      "rating": "\ud83d\udd3b CRITICALLY BEARISH (-10/10)",
+      "driver": "Merger Cancellation & Litigation Shock",
+      "rationale": "Entire 2-year institutional investment thesis was predicated on Sony taking management control; termination triggered complete institutional exit.",
+      "color": "rose"
+    },
+    "price_impact": {
+      "direction": "CRASH (-33% Single Session)",
+      "expected_move_pct": "-33% Downside Collapse",
+      "target_range": "Crashed from \u20b9245 to \u20b9152",
+      "mechanism": "Foreign portfolio investors and domestic mutual funds dumped shares unconditionally from the 09:00 AM pre-open session.",
+      "session_behavior": "Severe lower circuit halts throughout the day; bids disappeared across cash and futures.",
+      "derivatives_impact": "160 PE spiked from \u20b92.50 to \u20b948.80 (+1,850%), delivering nearly 20x return on Put buyer capital."
+    },
+    "option_setup": {
+      "recommended_action": "WATCH DEEP OTM PUTS ON DEAL CANCELLATION",
+      "primary_strike": "160 PE (Crash Runner)",
+      "extreme_strike": "150 PE",
+      "atm_strike": "240 PE",
+      "strikes_display": "160 PE (+1,850%) & 150 PE",
+      "lot_size": 3000,
+      "est_premium": 2.5,
+      "est_capital_required": 7500,
+      "execution_warning": "When mega M&A deals collapse over weekend/pre-market, OTM Puts 3-4 strikes below spot explode exponentially."
+    },
+    "timestamp": 1795515676
   }
 ]

@@ -1253,14 +1253,34 @@
         function NewsCatalystCard({ item, onSelect }) {
             const clf = item.classification || {};
             const setup = item.option_setup || {};
-            const isBearish = clf.direction === 'SEVERE_BEARISH';
+            const summary = item.news_summary || {};
+            const sentiment = item.sentiment_analysis || {};
+            const impact = item.price_impact || {};
+            const isBearish = clf.direction === 'SEVERE_BEARISH' || clf.direction === 'MODERATE_BEARISH';
+            const isCaseStudy = Boolean(item.is_case_study);
+
             const badgeBg = isBearish 
                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' 
                 : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
 
+            // Sentiment bar calculation (-10 to +10 mapped to 0% - 100%)
+            const score = typeof sentiment.score === 'number' ? sentiment.score : (isBearish ? -7 : 7);
+            const scorePct = Math.min(100, Math.max(0, ((score + 10) / 20) * 100));
+
             return (
-                <div className="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border border-gray-800/80 hover:border-rose-500/40">
+                <div className={`glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-200 border ${isCaseStudy ? 'border-amber-500/50 bg-gradient-to-b from-amber-950/20 via-gray-900 to-gray-900' : 'border-gray-800/80 hover:border-rose-500/40'}`}>
                     <div>
+                        {/* Case Study Banner if applicable */}
+                        {isCaseStudy && (
+                            <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-between text-xs text-amber-300 font-bold">
+                                <span className="flex items-center space-x-1.5">
+                                    <i className="fa-solid fa-landmark text-amber-400"></i>
+                                    <span>HISTORICAL BENCHMARK CASE STUDY</span>
+                                </span>
+                                <span className="text-[10px] bg-black/40 px-2 py-0.5 rounded font-mono text-amber-200">BLUEPRINT</span>
+                            </div>
+                        )}
+
                         {/* 1. Header Bar: Symbol, Severity, Company & Price */}
                         <div className="flex items-start justify-between mb-3 border-b border-gray-800/80 pb-3">
                             <div className="flex-1 mr-2">
@@ -1289,7 +1309,7 @@
                                     </div>
                                 )}
                                 <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider mt-1 ${isBearish ? 'text-rose-400 bg-rose-950/40 border border-rose-500/30' : 'text-emerald-400 bg-emerald-950/40 border border-emerald-500/30'}`}>
-                                    {clf.direction === 'SEVERE_BEARISH' ? '🔻 PUT SHOCK' : '🚀 CALL RALLY'}
+                                    {clf.direction === 'SEVERE_BEARISH' ? '🔻 PUT SHOCK' : (clf.direction === 'MODERATE_BEARISH' ? '⚠️ BEARISH' : '🚀 CALL RALLY')}
                                 </span>
                             </div>
                         </div>
@@ -1303,34 +1323,113 @@
                             <h4 className="text-xs font-bold text-gray-100 leading-snug">
                                 {item.headline}
                             </h4>
-                            {item.details && (
-                                <p className="text-[11px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                                    {item.details}
-                                </p>
-                            )}
                         </div>
 
-                        {/* 3. Core Technical Metrics */}
-                        <div className="grid grid-cols-4 gap-1.5 p-2 bg-gray-900/60 rounded-xl border border-gray-800/80 text-center text-xs mb-3">
-                            <div className="px-1 border-r border-gray-800/80">
-                                <div className="text-[10px] text-gray-500 font-medium">Floor (S1)</div>
-                                <div className="font-mono font-bold text-emerald-400 mt-0.5 text-[11px]">₹{Math.round(item.support_1 || 0)}</div>
+                        {/* SECTION A: 📋 NEWS IN SUMMARY-WISE */}
+                        <div className="mb-3 p-3 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2">
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center space-x-1.5 border-b border-gray-800 pb-1.5">
+                                <i className="fa-solid fa-list-check text-blue-400"></i>
+                                <span>News in Summary-Wise</span>
                             </div>
-                            <div className="px-1 border-r border-gray-800/80">
-                                <div className="text-[10px] text-gray-500 font-medium">Ceiling (R1)</div>
-                                <div className="font-mono font-bold text-rose-400 mt-0.5 text-[11px]">₹{Math.round(item.resistance_1 || 0)}</div>
-                            </div>
-                            <div className="px-1 border-r border-gray-800/80">
-                                <div className="text-[10px] text-gray-500 font-medium">RSI (14)</div>
-                                <div className="font-mono font-bold text-amber-400 mt-0.5">{item.rsi || '—'}</div>
-                            </div>
-                            <div className="px-1">
-                                <div className="text-[10px] text-gray-500 font-medium">Delivery %</div>
-                                <div className="font-mono font-bold text-blue-400 mt-0.5">{item.delivery_pct || 50}%</div>
+                            <div className="text-xs space-y-1.5 leading-relaxed">
+                                <div className="text-gray-200">
+                                    <strong className="text-gray-400 text-[11px]">Core Event: </strong>
+                                    {summary.key_event || item.details}
+                                </div>
+                                {summary.financial_quantum && (
+                                    <div className="flex items-center space-x-1 text-xs">
+                                        <span className="text-gray-400 text-[11px] font-medium">Financial Scope:</span>
+                                        <span className="font-mono font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-[11px]">
+                                            {summary.financial_quantum}
+                                        </span>
+                                    </div>
+                                )}
+                                {summary.strategic_context && (
+                                    <div className="text-[11px] text-gray-400">
+                                        <strong className="text-gray-500">Context: </strong>
+                                        {summary.strategic_context}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* 4. Asymmetric Derivatives Options Setup Box */}
+                        {/* SECTION B: 🧠 DETAILED SENTIMENT ANALYSIS */}
+                        <div className="mb-3 p-3 rounded-xl bg-gray-950/90 border border-gray-800/90 space-y-2.5">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <i className="fa-solid fa-brain text-purple-400"></i>
+                                    <span>Detailed Sentiment Analysis</span>
+                                </span>
+                                <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full border ${isBearish ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'}`}>
+                                    {sentiment.rating || (isBearish ? '🔻 BEARISH (-7/10)' : '🚀 BULLISH (+7/10)')}
+                                </span>
+                            </div>
+
+                            {/* Visual Sentiment Meter */}
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-[10px] font-mono text-gray-500">
+                                    <span>Bearish (-10)</span>
+                                    <span className="text-white font-bold">{score > 0 ? `+${score}` : score}/10</span>
+                                    <span>Bullish (+10)</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden relative">
+                                    <div 
+                                        className={`h-full transition-all duration-300 ${isBearish ? 'bg-gradient-to-r from-rose-600 to-rose-400' : 'bg-gradient-to-r from-teal-500 to-emerald-400'}`}
+                                        style={{ width: `${scorePct}%` }}>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Rationale & Driver */}
+                            <div className="text-xs space-y-1 pt-1 border-t border-gray-900">
+                                {sentiment.driver && (
+                                    <div className="text-[11px] text-gray-400">
+                                        <strong className="text-gray-300">Driver: </strong>
+                                        <span className="text-indigo-300 font-semibold">{sentiment.driver}</span>
+                                    </div>
+                                )}
+                                {sentiment.rationale && (
+                                    <p className="text-[11px] text-gray-400 leading-relaxed italic">
+                                        "{sentiment.rationale}"
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* SECTION C: 🎯 HOW IT CAN AFFECT PRICE */}
+                        <div className={`mb-3 p-3 rounded-xl border space-y-2 ${isBearish ? 'bg-rose-950/20 border-rose-500/30' : 'bg-emerald-950/20 border-emerald-500/30'}`}>
+                            <div className="flex items-center justify-between text-xs">
+                                <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1.5 ${isBearish ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                    <i className="fa-solid fa-crosshairs"></i>
+                                    <span>How It Can Affect Price</span>
+                                </span>
+                                <span className="font-mono text-xs font-black text-white">
+                                    {impact.expected_move_pct || clf.expected_move}
+                                </span>
+                            </div>
+
+                            {/* Target & Price Action Mechanism */}
+                            <div className="bg-gray-950/80 p-2.5 rounded-lg border border-gray-800 space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-400 text-[11px]">🎯 Target Price Range:</span>
+                                    <strong className="font-mono text-white text-xs">{impact.target_range || `S1: ₹${Math.round(item.support_1 || 0)} | R1: ₹${Math.round(item.resistance_1 || 0)}`}</strong>
+                                </div>
+                                {impact.mechanism && (
+                                    <div className="text-[11px] text-gray-300 leading-snug pt-1 border-t border-gray-800/80">
+                                        <strong className="text-gray-400">Mechanism: </strong>
+                                        {impact.mechanism}
+                                    </div>
+                                )}
+                                {impact.session_behavior && (
+                                    <div className="text-[11px] text-amber-300/90 leading-snug pt-1 border-t border-gray-800/80 flex items-start space-x-1">
+                                        <i className="fa-solid fa-clock text-amber-400 text-[10px] mt-0.5 flex-shrink-0"></i>
+                                        <span><strong>Opening Dynamics:</strong> {impact.session_behavior}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* SECTION D: ⚡ ASYMMETRIC DERIVATIVES OPTIONS SETUP */}
                         {setup.recommended_action && setup.recommended_action !== 'NO DERIVATIVES PLAY' && (
                             <div className={`mb-3 rounded-xl p-3 border shadow-inner ${isBearish ? 'bg-gradient-to-b from-rose-950/50 to-gray-950 border-rose-500/40' : 'bg-gradient-to-b from-emerald-950/50 to-gray-950 border-emerald-500/40'}`}>
                                 <div className="flex items-center justify-between text-xs mb-1.5">
@@ -1348,10 +1447,12 @@
                                         <span className="text-gray-400 text-[11px]">🎯 Target Strikes:</span>
                                         <strong className="font-mono text-white text-xs">{setup.strikes_display}</strong>
                                     </div>
-                                    <div className="flex items-center justify-between text-xs">
-                                        <span className="text-gray-400 text-[11px]">Expected Swing:</span>
-                                        <strong className={`font-mono text-xs ${isBearish ? 'text-rose-400' : 'text-emerald-400'}`}>{clf.expected_move}</strong>
-                                    </div>
+                                    {impact.derivatives_impact && (
+                                        <div className="text-[11px] text-gray-300 leading-snug pt-1 border-t border-gray-800/80">
+                                            <strong className="text-purple-300">Options Impact: </strong>
+                                            {impact.derivatives_impact}
+                                        </div>
+                                    )}
                                     {setup.est_capital_required > 0 && (
                                         <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-800/80">
                                             <span className="text-gray-500 text-[10px]">💰 Est. Capital / Lot:</span>
@@ -1364,13 +1465,6 @@
                                     <div className="text-[10px] text-amber-300/90 leading-tight mt-1 flex items-start space-x-1">
                                         <i className="fa-solid fa-triangle-exclamation text-amber-400 text-[10px] mt-0.5 flex-shrink-0"></i>
                                         <span>{setup.execution_warning}</span>
-                                    </div>
-                                )}
-
-                                {setup.apl_apollo_reference && (
-                                    <div className="text-[10px] text-indigo-300/90 leading-tight mt-1.5 pt-1.5 border-t border-gray-800/80 flex items-start space-x-1">
-                                        <i className="fa-solid fa-lightbulb text-indigo-400 text-[10px] mt-0.5 flex-shrink-0"></i>
-                                        <span>{setup.apl_apollo_reference}</span>
                                     </div>
                                 )}
                             </div>
@@ -1398,15 +1492,22 @@
         }
 
         function NewsCatalystView({ catalysts, onSelectStock, onBroadcast, broadcasting, onRefresh, loading, subFilter, setSubFilter }) {
+            const liveItems = catalysts.filter(c => !c.is_case_study);
+            const caseStudyItems = catalysts.filter(c => Boolean(c.is_case_study));
+
             const filtered = catalysts.filter(c => {
-                if (subFilter === 'BEARISH') return c.classification && c.classification.direction === 'SEVERE_BEARISH';
-                if (subFilter === 'BULLISH') return c.classification && c.classification.direction === 'EXPLOSIVE_BULLISH';
+                if (subFilter === 'LIVE_TODAY') return !c.is_case_study;
+                if (subFilter === 'CASE_STUDIES') return Boolean(c.is_case_study);
+                if (subFilter === 'BEARISH') return c.classification && (c.classification.direction === 'SEVERE_BEARISH' || c.classification.direction === 'MODERATE_BEARISH');
+                if (subFilter === 'BULLISH') return c.classification && (c.classification.direction === 'EXPLOSIVE_BULLISH' || c.classification.direction === 'MODERATE_BULLISH');
                 if (subFilter === 'FNO_ONLY') return c.is_fno;
                 return true;
             });
 
-            const bearishCount = catalysts.filter(c => c.classification && c.classification.direction === 'SEVERE_BEARISH').length;
-            const bullishCount = catalysts.filter(c => c.classification && c.classification.direction === 'EXPLOSIVE_BULLISH').length;
+            const liveCount = liveItems.length;
+            const blueprintCount = caseStudyItems.length;
+            const bearishCount = catalysts.filter(c => c.classification && (c.classification.direction === 'SEVERE_BEARISH' || c.classification.direction === 'MODERATE_BEARISH')).length;
+            const bullishCount = catalysts.filter(c => c.classification && (c.classification.direction === 'EXPLOSIVE_BULLISH' || c.classification.direction === 'MODERATE_BULLISH')).length;
 
             return (
                 <div className="space-y-6">
@@ -1418,23 +1519,20 @@
                                     <i className="fa-solid fa-newspaper"></i>
                                 </div>
                                 <div>
-                                    <div className="flex items-center space-x-2">
-                                        <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
-                                            🚨 Breaking Market Catalysts &amp; Asymmetric Options Radar
-                                        </h3>
-                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
-                                            PRE-MARKET + LIVE
+                                    <div className="flex items-center space-x-2 flex-wrap">
+                                        <h2 className="text-lg font-extrabold text-white">🚨 High-Impact Catalyst Radar</h2>
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold border border-rose-500/30">
+                                            LIVE INTELLIGENCE
                                         </span>
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1 max-w-3xl leading-relaxed">
-                                        Scans for news that causes massive 10%–25%+ directional shocks (like the <strong>APL Apollo 1800 PE +70,000% surge</strong> on Tata Steel's 26.6% acquisition/dilution, USFDA Warning Letters, IT/ED Raids, Mega Orders &amp; Buybacks).
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                        Scans exchange filings &amp; institutional media for M&amp;A dilutions, raids, orders, and clean EIRs with structured 3-part breakdowns: Summary-Wise, Detailed Sentiment (-10 to +10), and Price Impact Dynamics.
                                     </p>
                                 </div>
                             </div>
-
-                            <div className="flex items-center space-x-2 flex-wrap gap-2">
+                            <div className="flex items-center space-x-2 flex-wrap">
                                 <button
-                                    onClick={() => onRefresh(true)}
+                                    onClick={onRefresh}
                                     disabled={loading}
                                     className="px-3.5 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md">
                                     <i className={`fa-solid fa-arrows-rotate ${loading ? 'fa-spin text-rose-400' : ''}`}></i>
@@ -1453,16 +1551,18 @@
                         {/* Filter Tabs */}
                         <div className="flex items-center space-x-2 overflow-x-auto pt-3 border-t border-gray-800/80">
                             {[
-                                { id: 'ALL', label: `All Catalysts (${catalysts.length})`, icon: 'fa-layer-group' },
-                                { id: 'BEARISH', label: `💥 Bearish Shocks / PE Spikes (${bearishCount})`, icon: 'fa-arrow-trend-down', color: 'rose' },
-                                { id: 'BULLISH', label: `🚀 Bullish Runners / CE Rallies (${bullishCount})`, icon: 'fa-arrow-trend-up', color: 'emerald' },
+                                { id: 'LIVE_TODAY', label: `🔥 Today's Live News (${liveCount})`, icon: 'fa-bolt', color: 'rose' },
+                                { id: 'CASE_STUDIES', label: `🏛️ Blueprint Case Studies (${blueprintCount})`, icon: 'fa-landmark', color: 'amber' },
+                                { id: 'BEARISH', label: `💥 Bearish Shocks (${bearishCount})`, icon: 'fa-arrow-trend-down', color: 'rose' },
+                                { id: 'BULLISH', label: `🚀 Bullish Momentum (${bullishCount})`, icon: 'fa-arrow-trend-up', color: 'emerald' },
+                                { id: 'ALL', label: `All Items (${catalysts.length})`, icon: 'fa-layer-group' },
                                 { id: 'FNO_ONLY', label: `⚡ F&O Universe Only`, icon: 'fa-chart-pie' }
                             ].map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setSubFilter(tab.id)}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${subFilter === tab.id
-                                            ? (tab.color === 'rose' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : (tab.color === 'emerald' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-blue-600 text-white shadow-md shadow-blue-600/30'))
+                                            ? (tab.color === 'rose' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : (tab.color === 'amber' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md shadow-amber-600/30' : (tab.color === 'emerald' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-blue-600 text-white shadow-md shadow-blue-600/30')))
                                             : 'bg-gray-800/80 text-gray-400 hover:text-white border border-gray-700/60'
                                         }`}>
                                     <i className={`fa-solid ${tab.icon} text-xs`}></i>
@@ -1479,14 +1579,24 @@
                             <p className="text-sm font-medium">Scanning exchange disclosures and financial media for market-moving catalysts...</p>
                         </div>
                     ) : filtered.length === 0 ? (
-                        <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6">
-                            <i className="fa-solid fa-shield-cat text-rose-500 text-4xl mb-3"></i>
+                        <div className="glass-panel text-center py-16 rounded-2xl text-gray-500 border border-gray-800 max-w-lg mx-auto p-6 space-y-3">
+                            <i className="fa-solid fa-shield-cat text-rose-500 text-4xl mb-2"></i>
                             <p className="text-base font-semibold text-gray-300">
-                                No high-impact catalysts matched this filter.
+                                {subFilter === 'LIVE_TODAY' ? "No severe black-swan shocks detected in today's filings so far." : "No high-impact catalysts matched this filter."}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                                Try selecting "All Catalysts" or click "Refresh Catalysts" to scan live announcements.
+                            <p className="text-xs text-gray-400">
+                                {subFilter === 'LIVE_TODAY' 
+                                    ? "Exchange filings and media streams are routine today. You can click 'Blueprint Case Studies' to study how 70,000% PE surges happen (APL Apollo, ZEEL)."
+                                    : "Try selecting 'All Items' or click 'Refresh Catalysts' to scan real-time announcements."}
                             </p>
+                            {subFilter === 'LIVE_TODAY' && blueprintCount > 0 && (
+                                <button
+                                    onClick={() => setSubFilter('CASE_STUDIES')}
+                                    className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center space-x-1.5 mx-auto">
+                                    <i className="fa-solid fa-landmark"></i>
+                                    <span>View Blueprint Case Studies (APL Apollo 70k%)</span>
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1499,9 +1609,6 @@
             );
         }
 
-        // ====================================================================
-        // 4D. 5%+ BIG MOVERS & 4-QUARTER CONSISTENCY TRACKER
-        // ====================================================================
         function Fno5PctMoverCard({ item, onSelect }) {
             const isBullish = item.is_bullish;
             const badgeBg = isBullish 
@@ -1811,7 +1918,7 @@
             const [broadcastingLQ, setBroadcastingLQ] = useState(false);
             const [catalysts, setCatalysts] = useState([]);
             const [loadingCatalysts, setLoadingCatalysts] = useState(false);
-            const [catalystSubFilter, setCatalystSubFilter] = useState('ALL');
+            const [catalystSubFilter, setCatalystSubFilter] = useState('LIVE_TODAY');
             const [broadcastingNews, setBroadcastingNews] = useState(false);
 
             const fetchCatalysts = async (refresh = false) => {
