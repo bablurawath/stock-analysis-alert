@@ -581,6 +581,18 @@
                                     {item.strike_setup.decision_action}
                                 </p>
 
+                                {/* Historical Filing Time & 1-2 Hr Optimal Buy Window */}
+                                <div className="bg-gray-950/80 border border-gray-800 rounded-lg p-2 mb-2.5 text-[11px] flex items-center justify-between">
+                                    <div>
+                                        <span className="text-gray-400 block text-[9px] uppercase font-semibold">⏰ Historical Filing Habit</span>
+                                        <strong className="text-white font-mono text-[11px]">{item.strike_setup.typical_filing_time || '16:30 – 18:30 PM'}</strong>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-amber-400 font-bold block text-[9px] uppercase">🛒 Optimal Buy Window</span>
+                                        <strong className="text-emerald-300 font-mono text-[11px]">{item.strike_setup.optimal_buy_window || '02:45 PM – 03:15 PM'}</strong>
+                                    </div>
+                                </div>
+
                                 {item.strike_setup.decision_tag !== 'SKIP' && item.strike_setup.strikes_label && (
                                     <>
                                         <div className="flex items-center justify-between text-xs mb-2">

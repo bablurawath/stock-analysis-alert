@@ -192,6 +192,11 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
     is_serial_mover = consistency_5pct >= 2
     serial_badge = f"⭐ SERIAL 5% MOVER ({consistency_5pct}/4 Qtrs)" if is_serial_mover else ""
 
+    # Filing timing habit & optimal buy window
+    timing_habit = vol.get("timing_habit", "Post-Market (After 03:30 PM)")
+    typical_filing_time = vol.get("typical_filing_time", "16:30 – 18:30 PM (After Market Close)")
+    optimal_buy_window = vol.get("optimal_buy_window", "02:45 PM – 03:15 PM on Result Day (1 hr BEFORE market close)")
+
     # Quantitative Decision Engine
     # 1. SURESHOT: Historical move >= 4.8% AND edge >= 1.30x AND at least 2 quarters crossed breakeven
     # 2. POSITIVE: Edge >= 1.10x AND avg_abs >= 3.2%
@@ -255,6 +260,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'is_serial_mover': is_serial_mover,
             'consistency_5pct': consistency_5pct,
             'serial_badge': serial_badge,
+            'timing_habit': timing_habit,
+            'typical_filing_time': typical_filing_time,
+            'optimal_buy_window': optimal_buy_window,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
@@ -288,6 +296,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'is_serial_mover': is_serial_mover,
             'consistency_5pct': consistency_5pct,
             'serial_badge': serial_badge,
+            'timing_habit': timing_habit,
+            'typical_filing_time': typical_filing_time,
+            'optimal_buy_window': optimal_buy_window,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
@@ -321,6 +332,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'is_serial_mover': is_serial_mover,
             'consistency_5pct': consistency_5pct,
             'serial_badge': serial_badge,
+            'timing_habit': timing_habit,
+            'typical_filing_time': typical_filing_time,
+            'optimal_buy_window': optimal_buy_window,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
@@ -359,6 +373,9 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'is_serial_mover': is_serial_mover,
             'consistency_5pct': consistency_5pct,
             'serial_badge': serial_badge,
+            'timing_habit': timing_habit,
+            'typical_filing_time': typical_filing_time,
+            'optimal_buy_window': optimal_buy_window,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
@@ -474,6 +491,8 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
+                f"   ├ ⏰ Typical Filing: *{setup.get('typical_filing_time')}* ({setup.get('timing_habit')})\n"
+                f"   ├ 🛒 *Optimal Buy Time*: *{setup.get('optimal_buy_window')}*\n"
                 f"   ├ 📈 Edge Ratio: *{edge_x}x Positive Edge* (Avg Swing ±{avg_move}% vs Req ±{be_pct}%)\n"
                 f"   ├ 💰 Capital / Lot: *~₹{cap_req:,}* (Lot {lot_sz}) | Target (+60%): *+₹{tp_amt:,}* | SL (-35%): *-₹{sl_amt:,}*\n"
                 f"   └ 🎯 *Action*: {dec_action}\n"
@@ -1016,8 +1035,11 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
                         parts = an_dt.split()
                         if len(parts) >= 2:
                             time_str = parts[1]
+                            p["filing_time"] = time_str
                             hour = int(time_str.split(":")[0])
                             minute = int(time_str.split(":")[1])
+                            p["filing_hour"] = hour
+                            p["filing_minute"] = minute
                             # If filed between 9:15 AM and 3:30 PM -> Market Hours
                             if (hour < 15 or (hour == 15 and minute < 30)) and (hour > 9 or (hour == 9 and minute >= 15)):
                                 p["timing"] = "market_hours"
@@ -1410,6 +1432,23 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
     avg_hr2 = round(sum(abs(m.get("hr2_pct", 0)) for m in moves) / len(moves), 2)
     avg_hr4 = round(sum(abs(m.get("hr4_pct", 0)) for m in moves) / len(moves), 2)
 
+    # Determine company's historical filing schedule & exact optimal buy window
+    intraday_filings = [p for p in past_dates if p.get("timing") == "market_hours"]
+    post_market_filings = [p for p in past_dates if p.get("timing") == "post_market"]
+
+    if len(intraday_filings) > len(post_market_filings) and intraday_filings:
+        timing_habit = "Market Hours (Intraday)"
+        hours = [p.get("filing_hour", 13) for p in intraday_filings if p.get("filing_hour")]
+        avg_h = sum(hours) // len(hours) if hours else 13
+        typical_time = f"{avg_h:02d}:00 – {(avg_h+1):02d}:30 PM"
+        buy_start = max(9, avg_h - 2)
+        buy_end = max(10, avg_h - 1)
+        optimal_buy = f"{buy_start:02d}:30 – {buy_end:02d}:15 PM on Result Day (1–2 hrs BEFORE release)"
+    else:
+        timing_habit = "Post-Market (After 03:30 PM)"
+        typical_time = "16:30 – 18:30 PM (After Market Close)"
+        optimal_buy = "02:45 PM – 03:15 PM on Result Day (1 hr BEFORE market close)"
+
     vol_data = {
         "symbol": clean_sym,
         "avg_abs_move": abs_avg,
@@ -1417,6 +1456,9 @@ def get_historical_earnings_moves(symbol: str, session: requests.Session = None)
         "avg_hr1_move": avg_hr1,
         "avg_hr2_move": avg_hr2,
         "avg_hr4_move": avg_hr4,
+        "timing_habit": timing_habit,
+        "typical_filing_time": typical_time,
+        "optimal_buy_window": optimal_buy,
         "quarter_moves": moves
     }
     _EARNINGS_VOL_CACHE[clean_sym] = vol_data

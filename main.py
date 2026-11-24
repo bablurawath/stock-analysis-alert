@@ -182,6 +182,8 @@ def process_cycle(seen_ids: set):
                     if dec_tag != "SKIP" and setup.get("strikes_label"):
                         message_lines.extend([
                             f"• Setup: *{setup.get('strikes_label')}* ({setup.get('strategy')})",
+                            f"• ⏰ Typical Filing: *{setup.get('typical_filing_time')}* ({setup.get('timing_habit')})",
+                            f"• 🛒 *Optimal Buy Time*: *{setup.get('optimal_buy_window')}*",
                             f"• Capital / Lot: *~₹{setup.get('capital_required', 0):,}* (Lot {setup.get('lot_size', 0)})",
                             f"• Target (+60%): *+₹{setup.get('target_profit_amount', 0):,}* | SL (-35%): *-₹{setup.get('stop_loss_amount', 0):,}*",
                             f"• Timing Rule: _{setup.get('timing_rule')}_"
