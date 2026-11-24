@@ -542,60 +542,85 @@
                             </div>
                         )}
 
-                        {/* 4. Institutional Options Trading Setup (Hero Terminal Box) */}
-                        {item.strike_setup && item.strike_setup.strategy && (
-                            item.strike_setup.grade === 'AVOID' ? (
-                                <div className="mb-3 rounded-xl p-3 bg-rose-950/20 border border-rose-500/30">
-                                    <div className="flex items-center space-x-2 text-rose-300 font-bold text-xs">
-                                        <i className="fa-solid fa-triangle-exclamation text-rose-400"></i>
-                                        <span>AVOID (&lt;40% Win Rate) • No Trade Recommended</span>
-                                    </div>
-                                    <p className="text-[11px] text-gray-400 mt-1 leading-snug">
-                                        Historical swing (±{item.earnings_volatility ? item.earnings_volatility.avg_abs_move : 0}%) is too small to beat IV crush. Options buyers lose on both legs.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="mb-3 rounded-xl p-3 bg-gradient-to-b from-gray-900/90 to-gray-950 border border-emerald-500/30 shadow-inner">
-                                    <div className="flex items-center justify-between text-xs mb-2">
-                                        <span className="font-mono font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] flex items-center space-x-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                            <span>{item.strike_setup.grade_label}</span>
+                        {/* 4. Quantitative Trade Decision & Options Setup */}
+                        {item.strike_setup && (
+                            <div className={`mb-3 rounded-xl p-3 border shadow-inner ${
+                                item.strike_setup.decision_tag === 'SURESHOT' 
+                                    ? 'bg-gradient-to-b from-emerald-950/50 via-gray-900 to-gray-950 border-emerald-500/50 shadow-emerald-500/15' 
+                                    : (item.strike_setup.decision_tag === 'POSITIVE'
+                                        ? 'bg-gradient-to-b from-emerald-950/30 to-gray-950 border-emerald-500/30'
+                                        : (item.strike_setup.decision_tag === 'SKIP'
+                                            ? 'bg-gradient-to-b from-rose-950/40 to-gray-950 border-rose-500/40'
+                                            : 'bg-gradient-to-b from-amber-950/30 to-gray-950 border-amber-500/30'))
+                            }`}>
+                                {/* Decision Banner */}
+                                <div className="flex items-center justify-between text-xs mb-2 pb-2 border-b border-gray-800/80">
+                                    <span className={`font-mono font-black px-2.5 py-1 rounded-lg text-xs flex items-center space-x-1.5 border ${
+                                        item.strike_setup.decision_tag === 'SURESHOT' 
+                                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm shadow-emerald-500/30' 
+                                            : (item.strike_setup.decision_tag === 'POSITIVE'
+                                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                                : (item.strike_setup.decision_tag === 'SKIP'
+                                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'))
+                                    }`}>
+                                        <span className={`w-2 h-2 rounded-full ${item.strike_setup.decision_tag === 'SURESHOT' ? 'bg-emerald-400 animate-ping' : (item.strike_setup.decision_tag === 'SKIP' ? 'bg-rose-400' : 'bg-amber-400')}`}></span>
+                                        <span>{item.strike_setup.decision_badge}</span>
+                                    </span>
+                                    {item.strike_setup.is_serial_mover && (
+                                        <span className="font-mono font-bold text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-500/30 text-[10px]">
+                                            {item.strike_setup.serial_badge}
                                         </span>
-                                        <span className="font-mono font-extrabold text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/30 text-xs">
-                                            🎯 {item.strike_setup.strikes_label}
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-1.5 bg-gray-950/90 p-2 rounded-lg border border-gray-800 text-center my-2">
-                                        <div className="border-r border-gray-800/80 pr-1">
-                                            <span className="text-[10px] text-gray-500 block font-medium">💰 Capital / Lot</span>
-                                            <strong className="text-white font-mono text-xs block mt-0.5">₹{item.strike_setup.capital_required ? item.strike_setup.capital_required.toLocaleString() : '—'}</strong>
-                                            <span className="text-[9px] text-gray-500 font-mono block">Lot: {item.strike_setup.lot_size}</span>
-                                        </div>
-                                        <div className="border-r border-gray-800/80 px-1">
-                                            <span className="text-[10px] text-gray-500 block font-medium">🎯 Target (+60%)</span>
-                                            <strong className="text-emerald-400 font-mono text-xs block mt-0.5">+₹{item.strike_setup.target_profit_amount ? item.strike_setup.target_profit_amount.toLocaleString() : '—'}</strong>
-                                            <span className="text-[9px] text-emerald-500/70 font-mono block">Intraday exit</span>
-                                        </div>
-                                        <div className="pl-1">
-                                            <span className="text-[10px] text-gray-500 block font-medium">🛑 Stop-Loss (-35%)</span>
-                                            <strong className="text-rose-400 font-mono text-xs block mt-0.5">-₹{item.strike_setup.stop_loss_amount ? item.strike_setup.stop_loss_amount.toLocaleString() : '—'}</strong>
-                                            <span className="text-[9px] text-rose-500/70 font-mono block">Strict cut</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between text-[10px] text-gray-400 mt-1.5 px-0.5 font-medium">
-                                        <span>Breakeven: <strong className="text-amber-300 font-mono">±{item.strike_setup.breakeven_pct}%</strong> {item.strike_setup.edge_ratio && <span className="text-emerald-400 font-bold">({item.strike_setup.edge_ratio}x edge)</span>}</span>
-                                        <span>🛡️ <strong className="text-gray-300">Sizing:</strong> {item.strike_setup.account_guideline || '1 lot / ₹3L-5L account'}</span>
-                                    </div>
-                                    {item.strike_setup.timing_rule && (
-                                        <div className="text-[10px] text-indigo-300 mt-1.5 pt-1.5 border-t border-gray-800/80 px-0.5 flex items-center space-x-1 font-medium">
-                                            <i className="fa-solid fa-clock text-[9px] text-indigo-400"></i>
-                                            <span>{item.strike_setup.timing_rule}</span>
-                                        </div>
                                     )}
                                 </div>
-                            )
+
+                                {/* Action Recommendation */}
+                                <p className={`text-[11px] leading-snug font-medium mb-2.5 ${
+                                    item.strike_setup.decision_tag === 'SKIP' ? 'text-rose-200/90' : (item.strike_setup.decision_tag === 'SURESHOT' ? 'text-emerald-200/95' : 'text-gray-300')
+                                }`}>
+                                    {item.strike_setup.decision_action}
+                                </p>
+
+                                {item.strike_setup.decision_tag !== 'SKIP' && item.strike_setup.strikes_label && (
+                                    <>
+                                        <div className="flex items-center justify-between text-xs mb-2">
+                                            <span className="text-gray-400 text-[11px] font-medium">Recommended Strike Strategy:</span>
+                                            <span className="font-mono font-extrabold text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/30 text-xs">
+                                                🎯 {item.strike_setup.strikes_label}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-1.5 bg-gray-950/90 p-2 rounded-lg border border-gray-800 text-center my-2">
+                                            <div className="border-r border-gray-800/80 pr-1">
+                                                <span className="text-[10px] text-gray-500 block font-medium">💰 Capital / Lot</span>
+                                                <strong className="text-white font-mono text-xs block mt-0.5">₹{item.strike_setup.capital_required ? item.strike_setup.capital_required.toLocaleString() : '—'}</strong>
+                                                <span className="text-[9px] text-gray-500 font-mono block">Lot: {item.strike_setup.lot_size}</span>
+                                            </div>
+                                            <div className="border-r border-gray-800/80 px-1">
+                                                <span className="text-[10px] text-gray-500 block font-medium">🎯 Target (+60%)</span>
+                                                <strong className="text-emerald-400 font-mono text-xs block mt-0.5">+₹{item.strike_setup.target_profit_amount ? item.strike_setup.target_profit_amount.toLocaleString() : '—'}</strong>
+                                                <span className="text-[9px] text-emerald-500/70 font-mono block">Intraday exit</span>
+                                            </div>
+                                            <div className="pl-1">
+                                                <span className="text-[10px] text-gray-500 block font-medium">🛑 Stop-Loss (-35%)</span>
+                                                <strong className="text-rose-400 font-mono text-xs block mt-0.5">-₹{item.strike_setup.stop_loss_amount ? item.strike_setup.stop_loss_amount.toLocaleString() : '—'}</strong>
+                                                <span className="text-[9px] text-rose-500/70 font-mono block">Strict cut</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[10px] text-gray-400 mt-1.5 px-0.5 font-medium">
+                                            <span>Breakeven: <strong className="text-amber-300 font-mono">±{item.strike_setup.breakeven_pct}%</strong> {item.strike_setup.edge_ratio && <span className="text-emerald-400 font-bold">({item.strike_setup.edge_ratio}x edge)</span>}</span>
+                                            <span>🛡️ <strong className="text-gray-300">Sizing:</strong> {item.strike_setup.account_guideline || '1 lot / ₹3L-5L account'}</span>
+                                        </div>
+                                        {item.strike_setup.timing_rule && (
+                                            <div className="text-[10px] text-indigo-300 mt-1.5 pt-1.5 border-t border-gray-800/80 px-0.5 flex items-center space-x-1 font-medium">
+                                                <i className="fa-solid fa-clock text-[9px] text-indigo-400"></i>
+                                                <span>{item.strike_setup.timing_rule}</span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         )}
 
                         {/* 5. Historical 4-Quarter True Moves Strip */}
@@ -1667,6 +1692,19 @@
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono">
                                         {item.consistency_label}
                                     </span>
+                                    {item.strike_setup && item.strike_setup.decision_badge && (
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border flex items-center space-x-1 ${
+                                            item.strike_setup.decision_tag === 'SURESHOT'
+                                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/20 animate-pulse'
+                                                : (item.strike_setup.decision_tag === 'POSITIVE'
+                                                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                                    : (item.strike_setup.decision_tag === 'SKIP'
+                                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'))
+                                        }`}>
+                                            <span>{item.strike_setup.decision_pill || item.strike_setup.decision_badge}</span>
+                                        </span>
+                                    )}
                                 </div>
                                 <h3 className="text-sm font-bold text-white mt-1.5 leading-snug line-clamp-1">
                                     {item.company_name}

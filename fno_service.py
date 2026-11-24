@@ -187,6 +187,43 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
     straddle_edge = round(avg_abs / straddle_be, 2) if straddle_be > 0 else 1.0
     timing_rule = "Enter 09:25–09:35 AM • Peak exit 09:45–10:45 AM • Hard cut 11:30 AM"
 
+    # Serial Mover check (>= 2 quarters with >= 5.0% move)
+    consistency_5pct = sum(1 for q in q_moves if abs(q.get('pct', 0)) >= 5.0)
+    is_serial_mover = consistency_5pct >= 2
+    serial_badge = f"⭐ SERIAL 5% MOVER ({consistency_5pct}/4 Qtrs)" if is_serial_mover else ""
+
+    # Quantitative Decision Engine
+    # 1. SURESHOT: Historical move >= 4.8% AND edge >= 1.30x AND at least 2 quarters crossed breakeven
+    # 2. POSITIVE: Edge >= 1.10x AND avg_abs >= 3.2%
+    # 3. NEUTRAL: 0.90 <= Edge < 1.10
+    # 4. SKIP: Edge < 0.90 OR avg_abs < 3.0% (Classic IV crush trap)
+    best_edge = max(strangle_edge, straddle_edge)
+
+    if avg_abs >= 4.8 and best_edge >= 1.30 and (strangle_wins >= 2 or is_serial_mover):
+        dec_tag = "SURESHOT"
+        dec_badge = "🎯 SURESHOT HIGH EDGE (STRONG BUY)"
+        dec_pill = "🎯 SURESHOT BUY"
+        dec_color = "emerald"
+        dec_action = f"TAKE THE TRADE: Realized swing (±{avg_abs}%) heavily beats ±{strangle_be}% breakeven ({best_edge}x edge). High mathematical probability."
+    elif avg_abs >= 3.2 and best_edge >= 1.10 and (strangle_wins >= 2 or straddle_wins >= 2):
+        dec_tag = "POSITIVE"
+        dec_badge = "🟢 POSITIVE EDGE (BUY / FAVORABLE)"
+        dec_pill = "🟢 POSITIVE BUY"
+        dec_color = "emerald"
+        dec_action = f"FAVORABLE SETUP: Realized swing (±{avg_abs}%) exceeds straddle breakeven (±{strangle_be}%). Positive statistical expectancy."
+    elif 0.90 <= best_edge < 1.10:
+        dec_tag = "NEUTRAL"
+        dec_badge = "🟡 NEUTRAL / CAUTION (WAIT)"
+        dec_pill = "🟡 NEUTRAL"
+        dec_color = "amber"
+        dec_action = f"CAUTION: Average swing (±{avg_abs}%) roughly equals straddle cost (±{strangle_be}%). Limited edge ({best_edge}x); wait for post-open confirmation."
+    else:
+        dec_tag = "SKIP"
+        dec_badge = "🔴 SKIP IT (NEGATIVE EDGE / IV TRAP)"
+        dec_pill = "🔴 SKIP IT"
+        dec_color = "rose"
+        dec_action = f"SKIP NAKED OPTIONS: Expected move (±{avg_abs}%) is too low to beat ±{strangle_be}% breakeven. IV crush will wipe out both legs!"
+
     if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
         cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
@@ -210,6 +247,14 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'grade': 'HIGH_75_80',
             'grade_label': '75-80% WIN RATE',
             'color': 'emerald',
+            'decision_tag': dec_tag,
+            'decision_badge': dec_badge,
+            'decision_pill': dec_pill,
+            'decision_color': dec_color,
+            'decision_action': dec_action,
+            'is_serial_mover': is_serial_mover,
+            'consistency_5pct': consistency_5pct,
+            'serial_badge': serial_badge,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
@@ -235,6 +280,14 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'grade': 'HIGH_75',
             'grade_label': '75% WIN RATE',
             'color': 'emerald',
+            'decision_tag': dec_tag,
+            'decision_badge': dec_badge,
+            'decision_pill': dec_pill,
+            'decision_color': dec_color,
+            'decision_action': dec_action,
+            'is_serial_mover': is_serial_mover,
+            'consistency_5pct': consistency_5pct,
+            'serial_badge': serial_badge,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
@@ -260,6 +313,14 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'grade': 'MODERATE',
             'grade_label': '50-70% MODERATE',
             'color': 'amber',
+            'decision_tag': dec_tag,
+            'decision_badge': dec_badge,
+            'decision_pill': dec_pill,
+            'decision_color': dec_color,
+            'decision_action': dec_action,
+            'is_serial_mover': is_serial_mover,
+            'consistency_5pct': consistency_5pct,
+            'serial_badge': serial_badge,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
@@ -289,7 +350,15 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'account_guideline': 'Naked Straddle AVOIDED (IV crush trap). Use hedged Debit Spread to cap downside.',
             'grade': 'AVOID_NAKED',
             'grade_label': 'HEDGED SPREAD (LOW IV SWING)',
-            'color': 'amber',
+            'color': 'rose' if dec_tag == 'SKIP' else 'amber',
+            'decision_tag': dec_tag,
+            'decision_badge': dec_badge,
+            'decision_pill': dec_pill,
+            'decision_color': dec_color,
+            'decision_action': dec_action,
+            'is_serial_mover': is_serial_mover,
+            'consistency_5pct': consistency_5pct,
+            'serial_badge': serial_badge,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
@@ -375,20 +444,26 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         hr4_avg = vol.get("avg_hr4_move")
         timing_str = f" • ⏱️ 1st Hr: *±{hr1_avg}%* | 4th Hr: *±{hr4_avg}%*" if (hr1_avg and hr4_avg) else ""
 
-        # Options setup block
-        if setup.get("grade") == "AVOID":
+        # Options setup and Trade Decision block
+        dec_tag = setup.get("decision_tag", "NEUTRAL")
+        dec_badge = setup.get("decision_badge", "🟡 NEUTRAL / CAUTION")
+        dec_action = setup.get("decision_action", "")
+        edge_x = setup.get("edge_ratio", 1.0)
+        be_pct = setup.get("breakeven_pct", 2.5)
+        serial_str = f" • {setup.get('serial_badge')}" if setup.get('is_serial_mover') else ""
+
+        if dec_tag == "SKIP":
             card_text = (
                 f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
-                f"🛑 *Options Setup*: [🔴 *AVOID (<40% Win Rate)*]\n"
-                f"  ↳ Expected Swing: *±{avg_move}%* (Too muted to beat IV crush — buyers lose)\n"
+                f"🚦 *Trade Signal*: [{dec_badge}]\n"
+                f"   ├ ⚠️ Edge Ratio: *{edge_x}x Negative Edge* (Avg Swing ±{avg_move}% vs Req ±{be_pct}%)\n"
+                f"   └ 🛑 *Action*: {dec_action}\n"
                 f"📊 *Past 4Q*: {q_summary_line}"
             )
         else:
-            badge = "🟢 *75-80% HIGH WIN RATE*" if "75_80" in setup.get("grade", "") else ("🟢 *75% HIGH WIN RATE*" if "75" in setup.get("grade", "") else "🟡 *50-70% MODERATE*")
             s_label = setup.get("strikes_label", "N/A")
             strat = setup.get("strategy", "1-Strike OTM Strangle")
-            be_pct = setup.get("breakeven_pct", 2.5)
             cap_req = setup.get("capital_required", 0)
             lot_sz = setup.get("lot_size", 0)
             tp_amt = setup.get("target_profit_amount", 0)
@@ -397,11 +472,13 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
             card_text = (
                 f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
-                f"⚡ *Setup*: [{badge}] ➔ *{s_label}* ({strat})\n"
-                f"💰 *Execution*: Capital *~₹{cap_req:,}* (Lot {lot_sz}) | Breakeven: *±{be_pct}%*\n"
-                f"🎯 *Target (+60%)*: *+₹{tp_amt:,}* | 🛑 *Stop-Loss (-35%)*: *-₹{sl_amt:,}*\n"
+                f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
+                f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
+                f"   ├ 📈 Edge Ratio: *{edge_x}x Positive Edge* (Avg Swing ±{avg_move}% vs Req ±{be_pct}%)\n"
+                f"   ├ 💰 Capital / Lot: *~₹{cap_req:,}* (Lot {lot_sz}) | Target (+60%): *+₹{tp_amt:,}* | SL (-35%): *-₹{sl_amt:,}*\n"
+                f"   └ 🎯 *Action*: {dec_action}\n"
                 f"📊 *Past 4Q*: {q_summary_line} (Avg *±{avg_move}%*){timing_str}\n"
-                f"🛡️ *Sizing*: Trade 1 lot per ₹3L-₹5L account capital"
+                f"🛡️ *Sizing*: Risk max 2%–3% of account capital per trade"
             )
 
         lines.append(card_text)
@@ -658,7 +735,8 @@ def get_fno_5pct_movers_data(force_refresh: bool = False) -> Dict[str, Any]:
         consistency_5pct = sum(1 for q in q_moves if abs(q.get("pct", 0.0)) >= 5.0)
         consistency_label = f"⭐ {consistency_5pct}/{len(q_moves)} Qtrs ≥5%" if consistency_5pct >= 2 else f"⚡ Breakout ({consistency_5pct}/{len(q_moves)} Qtrs)"
 
-        # Option setup takeaway
+        # Option setup takeaway and quantitative decision setup
+        strike_setup = get_fno_strike_setup(base_spot, vol, sym)
         if is_bullish:
             option_play = f"🚀 {atm_strike} CE exploded +{max_ce_pct:.1f}% (₹{base_ce:.1f} ➔ ₹{max_ce_px:.1f})"
             play_type = "BULLISH_RUNNER"
@@ -692,6 +770,7 @@ def get_fno_5pct_movers_data(force_refresh: bool = False) -> Dict[str, Any]:
             "consistency_5pct": consistency_5pct,
             "consistency_label": consistency_label,
             "is_serial_mover": consistency_5pct >= 2,
+            "strike_setup": strike_setup,
             "quarter_moves": [
                 {
                     "quarter": q.get("quarter", f"Q{idx+1}"),
