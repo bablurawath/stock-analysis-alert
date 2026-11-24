@@ -27,6 +27,7 @@ from ai_engine import analyze_document
 from technicals import get_stock_technicals
 from database import save_announcement
 from telegram_client import send_telegram_alert
+from fno_service import NSE_FNO_SYMBOLS, get_historical_earnings_moves, get_fno_strike_setup
 
 def load_seen_ids() -> set:
     if SEEN_FILE.exists():
@@ -65,8 +66,14 @@ def process_cycle(seen_ids: set):
         seen_ids.add(news_id)
         save_seen_ids(seen_ids)
 
-        # Check if matched with user watchlist
+        # Check if matched with user watchlist OR if it's an F&O stock result
         is_matched = is_in_watchlist(symbol, company, DEFAULT_WATCHLIST)
+        is_fno = symbol.strip().upper() in NSE_FNO_SYMBOLS
+        is_fno_result = is_fno and any(w in headline.lower() for w in [
+            "financial result", "financial results", "outcome of board meeting",
+            "un-audited", "unaudited", "audited financial", "quarterly result", "dividend",
+            "board meeting outcome"
+        ])
 
         # Fetch technicals for the stock
         tech = get_stock_technicals(symbol)
@@ -139,8 +146,8 @@ def process_cycle(seen_ids: set):
             "whale_note": whale_note
         })
 
-        # Send Telegram alert if matched to watchlist
-        if is_matched:
+        # Send Telegram alert if matched to watchlist OR if an F&O stock result/action
+        if is_matched or is_fno_result:
             print(f"📤 Broadcasting alert for {symbol} to Telegram channel...")
             message_lines = [
                 f"⚡ *{APP_TITLE}: {symbol}*",
@@ -153,13 +160,43 @@ def process_cycle(seen_ids: set):
                 ""
             ]
 
+            # If F&O stock, append quantitative options trade decision & volatility setup
+            if is_fno:
+                try:
+                    vol = get_historical_earnings_moves(symbol) or {}
+                    setup = get_fno_strike_setup(current_price, vol, symbol) or {}
+                    dec_tag = setup.get("decision_tag", "NEUTRAL")
+                    dec_badge = setup.get("decision_badge", "🟡 NEUTRAL")
+                    dec_action = setup.get("decision_action", "")
+                    edge_x = setup.get("edge_ratio", 1.0)
+                    be_pct = setup.get("breakeven_pct", 2.5)
+                    serial_str = f" • {setup.get('serial_badge')}" if setup.get('is_serial_mover') else ""
+
+                    message_lines.extend([
+                        "🎯 *2. QUANTITATIVE OPTIONS RADAR (TRADE DECISION):*",
+                        f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}",
+                        f"• Volatility Edge: *{edge_x}x {'Positive' if edge_x >= 1.0 else 'Negative'} Edge* (Avg Swing ±{vol.get('avg_abs_move', 2.0)}% vs Req ±{be_pct}%)",
+                        f"• 💡 Action: {dec_action}"
+                    ])
+
+                    if dec_tag != "SKIP" and setup.get("strikes_label"):
+                        message_lines.extend([
+                            f"• Setup: *{setup.get('strikes_label')}* ({setup.get('strategy')})",
+                            f"• Capital / Lot: *~₹{setup.get('capital_required', 0):,}* (Lot {setup.get('lot_size', 0)})",
+                            f"• Target (+60%): *+₹{setup.get('target_profit_amount', 0):,}* | SL (-35%): *-₹{setup.get('stop_loss_amount', 0):,}*",
+                            f"• Timing Rule: _{setup.get('timing_rule')}_"
+                        ])
+                    message_lines.append("")
+                except Exception as e:
+                    print(f"[FNO Alert Warning] Error computing F&O strike setup for {symbol}: {e}")
+
             if tech:
                 message_lines.extend([
-                    "📈 *2. TECHNICAL SETUP:*",
+                    "📈 *3. TECHNICAL SETUP:*",
                     f"• RSI (14): *{rsi_val}* ({rsi_badge})",
                     f"• Key Support (S1): ₹{s1:,.2f} | Resistance (R1): ₹{r1:,.2f}",
                     "",
-                    "🏦 *3. SMART MONEY INSIGHT:*",
+                    "🏦 *4. SMART MONEY INSIGHT:*",
                     f"• {smart_money}",
                     ""
                 ])
