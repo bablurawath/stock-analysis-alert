@@ -606,6 +606,50 @@
                                     )}
                                 </div>
 
+                                {/* Volatility Mispricing Meter (Edge 1: Undervalued Straddles Filter) */}
+                                {item.strike_setup.mispricing_meter && (
+                                    <div className={`rounded-xl p-2.5 mb-2.5 border text-xs ${
+                                        item.strike_setup.mispricing_meter.status === 'DEEPLY_UNDERVALUED'
+                                            ? 'bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-gray-950 border-emerald-500/50 shadow-sm shadow-emerald-500/20'
+                                            : (item.strike_setup.mispricing_meter.status === 'MODERATELY_UNDERVALUED'
+                                                ? 'bg-gradient-to-r from-emerald-950/40 to-gray-950 border-emerald-500/30'
+                                                : (item.strike_setup.mispricing_meter.status === 'OVERPRICED'
+                                                    ? 'bg-gradient-to-r from-rose-950/50 to-gray-950 border-rose-500/40'
+                                                    : 'bg-gray-950/80 border-gray-800'))
+                                    }`}>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center space-x-1">
+                                                <span>💎 Volatility Pricing Filter</span>
+                                            </span>
+                                            <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded-md border ${
+                                                item.strike_setup.mispricing_meter.color === 'emerald'
+                                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                    : (item.strike_setup.mispricing_meter.color === 'rose'
+                                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30')
+                                            }`}>
+                                                {item.strike_setup.mispricing_meter.badge}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 bg-gray-900/80 rounded-lg p-2 border border-gray-800/80 text-center mb-1.5">
+                                            <div className="border-r border-gray-800/80 pr-1">
+                                                <span className="text-[9px] text-gray-400 block uppercase font-medium">Market Straddle Price</span>
+                                                <span className="text-white font-mono font-extrabold text-xs">±{item.strike_setup.mispricing_meter.market_expected_move_pct}%</span>
+                                                <span className="text-[9px] text-gray-500 block font-mono">Priced-in Swing</span>
+                                            </div>
+                                            <div className="pl-1">
+                                                <span className="text-[9px] text-gray-400 block uppercase font-medium">Historical Realized Swing</span>
+                                                <span className="text-amber-300 font-mono font-extrabold text-xs">±{item.strike_setup.mispricing_meter.historical_realized_move_pct}%</span>
+                                                <span className="text-[9px] text-emerald-400 font-mono block font-bold">+{item.strike_setup.mispricing_meter.ratio}x Vol Advantage</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-[10px] text-gray-300 leading-snug font-medium flex items-start space-x-1.5">
+                                            <i className="fa-solid fa-calculator text-[10px] text-indigo-400 mt-0.5 flex-shrink-0"></i>
+                                            <span>{item.strike_setup.mispricing_meter.verdict}</span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {item.strike_setup.decision_tag !== 'SKIP' && item.strike_setup.strikes_label && (
                                     <>
                                         <div className="flex items-center justify-between text-xs mb-2">
@@ -1728,6 +1772,17 @@
                                                         : 'bg-amber-500/20 text-amber-300 border-amber-500/30'))
                                         }`}>
                                             <span>{item.strike_setup.decision_pill || item.strike_setup.decision_badge}</span>
+                                        </span>
+                                    )}
+                                    {item.strike_setup && item.strike_setup.mispricing_meter && (
+                                        <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded-md border ${
+                                            item.strike_setup.mispricing_meter.color === 'emerald'
+                                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                : (item.strike_setup.mispricing_meter.color === 'rose'
+                                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30')
+                                        }`}>
+                                            {item.strike_setup.mispricing_meter.pill}
                                         </span>
                                     )}
                                 </div>

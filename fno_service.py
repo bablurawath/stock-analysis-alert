@@ -232,6 +232,53 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
         dec_color = "rose"
         dec_action = f"SKIP NAKED OPTIONS: Expected move (±{avg_abs}%) is too low to beat ±{strangle_be}% breakeven. IV crush will wipe out both legs!"
 
+    # Volatility Mispricing Meter (VRP Inversion Engine)
+    # Compares Market Expected Move (Strangle Breakeven %) vs Historical Realized Move (avg_abs %)
+    chosen_be = strangle_be if strangle_edge >= straddle_edge else straddle_be
+    mispricing_ratio = round(avg_abs / chosen_be, 2) if chosen_be > 0 else 1.0
+
+    if mispricing_ratio >= 1.35:
+        discount_pct = round(((avg_abs - chosen_be) / avg_abs) * 100)
+        pricing_status = "DEEPLY_UNDERVALUED"
+        pricing_badge = f"🔥 {discount_pct}% UNDERVALUED (CHEAP OPTIONS)"
+        pricing_pill = f"🔥 {discount_pct}% DISCOUNT"
+        pricing_color = "emerald"
+        pricing_verdict = f"Options are priced {discount_pct}% BELOW historical realized swings. Market severely underprices volatility! High buyer edge."
+    elif mispricing_ratio >= 1.10:
+        discount_pct = round(((avg_abs - chosen_be) / avg_abs) * 100)
+        pricing_status = "MODERATELY_UNDERVALUED"
+        pricing_badge = f"🟢 {discount_pct}% UNDERVALUED (DISCOUNTED)"
+        pricing_pill = f"🟢 {discount_pct}% DISCOUNT"
+        pricing_color = "emerald"
+        pricing_verdict = f"Options offer a {discount_pct}% statistical discount relative to historical swings. Favorable buying conditions."
+    elif mispricing_ratio >= 0.90:
+        discount_pct = 0
+        pricing_status = "FAIR_VALUE"
+        pricing_badge = "🟡 FAIR VALUE (ZERO DISCOUNT)"
+        pricing_pill = "🟡 FAIR VALUE"
+        pricing_color = "amber"
+        pricing_verdict = f"Options are priced at parity with historical moves (±{chosen_be}% vs ±{avg_abs}%). Minimal statistical edge."
+    else:
+        discount_pct = 0
+        overpriced_pct = round(((chosen_be - avg_abs) / avg_abs) * 100) if avg_abs > 0 else 50
+        pricing_status = "OVERPRICED"
+        pricing_badge = f"🔴 {overpriced_pct}% OVERPRICED (EXPENSIVE TRAP)"
+        pricing_pill = f"🔴 {overpriced_pct}% OVERPRICED"
+        pricing_color = "rose"
+        pricing_verdict = f"Options are {overpriced_pct}% OVERPRICED! Straddle demands ±{chosen_be}%, but stock only delivers ±{avg_abs}%. Avoid buying!"
+
+    mispricing_meter = {
+        "status": pricing_status,
+        "badge": pricing_badge,
+        "pill": pricing_pill,
+        "color": pricing_color,
+        "ratio": mispricing_ratio,
+        "discount_pct": discount_pct,
+        "market_expected_move_pct": chosen_be,
+        "historical_realized_move_pct": avg_abs,
+        "verdict": pricing_verdict
+    }
+
     if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
         cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
@@ -269,6 +316,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_consistency_label': timing_consistency_label,
             'q_filing_summary': q_filing_summary,
             'timing_note': timing_note,
+            'mispricing_meter': mispricing_meter,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
@@ -308,6 +356,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_consistency_label': timing_consistency_label,
             'q_filing_summary': q_filing_summary,
             'timing_note': timing_note,
+            'mispricing_meter': mispricing_meter,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
@@ -347,6 +396,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_consistency_label': timing_consistency_label,
             'q_filing_summary': q_filing_summary,
             'timing_note': timing_note,
+            'mispricing_meter': mispricing_meter,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
@@ -391,6 +441,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "") -> D
             'timing_consistency_label': timing_consistency_label,
             'q_filing_summary': q_filing_summary,
             'timing_note': timing_note,
+            'mispricing_meter': mispricing_meter,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
@@ -483,6 +534,11 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         edge_x = setup.get("edge_ratio", 1.0)
         be_pct = setup.get("breakeven_pct", 2.5)
         serial_str = f" • {setup.get('serial_badge')}" if setup.get('is_serial_mover') else ""
+        mis = setup.get("mispricing_meter", {})
+        mis_badge = mis.get("badge", "FAIR VALUE")
+        mis_ratio = mis.get("ratio", 1.0)
+        mis_expected = mis.get("market_expected_move_pct", be_pct)
+        mis_realized = mis.get("historical_realized_move_pct", avg_move)
 
         if dec_tag == "SKIP":
             card_text = (
@@ -490,6 +546,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]\n"
                 f"   ├ ⚠️ Edge Ratio: *{edge_x}x Negative Edge* (Avg Swing ±{avg_move}% vs Req ±{be_pct}%)\n"
+                f"   ├ 💎 Volatility Pricing: *{mis_badge}*\n"
                 f"   └ 🛑 *Action*: {dec_action}\n"
                 f"📊 *Past 4Q*: {q_summary_line}"
             )
@@ -506,6 +563,8 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
+                f"   ├ 💎 Volatility Pricing: *{mis_badge}* (Ratio: *{mis_ratio}x*)\n"
+                f"   ├ 📊 Expected vs Realized: Straddle *±{mis_expected}%* vs Realized *±{mis_realized}%*\n"
                 f"   ├ ⏰ Filing Habit (5Q Verified): *{setup.get('typical_filing_time')}* ({setup.get('timing_consistency_label')})\n"
                 f"   ├ 📅 5Q Filing Tape: _{setup.get('q_filing_summary')}_\n"
                 f"   ├ 🛒 *Optimal Buy Time*: *{setup.get('optimal_buy_window')}*\n"

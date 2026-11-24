@@ -172,9 +172,17 @@ def process_cycle(seen_ids: set):
                     be_pct = setup.get("breakeven_pct", 2.5)
                     serial_str = f" • {setup.get('serial_badge')}" if setup.get('is_serial_mover') else ""
 
+                    mis = setup.get("mispricing_meter", {})
+                    mis_badge = mis.get("badge", "FAIR VALUE")
+                    mis_ratio = mis.get("ratio", 1.0)
+                    mis_expected = mis.get("market_expected_move_pct", be_pct)
+                    mis_realized = mis.get("historical_realized_move_pct", vol.get("avg_abs_move", 2.0))
+
                     message_lines.extend([
                         "🎯 *2. QUANTITATIVE OPTIONS RADAR (TRADE DECISION):*",
                         f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}",
+                        f"• 💎 Volatility Pricing: *{mis_badge}* (Ratio: *{mis_ratio}x*)",
+                        f"• 📊 Straddle Expectation: *±{mis_expected}%* vs Realized Swing: *±{mis_realized}%*",
                         f"• Volatility Edge: *{edge_x}x {'Positive' if edge_x >= 1.0 else 'Negative'} Edge* (Avg Swing ±{vol.get('avg_abs_move', 2.0)}% vs Req ±{be_pct}%)",
                         f"• 💡 Action: {dec_action}"
                     ])
