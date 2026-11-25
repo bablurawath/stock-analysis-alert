@@ -538,6 +538,17 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
     # IV, HV30, IV Percentile (IVP%), and IV-Based Breakeven Point (IVBP%)
     iv_analytics = get_iv_analytics(symbol, cmp, chosen_be, avg_abs)
 
+    # 15-Second Live Broker Breakeven Check thresholds
+    max_parity_prem = round(cmp * (avg_abs / 100.0), 1)
+    safe_edge_prem = round(max_parity_prem * 0.80, 1)
+    live_broker_check = {
+        "max_parity_prem": max_parity_prem,
+        "safe_edge_prem": safe_edge_prem,
+        "avg_4q_swing_pct": avg_abs,
+        "cmp": round(cmp, 2),
+        "rule_text": f"Check live CE+PE Ask on broker: TAKE if <= ₹{safe_edge_prem} | SKIP if > ₹{max_parity_prem} (Live BE% > ±{avg_abs}%)"
+    }
+
     if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
         cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
         return {
@@ -578,6 +589,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'live_broker_check': live_broker_check,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
@@ -620,6 +632,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'live_broker_check': live_broker_check,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
@@ -662,6 +675,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'live_broker_check': live_broker_check,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
@@ -709,6 +723,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'live_broker_check': live_broker_check,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
@@ -816,6 +831,9 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         hv30_val = iv_data.get("hv30_pct", 25.0)
         ivp_val = iv_data.get("ivp_pct", 50)
         ivbp_val = iv_data.get("ivbp_pct", be_pct)
+        lbc = setup.get("live_broker_check", {})
+        lbc_safe = lbc.get("safe_edge_prem", 0)
+        lbc_max = lbc.get("max_parity_prem", 0)
 
         if dec_tag == "SKIP":
             card_text = (
@@ -842,6 +860,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
+                f"   ├ 🧮 *15-Sec Broker Check*: TAKE if live CE+PE ≤ *₹{lbc_safe}* | SKIP if > *₹{lbc_max}* (±{avg_move}% limit)\n"
                 f"   ├ 📉 *IV & IVBP*: *IV {iv_pct_val}%* (HV30 {hv30_val}%) | *IVP {ivp_val}%* | *IVBP ±{ivbp_val}%*\n"
                 f"   ├ 🏛️ Institutional PCR: *{pcr_badge}*\n"
                 f"   ├ 🛡️ Smart Money Floor: *₹{floor_st:,.0f}* (Max Put OI — Won't drop below)\n"

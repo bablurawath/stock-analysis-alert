@@ -459,6 +459,9 @@
         // 3. ULTRA-SIMPLE STOCK CARD WITH DELIVERY & WHALE ACTIVITY
         // ====================================================================
         function StockCard({ item, onSelect }) {
+            const [liveCeAsk, setLiveCeAsk] = useState('');
+            const [livePeAsk, setLivePeAsk] = useState('');
+
             const badgeClass = item.sentiment === 'BULLISH'
                 ? 'badge-bullish'
                 : (item.sentiment === 'BEARISH' ? 'badge-bearish' : 'badge-neutral');
@@ -785,6 +788,58 @@
                                                 <span>{item.strike_setup.timing_rule}</span>
                                             </div>
                                         )}
+
+                                        {/* 15-Second Live Broker Breakeven Check */}
+                                        {item.strike_setup.live_broker_check && (() => {
+                                            const lbc = item.strike_setup.live_broker_check;
+                                            const ceNum = parseFloat(liveCeAsk);
+                                            const peNum = parseFloat(livePeAsk);
+                                            const hasBoth = !isNaN(ceNum) && !isNaN(peNum) && ceNum > 0 && peNum > 0 && lbc.cmp > 0;
+                                            const liveSum = hasBoth ? (ceNum + peNum) : 0;
+                                            const liveBePct = hasBoth ? ((liveSum / lbc.cmp) * 100) : 0;
+                                            const isOver = hasBoth && liveBePct > lbc.avg_4q_swing_pct;
+                                            const liveEdge = (hasBoth && liveBePct > 0) ? (lbc.avg_4q_swing_pct / liveBePct).toFixed(2) : null;
+
+                                            return (
+                                                <div className="mt-2 pt-2 border-t border-gray-800/80 bg-gray-950/90 rounded-lg p-2 border border-gray-800/80">
+                                                    <div className="flex items-center justify-between text-[10px] mb-1.5">
+                                                        <span className="font-bold text-amber-300">🧮 15-Sec Live Broker Check</span>
+                                                        <span className="font-mono text-gray-400">
+                                                            TAKE ≤ <strong className="text-emerald-300">₹{lbc.safe_edge_prem}</strong> | SKIP &gt; <strong className="text-rose-300">₹{lbc.max_parity_prem}</strong>
+                                                        </span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                        <input
+                                                            type="number"
+                                                            step="0.1"
+                                                            placeholder="Live CE Ask ₹"
+                                                            value={liveCeAsk}
+                                                            onChange={(e) => setLiveCeAsk(e.target.value)}
+                                                            className="w-full px-2 py-1 text-[11px] font-mono bg-gray-900 border border-gray-700 rounded text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            step="0.1"
+                                                            placeholder="Live PE Ask ₹"
+                                                            value={livePeAsk}
+                                                            onChange={(e) => setLivePeAsk(e.target.value)}
+                                                            className="w-full px-2 py-1 text-[11px] font-mono bg-gray-900 border border-gray-700 rounded text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                    {hasBoth && (
+                                                        <div className={`mt-1.5 px-2 py-1 rounded text-[10px] font-mono font-bold text-center border ${
+                                                            isOver
+                                                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                        }`}>
+                                                            {isOver
+                                                                ? `🛑 SKIP TRADE! Live BE ±${liveBePct.toFixed(2)}% > 4Q Avg ±${lbc.avg_4q_swing_pct}%`
+                                                                : `✅ TAKE TRADE! Live BE ±${liveBePct.toFixed(2)}% (${liveEdge}x edge vs ±${lbc.avg_4q_swing_pct}%)`}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </>
                                 )}
                             </div>
