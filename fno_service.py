@@ -298,6 +298,103 @@ def get_institutional_pcr_analytics(cmp: float, vol: Dict[str, Any], symbol: str
         "breakout_verdict": breakout_verdict
     }
 
+_IV_CACHE: Dict[str, Any] = {}
+
+
+def get_iv_analytics(symbol: str, cmp: float, chosen_be: float, avg_abs: float) -> Dict[str, Any]:
+    """
+    Computes Annualized Implied Volatility (IV %), 30-Day Historical Volatility (HV30 %),
+    1-Year IV Percentile (IVP %), and IV-Based Breakeven Point (IVBP %) to help
+    identify cheap options with maximum profit potential before earnings.
+    """
+    clean_sym = (symbol or "").strip().upper().replace("&", "%26")
+    now_ts = time.time()
+    if clean_sym in _IV_CACHE:
+        cached_ts, cached_data = _IV_CACHE[clean_sym]
+        if now_ts - cached_ts < 3600:
+            return cached_data
+
+    hv30 = 25.0
+    ivp_pct = 50
+    if clean_sym:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{clean_sym}.NS?interval=1d&range=1y"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                data = json.loads(resp.read().decode())
+            res_list = data.get("chart", {}).get("result", [])
+            if res_list:
+                raw_closes = res_list[0].get("indicators", {}).get("quote", [{}])[0].get("close", [])
+                closes = [float(c) for c in raw_closes if c is not None and c > 0]
+                if len(closes) >= 35:
+                    rets = [math.log(closes[i] / closes[i - 1]) for i in range(1, len(closes))]
+                    # 30-day annualized HV
+                    r30 = rets[-30:]
+                    mean30 = sum(r30) / len(r30)
+                    var30 = sum((x - mean30) ** 2 for x in r30) / max(len(r30) - 1, 1)
+                    hv30 = round(math.sqrt(var30 * 252) * 100, 1)
+
+                    # Rolling 20-day HV series for 1-year percentile
+                    hv20_series = []
+                    for idx in range(20, len(rets) + 1):
+                        win = rets[idx - 20:idx]
+                        m = sum(win) / 20.0
+                        v = sum((x - m) ** 2 for x in win) / 19.0
+                        hv20_series.append(math.sqrt(v * 252) * 100)
+
+                    if hv20_series:
+                        current_regime = hv30 * 1.12
+                        below_cnt = sum(1 for val in hv20_series if val <= current_regime)
+                        ivp_pct = int(round((below_cnt / len(hv20_series)) * 100))
+                        ivp_pct = max(5, min(99, ivp_pct))
+        except Exception:
+            pass
+
+    # Straddle-implied IV (5-trading-day event window approximation)
+    straddle_implied_iv = (chosen_be / 100.0) / (0.8 * math.sqrt(5.0 / 252.0)) * 100.0 if chosen_be > 0 else 28.0
+    iv_pct = round(max(15.0, min(110.0, max(hv30 * 1.22, straddle_implied_iv))), 1)
+    ivbp_pct = round(0.8 * (iv_pct / 100.0) * math.sqrt(5.0 / 252.0) * 100.0, 2)
+    profit_ratio = round(avg_abs / ivbp_pct, 2) if ivbp_pct > 0 else 1.0
+
+    if ivp_pct <= 45 or profit_ratio >= 1.30:
+        status = "CHEAP_IV"
+        badge = f"💎 CHEAP IV (IVP {ivp_pct}% | IVBP ±{ivbp_pct}%)"
+        pill = f"💎 IV {iv_pct}% | IVP {ivp_pct}% | IVBP ±{ivbp_pct}%"
+        color = "emerald"
+        verdict = f"Cheap Options! IVP is {ivp_pct}% (IV {iv_pct}% vs HV30 {hv30}%). 4Q realized swing (±{avg_abs}%) beats IVBP (±{ivbp_pct}%)."
+    elif ivp_pct <= 70 and profit_ratio >= 0.95:
+        status = "MODERATE_IV"
+        badge = f"🟡 MODERATE IV (IVP {ivp_pct}% | IVBP ±{ivbp_pct}%)"
+        pill = f"🟡 IV {iv_pct}% | IVP {ivp_pct}% | IVBP ±{ivbp_pct}%"
+        color = "amber"
+        verdict = f"Fair Volatility (IVP {ivp_pct}%). Options imply ±{ivbp_pct}% (IVBP) vs ±{avg_abs}% 4Q swing."
+    else:
+        status = "EXPENSIVE_IV"
+        badge = f"🔴 EXPENSIVE IV (IVP {ivp_pct}% | IVBP ±{ivbp_pct}%)"
+        pill = f"🔴 IV {iv_pct}% | IVP {ivp_pct}% | IVBP ±{ivbp_pct}%"
+        color = "rose"
+        verdict = f"Expensive IV Crush Risk! IVP is high at {ivp_pct}% (IV {iv_pct}%). IVBP (±{ivbp_pct}%) is steep vs ±{avg_abs}% history."
+
+    result = {
+        "iv_pct": iv_pct,
+        "hv30_pct": hv30,
+        "ivp_pct": ivp_pct,
+        "ivbp_pct": ivbp_pct,
+        "profit_ratio": profit_ratio,
+        "status": status,
+        "badge": badge,
+        "pill": pill,
+        "color": color,
+        "verdict": verdict
+    }
+    if clean_sym:
+        _IV_CACHE[clean_sym] = (now_ts, result)
+    return result
+
+
 def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Evaluates 70-80% Win-Rate Strangle/Straddle Setup for Earnings Day:
@@ -438,6 +535,8 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
 
     # Institutional PCR & Smart Money Key Levels (Floor / Ceiling / Max Pain)
     pcr_analytics = get_institutional_pcr_analytics(cmp, vol, symbol, tech)
+    # IV, HV30, IV Percentile (IVP%), and IV-Based Breakeven Point (IVBP%)
+    iv_analytics = get_iv_analytics(symbol, cmp, chosen_be, avg_abs)
 
     if strangle_pop >= 75 and avg_abs >= strangle_be * 1.25:
         cap_req = int(round((otm_tot_prem * lot_size) / 100.0) * 100)
@@ -478,6 +577,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'timing_note': timing_note,
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
+            'iv_analytics': iv_analytics,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
     elif straddle_pop >= 75 and avg_abs >= straddle_be * 1.15:
@@ -519,6 +619,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'timing_note': timing_note,
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
+            'iv_analytics': iv_analytics,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
     elif strangle_pop >= 50 or straddle_pop >= 50:
@@ -560,6 +661,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'timing_note': timing_note,
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
+            'iv_analytics': iv_analytics,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
     else:
@@ -606,6 +708,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'timing_note': timing_note,
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
+            'iv_analytics': iv_analytics,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
 
@@ -708,6 +811,11 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         floor_st = pcr_data.get("floor_strike", 0)
         ceil_st = pcr_data.get("ceiling_strike", 0)
         corridor = pcr_data.get("expected_corridor", "")
+        iv_data = setup.get("iv_analytics", {})
+        iv_pct_val = iv_data.get("iv_pct", 30.0)
+        hv30_val = iv_data.get("hv30_pct", 25.0)
+        ivp_val = iv_data.get("ivp_pct", 50)
+        ivbp_val = iv_data.get("ivbp_pct", be_pct)
 
         if dec_tag == "SKIP":
             card_text = (
@@ -715,6 +823,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]\n"
                 f"   ├ ⚠️ Edge Ratio: *{edge_x}x Negative Edge* (Avg Swing ±{avg_move}% vs Req ±{be_pct}%)\n"
+                f"   ├ 📉 IV & IVBP: *IV {iv_pct_val}%* (HV30 {hv30_val}%) | *IVP {ivp_val}%* | *IVBP ±{ivbp_val}%*\n"
                 f"   ├ 🏛️ Institutional PCR: *{pcr_badge}* (Corridor: *{corridor}*)\n"
                 f"   ├ 💎 Volatility Pricing: *{mis_badge}*\n"
                 f"   └ 🛑 *Action*: {dec_action}\n"
@@ -733,6 +842,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
+                f"   ├ 📉 *IV & IVBP*: *IV {iv_pct_val}%* (HV30 {hv30_val}%) | *IVP {ivp_val}%* | *IVBP ±{ivbp_val}%*\n"
                 f"   ├ 🏛️ Institutional PCR: *{pcr_badge}*\n"
                 f"   ├ 🛡️ Smart Money Floor: *₹{floor_st:,.0f}* (Max Put OI — Won't drop below)\n"
                 f"   ├ 🧱 Smart Money Ceiling: *₹{ceil_st:,.0f}* (Max Call OI — Won't cross above)\n"

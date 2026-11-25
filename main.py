@@ -183,10 +183,12 @@ def process_cycle(seen_ids: set):
                     floor_st = pcr_data.get("floor_strike", 0)
                     ceil_st = pcr_data.get("ceiling_strike", 0)
                     corridor = pcr_data.get("expected_corridor", "")
+                    iv_data = setup.get("iv_analytics", {})
 
                     message_lines.extend([
                         "🎯 *2. QUANTITATIVE OPTIONS RADAR (TRADE DECISION):*",
                         f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}",
+                        f"• 📉 *IV & IVBP*: *IV {iv_data.get('iv_pct', 30.0)}%* (HV30 {iv_data.get('hv30_pct', 25.0)}%) | *IVP {iv_data.get('ivp_pct', 50)}%* | *IVBP ±{iv_data.get('ivbp_pct', be_pct)}%*",
                         f"• 🏛️ Institutional PCR: *{pcr_badge}*",
                         f"• 🛡️ Smart Money Floor: *₹{floor_st:,.0f}* (Max Put OI — Won't drop below)",
                         f"• 🧱 Smart Money Ceiling: *₹{ceil_st:,.0f}* (Max Call OI — Won't cross above)",
