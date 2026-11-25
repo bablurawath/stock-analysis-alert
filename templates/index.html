@@ -799,6 +799,8 @@
                                             const liveBePct = hasBoth ? ((liveSum / lbc.cmp) * 100) : 0;
                                             const isOver = hasBoth && liveBePct > lbc.avg_4q_swing_pct;
                                             const liveEdge = (hasBoth && liveBePct > 0) ? (lbc.avg_4q_swing_pct / liveBePct).toFixed(2) : null;
+                                            const skewRatio = hasBoth ? (Math.max(ceNum, peNum) / Math.min(ceNum, peNum)) : 1;
+                                            const costlierLeg = ceNum > peNum ? 'CE 1 strike UP' : 'PE 1 strike DOWN';
 
                                             return (
                                                 <div className="mt-2 pt-2 border-t border-gray-800/80 bg-gray-950/90 rounded-lg p-2 border border-gray-800/80">
@@ -827,14 +829,29 @@
                                                         />
                                                     </div>
                                                     {hasBoth && (
-                                                        <div className={`mt-1.5 px-2 py-1 rounded text-[10px] font-mono font-bold text-center border ${
-                                                            isOver
-                                                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                                                                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                                        }`}>
-                                                            {isOver
-                                                                ? `🛑 SKIP TRADE! Live BE ±${liveBePct.toFixed(2)}% > 4Q Avg ±${lbc.avg_4q_swing_pct}%`
-                                                                : `✅ TAKE TRADE! Live BE ±${liveBePct.toFixed(2)}% (${liveEdge}x edge vs ±${lbc.avg_4q_swing_pct}%)`}
+                                                        <div className="mt-1.5 space-y-1">
+                                                            <div className={`px-2 py-1 rounded text-[10px] font-mono font-bold text-center border ${
+                                                                isOver
+                                                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                            }`}>
+                                                                {isOver
+                                                                    ? `🛑 SKIP TRADE! Live BE ±${liveBePct.toFixed(2)}% > 4Q Avg ±${lbc.avg_4q_swing_pct}%`
+                                                                    : `✅ TAKE TRADE! Live BE ±${liveBePct.toFixed(2)}% (${liveEdge}x edge vs ±${lbc.avg_4q_swing_pct}%)`}
+                                                            </div>
+                                                            <div className={`px-2 py-1 rounded text-[10px] font-mono text-center border ${
+                                                                skewRatio > 2.0
+                                                                    ? 'bg-rose-500/15 text-rose-300 border-rose-500/30 font-bold'
+                                                                    : (skewRatio > 1.35
+                                                                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-semibold'
+                                                                        : 'bg-gray-900 text-emerald-300 border-gray-800')
+                                                            }`}>
+                                                                {skewRatio > 2.0
+                                                                    ? `⚖️ EXTREME SKEW (${skewRatio.toFixed(1)}x)! Shift ${costlierLeg} (±₹${lbc.strike_step || 'step'}) to balance`
+                                                                    : (skewRatio > 1.35
+                                                                        ? `⚖️ Unbalanced (${skewRatio.toFixed(1)}x): Shift ${costlierLeg} (±₹${lbc.strike_step || 'step'}) so CE ≈ PE`
+                                                                        : `⚖️ Balanced Strikes (${skewRatio.toFixed(2)}x skew)`)}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>

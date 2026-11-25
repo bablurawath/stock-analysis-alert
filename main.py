@@ -204,6 +204,7 @@ def process_cycle(seen_ids: set):
                         message_lines.extend([
                             f"• Setup: *{setup.get('strikes_label')}* ({setup.get('strategy')})",
                             f"• 🧮 *15-Sec Broker Check*: TAKE if live CE+PE ≤ *₹{lbc.get('safe_edge_prem', 0)}* | SKIP if > *₹{lbc.get('max_parity_prem', 0)}*",
+                            f"• ⚖️ *Balance Rule*: Keep CE Ask ≈ PE Ask (shift costlier leg 1 strike ±₹{lbc.get('strike_step', '')} OTM if >1.4x)",
                             f"• ⏰ Filing Habit (5Q Verified): *{setup.get('typical_filing_time')}* ({setup.get('timing_consistency_label')})",
                             f"• 📅 5Q Filing Tape: _{setup.get('q_filing_summary')}_",
                             f"• 🛒 *Optimal Buy Time*: *{setup.get('optimal_buy_window')}*",

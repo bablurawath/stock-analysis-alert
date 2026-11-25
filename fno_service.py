@@ -546,6 +546,8 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
         "safe_edge_prem": safe_edge_prem,
         "avg_4q_swing_pct": avg_abs,
         "cmp": round(cmp, 2),
+        "strike_step": step,
+        "balance_rule": f"Keep CE Ask ≈ PE Ask (within 25%): if one leg is >1.4x costlier, shift that leg 1 strike (±₹{step}) OTM.",
         "rule_text": f"Check live CE+PE Ask on broker: TAKE if <= ₹{safe_edge_prem} | SKIP if > ₹{max_parity_prem} (Live BE% > ±{avg_abs}%)"
     }
 
@@ -861,6 +863,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
                 f"   ├ 🧮 *15-Sec Broker Check*: TAKE if live CE+PE ≤ *₹{lbc_safe}* | SKIP if > *₹{lbc_max}* (±{avg_move}% limit)\n"
+                f"   ├ ⚖️ *Balance Rule*: Keep CE Ask ≈ PE Ask (shift costlier leg 1 strike ±₹{lbc.get('strike_step', '')} OTM if >1.4x)\n"
                 f"   ├ 📉 *IV & IVBP*: *IV {iv_pct_val}%* (HV30 {hv30_val}%) | *IVP {ivp_val}%* | *IVBP ±{ivbp_val}%*\n"
                 f"   ├ 🏛️ Institutional PCR: *{pcr_badge}*\n"
                 f"   ├ 🛡️ Smart Money Floor: *₹{floor_st:,.0f}* (Max Put OI — Won't drop below)\n"
