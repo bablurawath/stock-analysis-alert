@@ -31,7 +31,9 @@ from fno_service import (
     broadcast_last_quarter_fno_report,
     generate_all_fno_csv,
     get_fno_last_quarter_leaderboard_data,
-    get_fno_5pct_movers_data
+    get_fno_5pct_movers_data,
+    scan_fno_shockwaves,
+    broadcast_shockwave_alerts
 )
 from accumulation_service import scan_accumulation_basket
 from news_catalyst_service import (
@@ -114,6 +116,8 @@ def background_worker():
             if now_ist.hour >= 8:
                 broadcast_today_fno_results(force=False)
                 broadcast_morning_high_impact_news(force=False)
+            if 9 <= now_ist.hour <= 15:
+                broadcast_shockwave_alerts(force=False)
         except Exception as e:
             print(f"[Worker Error] {e}")
 
@@ -165,6 +169,17 @@ def api_fno_last_quarter_leaderboard():
 def api_fno_5pct_movers(refresh: bool = False):
     data = get_fno_5pct_movers_data(force_refresh=refresh)
     return JSONResponse(content=data)
+
+@app.get("/api/fno/shockwaves")
+def api_fno_shockwaves(refresh: bool = False):
+    data = scan_fno_shockwaves(force_refresh=refresh)
+    return JSONResponse(content=data)
+
+@app.post("/api/broadcast/shockwaves")
+@app.get("/api/broadcast/shockwaves")
+def api_broadcast_shockwaves(force: bool = False):
+    res = broadcast_shockwave_alerts(force=force)
+    return JSONResponse(content=res)
 
 @app.get("/api/earnings-volatility/{symbol}")
 def api_earnings_volatility(symbol: str):

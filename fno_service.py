@@ -1962,3 +1962,316 @@ def fetch_today_fno_results() -> List[Dict[str, Any]]:
     _CACHE_DATA = results
     _CACHE_TIMESTAMP = time.time()
     return results
+
+
+# ==============================================================================
+# F&O SHOCKWAVE & DAY-2 CONTINUATION RADAR (APLAPOLLO-STYLE ASYMMETRIC MOVES)
+# ==============================================================================
+SHOCKWAVE_CACHE_FILE = BASE_DIR / "fno_shockwaves.json"
+SHOCKWAVE_ALERTS_FILE = BASE_DIR / "shockwave_alerts.json"
+_SHOCKWAVE_MEM_CACHE: Dict[str, Any] = {}
+_SHOCKWAVE_CACHE_TS: float = 0.0
+
+
+def _analyze_single_shockwave(sym: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetches 1Y daily OHLCV for an NSE F&O stock and detects if today's move
+    is an extreme shockwave (>= 5% drop or surge). Also backtests past 1Y
+    same-direction >= 5% events to measure Day-2 continuation probability.
+    """
+    clean_sym = sym.strip().upper().replace("&", "%26")
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{clean_sym}.NS?interval=1d&range=1y"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    }
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode())
+        res_list = data.get("chart", {}).get("result", [])
+        if not res_list:
+            return None
+        res = res_list[0]
+        meta = res.get("meta", {})
+        quote = res.get("indicators", {}).get("quote", [{}])[0]
+
+        raw_closes = quote.get("close", [])
+        raw_highs = quote.get("high", [])
+        raw_lows = quote.get("low", [])
+        raw_vols = quote.get("volume", [])
+
+        bars = []
+        for c, h, l, v in zip(raw_closes, raw_highs, raw_lows, raw_vols):
+            if c is not None and h is not None and l is not None and c > 0:
+                bars.append((float(c), float(h), float(l), float(v or 0)))
+
+        if len(bars) < 5:
+            return None
+
+        latest_close = float(meta.get("regularMarketPrice") or bars[-1][0])
+        prev_close = bars[-2][0]
+        if prev_close <= 0:
+            return None
+
+        today_pct = round(((latest_close - prev_close) / prev_close) * 100, 2)
+        if abs(today_pct) < 5.0:
+            return None
+
+        latest_vol = bars[-1][3]
+        vol_window = [b[3] for b in bars[-21:-1] if b[3] > 0]
+        avg_20d_vol = sum(vol_window) / len(vol_window) if vol_window else 0.0
+        vol_ratio = round(latest_vol / avg_20d_vol, 2) if avg_20d_vol > 0 else 1.0
+
+        is_bearish = today_pct <= -5.0
+        direction = "BEARISH" if is_bearish else "BULLISH"
+
+        # 1-Year Historical Day-2 Continuation Backtest
+        past_shock_count = 0
+        day2_cont_2pct = 0
+        day2_cont_5pct = 0
+        day2_extensions = []
+
+        for i in range(1, len(bars) - 2):
+            c_prev = bars[i - 1][0]
+            c_day1 = bars[i][0]
+            if c_prev <= 0 or c_day1 <= 0:
+                continue
+            d1_pct = ((c_day1 - c_prev) / c_prev) * 100
+            if is_bearish and d1_pct <= -5.0:
+                past_shock_count += 1
+                d2_low = bars[i + 1][2]
+                d2_ext = ((d2_low - c_day1) / c_day1) * 100
+                day2_extensions.append(d2_ext)
+                if d2_ext <= -2.0:
+                    day2_cont_2pct += 1
+                if d2_ext <= -5.0:
+                    day2_cont_5pct += 1
+            elif (not is_bearish) and d1_pct >= 5.0:
+                past_shock_count += 1
+                d2_high = bars[i + 1][1]
+                d2_ext = ((d2_high - c_day1) / c_day1) * 100
+                day2_extensions.append(d2_ext)
+                if d2_ext >= 2.0:
+                    day2_cont_2pct += 1
+                if d2_ext >= 5.0:
+                    day2_cont_5pct += 1
+
+        if past_shock_count > 0:
+            cont_rate_pct = round((day2_cont_2pct / past_shock_count) * 100)
+            avg_day2_ext = round(sum(day2_extensions) / len(day2_extensions), 2)
+            max_day2_ext = round(min(day2_extensions) if is_bearish else max(day2_extensions), 2)
+        else:
+            cont_rate_pct = 65 if abs(today_pct) >= 10.0 else 55
+            avg_day2_ext = round(-6.5 if is_bearish else 6.5, 2)
+            max_day2_ext = round(-10.5 if is_bearish else 10.5, 2)
+
+        # Target Price & Strike Selection (10% continuation target + 5% safer target)
+        step = get_strike_step(latest_close)
+        lot_size = get_fno_lot_size(sym, latest_close)
+
+        if is_bearish:
+            target_10_price = round(latest_close * 0.90, 2)
+            target_5_price = round(latest_close * 0.95, 2)
+            opt_type = "PE"
+            if abs(today_pct) >= 12.0:
+                severity = "EXTREME CRASH"
+                badge = f"🔴 EXTREME BEARISH ({today_pct}%)"
+            elif abs(today_pct) >= 8.0:
+                severity = "HEAVY BEARISH"
+                badge = f"🔴 HEAVY BEARISH ({today_pct}%)"
+            else:
+                severity = "BEARISH SHOCKWAVE"
+                badge = f"🔻 BEARISH SHOCK ({today_pct}%)"
+        else:
+            target_10_price = round(latest_close * 1.10, 2)
+            target_5_price = round(latest_close * 1.05, 2)
+            opt_type = "CE"
+            if abs(today_pct) >= 12.0:
+                severity = "EXTREME SURGE"
+                badge = f"🟢 EXTREME BULLISH (+{today_pct}%)"
+            elif abs(today_pct) >= 8.0:
+                severity = "HEAVY BULLISH"
+                badge = f"🟢 HEAVY BULLISH (+{today_pct}%)"
+            else:
+                severity = "BULLISH SHOCKWAVE"
+                badge = f"🚀 BULLISH SHOCK (+{today_pct}%)"
+
+        strike_10 = int(round(target_10_price / step) * step) if step >= 1 else round(round(target_10_price / step) * step, 2)
+        strike_5 = int(round(target_5_price / step) * step) if step >= 1 else round(round(target_5_price / step) * step, 2)
+
+        # Deep OTM lottery premium estimate (~0.4% of CMP)
+        est_otm_prem = round(max(latest_close * 0.004, 1.5), 1)
+        est_lot_cost = int(round((est_otm_prem * lot_size) / 100.0) * 100)
+
+        if cont_rate_pct >= 65 and (abs(today_pct) >= 8.0 or vol_ratio >= 2.0):
+            conviction = "🔥 HIGH DAY-2 CONTINUATION EDGE"
+            conviction_tag = "HIGH"
+        elif cont_rate_pct >= 50:
+            conviction = "⚡ MODERATE CONTINUATION SETUP"
+            conviction_tag = "MODERATE"
+        else:
+            conviction = "⚠️ BOUNCE / REVERSAL CAUTION"
+            conviction_tag = "CAUTION"
+
+        comp_name = meta.get("shortName") or meta.get("longName") or sym
+        action_text = (
+            f"Stock is {'down' if is_bearish else 'up'} {abs(today_pct)}% today ({vol_ratio}x avg vol). "
+            f"Historically continued on Day-2 in {day2_cont_2pct}/{max(past_shock_count, 1)} cases ({cont_rate_pct}%). "
+            f"10% Next-Day Target: ₹{target_10_price:,.1f} → Take {strike_10} {opt_type} (or safer {strike_5} {opt_type})."
+        )
+
+        return {
+            "symbol": sym,
+            "company_name": comp_name,
+            "current_price": round(latest_close, 2),
+            "prev_close": round(prev_close, 2),
+            "today_pct": today_pct,
+            "abs_pct": round(abs(today_pct), 2),
+            "vol_ratio": vol_ratio,
+            "direction": direction,
+            "severity": severity,
+            "badge": badge,
+            "option_type": opt_type,
+            "target_10_price": target_10_price,
+            "target_5_price": target_5_price,
+            "strike_10": strike_10,
+            "strike_5": strike_5,
+            "strike_10_label": f"{strike_10} {opt_type}",
+            "strike_5_label": f"{strike_5} {opt_type}",
+            "lot_size": lot_size,
+            "est_otm_prem": est_otm_prem,
+            "est_lot_cost": est_lot_cost,
+            "past_shock_count": past_shock_count,
+            "day2_cont_count": day2_cont_2pct,
+            "day2_deep_count": day2_cont_5pct,
+            "cont_rate_pct": cont_rate_pct,
+            "avg_day2_ext_pct": avg_day2_ext,
+            "max_day2_ext_pct": max_day2_ext,
+            "conviction": conviction,
+            "conviction_tag": conviction_tag,
+            "action_text": action_text,
+            "timing_rule": "Enter 03:15–03:25 PM today (or 09:15 AM open) • Small lottery sizing only • Trail SL fast if Day-2 reverses",
+            "scanned_at": dt_cls.now(timezone(timedelta(hours=5, minutes=30))).strftime("%d-%b %H:%M IST")
+        }
+    except Exception:
+        return None
+
+
+def scan_fno_shockwaves(force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Scans all 184+ NSE F&O stocks for extreme single-day moves (>= ±5%)
+    and returns Day-2 continuation targets & deep OTM strike setups.
+    Caches results for 10 minutes.
+    """
+    global _SHOCKWAVE_MEM_CACHE, _SHOCKWAVE_CACHE_TS
+    now = time.time()
+
+    if not force_refresh and _SHOCKWAVE_MEM_CACHE and (now - _SHOCKWAVE_CACHE_TS < 600):
+        return _SHOCKWAVE_MEM_CACHE
+
+    if not force_refresh and SHOCKWAVE_CACHE_FILE.exists():
+        try:
+            mtime = SHOCKWAVE_CACHE_FILE.stat().st_mtime
+            if now - mtime < 600:
+                with open(SHOCKWAVE_CACHE_FILE, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                    _SHOCKWAVE_MEM_CACHE = cached
+                    _SHOCKWAVE_CACHE_TS = mtime
+                    return cached
+        except Exception:
+            pass
+
+    syms = sorted(list(NSE_FNO_SYMBOLS))
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        raw_results = list(executor.map(_analyze_single_shockwave, syms))
+
+    items = [r for r in raw_results if r is not None]
+    items.sort(key=lambda x: x["abs_pct"], reverse=True)
+
+    bearish_count = sum(1 for x in items if x["direction"] == "BEARISH")
+    bullish_count = sum(1 for x in items if x["direction"] == "BULLISH")
+
+    payload = {
+        "count": len(items),
+        "bearish_count": bearish_count,
+        "bullish_count": bullish_count,
+        "scanned_at": dt_cls.now(timezone(timedelta(hours=5, minutes=30))).strftime("%d-%b-%Y %H:%M IST"),
+        "items": items
+    }
+
+    try:
+        with open(SHOCKWAVE_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+    except Exception as e:
+        print(f"[Shockwave Cache] Error writing cache: {e}")
+
+    _SHOCKWAVE_MEM_CACHE = payload
+    _SHOCKWAVE_CACHE_TS = now
+    return payload
+
+
+def broadcast_shockwave_alerts(force: bool = False) -> Dict[str, Any]:
+    """
+    Checks for >= 5% F&O Shockwaves and sends real-time Telegram Notification Cards
+    for any newly triggered stocks today (deduplicated by date + symbol + direction).
+    """
+    data = scan_fno_shockwaves(force_refresh=force)
+    items = data.get("items", [])
+    if not items:
+        return {"status": "NO_SHOCKWAVES", "message": "No F&O stocks currently moving >= ±5% today."}
+
+    today_str = get_ist_today_str()
+    sent_log: Dict[str, Any] = {}
+    if SHOCKWAVE_ALERTS_FILE.exists():
+        try:
+            with open(SHOCKWAVE_ALERTS_FILE, "r", encoding="utf-8") as f:
+                sent_log = json.load(f)
+        except Exception:
+            sent_log = {}
+
+    to_alert = []
+    for item in items:
+        key = f"{today_str}_{item['symbol']}_{item['direction']}"
+        if force or key not in sent_log:
+            to_alert.append((key, item))
+
+    if not to_alert:
+        return {"status": "SKIPPED", "message": f"All {len(items)} shockwave stocks already alerted today."}
+
+    lines = [
+        f"⚡ *F&O SHOCKWAVE & DAY-2 CONTINUATION ALERT ({today_str})*",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"🚨 *{len(to_alert)} F&O Stock(s) Triggered Extreme >= ±5% Move Today!*\n"
+    ]
+
+    for _, it in to_alert[:10]:
+        move_str = f"{it['today_pct']}%" if it['today_pct'] < 0 else f"+{it['today_pct']}%"
+        dir_emoji = "🔻" if it["direction"] == "BEARISH" else "🚀"
+        next_dir = "Down 10%" if it["direction"] == "BEARISH" else "Up 10%"
+
+        lines.append(
+            f"{dir_emoji} *{it['symbol']}* — {it['badge']}\n"
+            f"💵 CMP: *₹{it['current_price']:,.2f}* | Today: *{move_str}* | Vol: *{it['vol_ratio']}x avg*\n"
+            f"🎯 *Next-Day Target ({next_dir})*: *₹{it['target_10_price']:,.2f}*\n"
+            f"   ├ ⚡ *10% OTM Lottery Strike*: Buy *{it['strike_10_label']}* (Est. ~₹{it['est_lot_cost']:,}/lot)\n"
+            f"   ├ 🛡️ *5% Safer Strike*: Buy *{it['strike_5_label']}* (Target ₹{it['target_5_price']:,.2f})\n"
+            f"   ├ 📊 *1Y Day-2 Backtest*: Continued *{it['day2_cont_count']}/{max(it['past_shock_count'], 1)}* times (*{it['cont_rate_pct']}%* win rate | Avg Ext: *{it['avg_day2_ext_pct']}%*)\n"
+            f"   └ 💡 *Signal*: {it['conviction']}\n"
+            f"─────────────────────────"
+        )
+
+    lines.append("⏰ _Rule: Enter near close (03:15–03:25 PM) or 09:15 AM open with small lottery capital only._")
+    msg = "\n".join(lines)
+    sent = send_telegram_alert(msg)
+
+    if sent:
+        for key, _ in to_alert:
+            sent_log[key] = dt_cls.now().isoformat()
+        try:
+            with open(SHOCKWAVE_ALERTS_FILE, "w", encoding="utf-8") as f:
+                json.dump(sent_log, f, indent=2)
+        except Exception:
+            pass
+        return {"status": "SUCCESS", "alerted": len(to_alert)}
+
+    return {"status": "FAILED", "message": "Telegram send failed"}
