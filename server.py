@@ -33,7 +33,8 @@ from fno_service import (
     get_fno_last_quarter_leaderboard_data,
     get_fno_5pct_movers_data,
     scan_fno_shockwaves,
-    broadcast_shockwave_alerts
+    broadcast_shockwave_alerts,
+    broadcast_closing_shockwave_report
 )
 from accumulation_service import scan_accumulation_basket
 from news_catalyst_service import (
@@ -118,6 +119,8 @@ def background_worker():
                 broadcast_morning_high_impact_news(force=False)
             if 9 <= now_ist.hour <= 15:
                 broadcast_shockwave_alerts(force=False)
+            if now_ist.hour == 15 and 18 <= now_ist.minute <= 40:
+                broadcast_closing_shockwave_report(force=False)
         except Exception as e:
             print(f"[Worker Error] {e}")
 
@@ -179,6 +182,12 @@ def api_fno_shockwaves(refresh: bool = False):
 @app.get("/api/broadcast/shockwaves")
 def api_broadcast_shockwaves(force: bool = False):
     res = broadcast_shockwave_alerts(force=force)
+    return JSONResponse(content=res)
+
+@app.post("/api/broadcast/shockwaves-closing")
+@app.get("/api/broadcast/shockwaves-closing")
+def api_broadcast_shockwaves_closing(force: bool = False):
+    res = broadcast_closing_shockwave_report(force=force)
     return JSONResponse(content=res)
 
 @app.get("/api/earnings-volatility/{symbol}")

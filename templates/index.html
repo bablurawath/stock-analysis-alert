@@ -2161,7 +2161,9 @@
                                 ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
                                 : (item.conviction_tag === 'MODERATE'
                                     ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-200'
-                                    : 'bg-gray-900/90 border-gray-700 text-gray-300')
+                                    : (item.conviction_tag === 'AVOID'
+                                        ? 'bg-rose-950/50 border-rose-500/40 text-rose-200'
+                                        : 'bg-gray-900/90 border-gray-700 text-gray-300'))
                         }`}>
                             <div className="font-black text-[11px] mb-1 flex items-center justify-between">
                                 <span>{item.conviction}</span>
@@ -2174,32 +2176,58 @@
                             </p>
                         </div>
 
-                        {/* Next-Day Target & Exact Strike Setup Box */}
+                        {/* News Severity & Closing Candle Strength Strip */}
+                        <div className="flex items-center justify-between gap-2 mb-3 text-[10px] font-mono">
+                            <span className={`px-2 py-1 rounded-lg border truncate ${
+                                item.news_severity === 'SEVERE'
+                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold'
+                                    : 'bg-gray-900 text-gray-400 border-gray-800'
+                            }`} title={item.news_headline || item.news_label}>
+                                {item.news_label}
+                            </span>
+                            <span className={`px-2 py-1 rounded-lg border whitespace-nowrap ${
+                                item.strong_close
+                                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-bold'
+                                    : 'bg-gray-900 text-gray-400 border-gray-800'
+                            }`}>
+                                {item.close_label}
+                            </span>
+                        </div>
+
+                        {/* Calibrated Next-Day Target & Exact Strike Setup Box */}
                         <div className="bg-gray-950/90 border border-gray-800 rounded-xl p-3 mb-3 space-y-2.5">
                             <div className="flex items-center justify-between border-b border-gray-800/80 pb-2">
                                 <div>
                                     <span className="text-[9px] text-gray-400 uppercase font-bold block">
-                                        🎯 10% Next-Day Target ({isBearish ? 'Downside' : 'Upside'})
+                                        🎯 Calibrated Realistic Target ({item.conviction_tag === 'AVOID' ? 'Reversal Risk' : `${isBearish ? '-' : '+'}${item.calibrated_pct}%`})
                                     </span>
-                                    <strong className={`text-base font-mono font-black ${pctColor}`}>
-                                        ₹{item.target_10_price ? item.target_10_price.toLocaleString() : '—'}
+                                    <strong className={`text-base font-mono font-black ${item.conviction_tag === 'AVOID' ? 'text-gray-400' : pctColor}`}>
+                                        {item.conviction_tag === 'AVOID' ? 'DO NOT CHASE' : `₹${item.primary_target_price ? item.primary_target_price.toLocaleString() : '—'}`}
                                     </strong>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[9px] text-amber-400 uppercase font-bold block">
-                                        ⚡ 10% OTM Lottery Strike
+                                        ⚡ Recommended Strike
                                     </span>
-                                    <span className="inline-block mt-0.5 font-mono font-black text-sm px-2.5 py-0.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                                        Buy {item.strike_10_label}
+                                    <span className={`inline-block mt-0.5 font-mono font-black text-xs px-2.5 py-0.5 rounded-lg border ${
+                                        item.conviction_tag === 'AVOID'
+                                            ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                                            : 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                                    }`}>
+                                        {item.strike_primary_label}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 text-center text-xs">
                                 <div className="border-r border-gray-800/80 pr-1">
-                                    <span className="text-[9px] text-gray-500 block font-semibold">🛡️ 5% Safer Strike</span>
-                                    <strong className="text-white font-mono text-xs block mt-0.5">{item.strike_5_label}</strong>
-                                    <span className="text-[9px] text-gray-400 font-mono">₹{item.target_5_price ? item.target_5_price.toLocaleString() : '—'}</span>
+                                    <span className="text-[9px] text-gray-500 block font-semibold">🎰 10% Lottery OTM</span>
+                                    <strong className={`${item.allow_10pct_lottery ? 'text-amber-300' : 'text-gray-500'} font-mono text-[11px] block mt-0.5`}>
+                                        {item.strike_10_label}
+                                    </strong>
+                                    <span className="text-[9px] text-gray-500 font-mono">
+                                        {item.allow_10pct_lottery ? `₹${item.target_10_price}` : 'Not Justified'}
+                                    </span>
                                 </div>
                                 <div className="border-r border-gray-800/80 px-1">
                                     <span className="text-[9px] text-gray-500 block font-semibold">📊 1Y Day-2 Avg</span>
@@ -2208,7 +2236,9 @@
                                 </div>
                                 <div className="pl-1">
                                     <span className="text-[9px] text-gray-500 block font-semibold">💰 Est. Lot Risk</span>
-                                    <strong className="text-amber-300 font-mono text-xs block mt-0.5">~₹{item.est_lot_cost ? item.est_lot_cost.toLocaleString() : '—'}</strong>
+                                    <strong className="text-amber-300 font-mono text-xs block mt-0.5">
+                                        {item.est_lot_cost > 0 ? `~₹${item.est_lot_cost.toLocaleString()}` : '₹0 (Skip)'}
+                                    </strong>
                                     <span className="text-[9px] text-gray-400 font-mono">Lot: {item.lot_size}</span>
                                 </div>
                             </div>
@@ -2335,9 +2365,9 @@
             const handleBroadcastShockwaves = async () => {
                 setBroadcastingShockwaves(true);
                 try {
-                    const res = await fetch('/api/broadcast/shockwaves?force=true', { method: 'POST' });
+                    const res = await fetch('/api/broadcast/shockwaves-closing?force=true', { method: 'POST' });
                     const json = await res.json();
-                    alert(`Shockwave Telegram Alert: ${json.status === 'SUCCESS' ? `Sent ${json.alerted} card(s)!` : (json.message || json.status)}`);
+                    alert(`3:30 PM Closing Shockwave Report: ${json.status === 'SUCCESS' ? `Sent ${json.alerted} stock(s) to Telegram!` : (json.message || json.status)}`);
                 } catch (e) {
                     alert('Broadcast error: ' + e);
                 } finally {
@@ -2589,7 +2619,7 @@
                                             </span>
                                         </div>
                                         <div className="text-[11px] text-amber-200/90 mt-0.5 font-mono">
-                                            {shockwavesData.items.slice(0, 3).map(s => `${s.symbol} (${s.today_pct > 0 ? '+' : ''}${s.today_pct}% → ${s.strike_10_label})`).join('  |  ')}
+                                            {shockwavesData.items.slice(0, 3).map(s => `${s.symbol} (${s.today_pct > 0 ? '+' : ''}${s.today_pct}% → ${s.strike_primary_label})`).join('  |  ')}
                                         </div>
                                     </div>
                                 </div>
