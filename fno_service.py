@@ -2595,3 +2595,197 @@ def broadcast_shockwave_alerts(force: bool = False) -> Dict[str, Any]:
         return {"status": "SUCCESS", "alerted": len(to_alert)}
 
     return {"status": "FAILED", "message": "Telegram send failed"}
+
+
+# ==============================================================================
+# TOMORROW'S UPCOMING F&O RESULTS PREVIEW (2:30 PM EVENING RADAR)
+# ==============================================================================
+TOMORROW_BROADCAST_FILE = BASE_DIR / "fno_tomorrow_broadcasts.json"
+_TOMORROW_CACHE_DATA: Dict[str, Any] = {}
+_TOMORROW_CACHE_TS: float = 0.0
+
+
+def get_next_trading_day_str() -> str:
+    """Returns the next weekday (Mon-Fri) formatted as DD-MM-YYYY in IST."""
+    ist = timezone(timedelta(hours=5, minutes=30))
+    nxt = dt_cls.now(ist) + timedelta(days=1)
+    while nxt.weekday() >= 5:  # Skip Saturday (5) and Sunday (6)
+        nxt += timedelta(days=1)
+    return nxt.strftime("%d-%m-%Y")
+
+
+def fetch_tomorrow_fno_results(force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Fetches NSE F&O stocks scheduled for Financial Results on the NEXT trading day
+    so traders can spot early-morning/intraday filers whose optimal buy window is
+    TODAY at 2:45 PM - 3:15 PM, and prep their watchlist ahead of time.
+    """
+    global _TOMORROW_CACHE_DATA, _TOMORROW_CACHE_TS
+    now = time.time()
+    if not force_refresh and _TOMORROW_CACHE_DATA and (now - _TOMORROW_CACHE_TS < 900):
+        return _TOMORROW_CACHE_DATA
+
+    next_day_str = get_next_trading_day_str()
+    session = requests.Session()
+    session.headers.update(NSE_HEADERS)
+
+    try:
+        session.get("https://www.nseindia.com", verify=False, timeout=10)
+    except Exception:
+        pass
+
+    candidates_map = {}
+    bm_url = f"https://www.nseindia.com/api/corporate-board-meetings?index=equities&from_date={next_day_str}&to_date={next_day_str}"
+    try:
+        r_bm = session.get(bm_url, verify=False, timeout=15)
+        if r_bm.status_code == 200:
+            for it in r_bm.json():
+                sym = (it.get("bm_symbol") or "").strip().upper()
+                purpose = (it.get("bm_purpose", "") + " " + it.get("bm_desc", "")).lower()
+                if sym in NSE_FNO_SYMBOLS and "result" in purpose and sym not in candidates_map:
+                    candidates_map[sym] = {
+                        "symbol": sym,
+                        "company_name": it.get("sm_name") or sym,
+                        "subject": it.get("bm_purpose") or "Board Meeting for Financial Results",
+                        "details": it.get("bm_desc", ""),
+                        "pdf_url": it.get("attachment") or "",
+                        "time_str": it.get("bm_date") or next_day_str,
+                        "seq_id": int(time.time()),
+                        "status_label": f"RESULT TOMORROW ({next_day_str})"
+                    }
+    except Exception as e:
+        print(f"[Tomorrow FNO] Error fetching board meetings: {e}")
+
+    raw_candidates = list(candidates_map.values())
+    all_symbols = [c["symbol"] for c in raw_candidates]
+    tech_map = get_technicals_map(all_symbols)
+    vol_map = get_earnings_vol_map(all_symbols, session)
+
+    results = []
+    for c in raw_candidates:
+        sym = c["symbol"]
+        comp_name = c["company_name"]
+        tech = tech_map.get(sym) or {}
+        vol = vol_map.get(sym) or {
+            "avg_abs_move": 2.20,
+            "avg_dir_move": 0.50,
+            "quarter_moves": []
+        }
+
+        price = tech.get("current_price", 0.0)
+        rsi = tech.get("rsi", 50.0)
+        pivots = tech.get("pivots", {})
+        del_pct = tech.get("delivery_pct", 55.0)
+        whale_note = tech.get("whale_note", "Active F&O derivatives volume")
+
+        strike_setup = get_fno_strike_setup(price, vol, sym, tech)
+        timing_habit = strike_setup.get("timing_habit", "")
+        early_entry_needed = "Market Hours" in timing_habit or "Morning" in timing_habit
+
+        summary = (
+            f"📅 *Tomorrow's F&O Result Preview ({next_day_str})*:\n"
+            f"{comp_name} ({sym}) has its Board Meeting scheduled for {next_day_str}.\n\n"
+            f"• CMP: ₹{price:,.2f} | 4Q Avg Swing: ±{vol['avg_abs_move']}%\n"
+            f"• 5Q Filing Habit: {strike_setup.get('typical_filing_time', '16:30–18:30 PM')}\n"
+            f"• Entry Note: {'⚠️ Files during Market Hours — consider 2:45–3:15 PM TODAY if pre-market!' if early_entry_needed else 'Post-market filer — optimal buy window is tomorrow 2:45–3:15 PM.'}"
+        )
+
+        results.append({
+            "id": f"fno_tmrw_{sym}_{c['seq_id']}",
+            "symbol": sym,
+            "company_name": comp_name,
+            "subject": c["subject"],
+            "details": c["details"],
+            "pdf_url": c["pdf_url"],
+            "announced_at": c["time_str"],
+            "ai_summary": summary,
+            "sentiment": "BULLISH" if (rsi <= 40 or del_pct >= 60) else "NEUTRAL",
+            "current_price": price,
+            "rsi": rsi,
+            "support_1": pivots.get("s1", 0.0),
+            "resistance_1": pivots.get("r1", 0.0),
+            "delivery_pct": del_pct,
+            "whale_note": whale_note,
+            "is_fno": True,
+            "early_entry_needed": early_entry_needed,
+            "result_status": c["status_label"],
+            "earnings_volatility": vol,
+            "strike_setup": strike_setup
+        })
+
+    # Prioritize SURESHOT & POSITIVE edge first
+    tag_rank = {"SURESHOT": 0, "POSITIVE": 1, "NEUTRAL": 2, "SKIP": 3}
+    results.sort(key=lambda x: tag_rank.get((x.get("strike_setup") or {}).get("decision_tag", "NEUTRAL"), 9))
+
+    payload = {
+        "target_date": next_day_str,
+        "count": len(results),
+        "results": results
+    }
+    _TOMORROW_CACHE_DATA = payload
+    _TOMORROW_CACHE_TS = now
+    return payload
+
+
+def broadcast_tomorrow_fno_results(force: bool = False) -> Dict[str, Any]:
+    """
+    Sends the 2:30 PM Preview of Tomorrow's Scheduled F&O Results to Telegram
+    once per trading day, highlighting any SURESHOT setups & early-entry filers.
+    """
+    today_str = get_ist_today_str()
+    sent_log: Dict[str, Any] = {}
+    if TOMORROW_BROADCAST_FILE.exists():
+        try:
+            with open(TOMORROW_BROADCAST_FILE, "r", encoding="utf-8") as f:
+                sent_log = json.load(f)
+        except Exception:
+            sent_log = {}
+
+    if not force and sent_log.get(today_str):
+        return {"status": "SKIPPED", "message": f"Tomorrow F&O preview already broadcasted on {today_str}"}
+
+    data = fetch_tomorrow_fno_results(force_refresh=force)
+    results = data.get("results", [])
+    next_date = data.get("target_date", "")
+    if not results:
+        return {"status": "NO_DATA", "message": f"No F&O results scheduled for tomorrow ({next_date})"}
+
+    lines = [
+        f"📅 *TOMORROW'S F&O RESULTS PREVIEW ({next_date})*",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"🔔 *{len(results)} F&O Stock(s) Scheduled for Results Next Session*",
+        "_Prep your watchlist today! Morning/Intraday filers may require entry before 3:15 PM today._\n"
+    ]
+
+    for r in results[:10]:
+        setup = r.get("strike_setup") or {}
+        vol = r.get("earnings_volatility") or {}
+        dec_badge = setup.get("decision_badge", "🟡 NEUTRAL")
+        lbc = setup.get("live_broker_check", {})
+        iv_data = setup.get("iv_analytics", {})
+        early_tag = "⚠️ *EARLY ENTRY TODAY? (Intraday Filer)*\n" if r.get("early_entry_needed") else ""
+
+        lines.append(
+            f"🎯 *{r['symbol']}* — {r['company_name'][:26]}\n"
+            f"💵 CMP: *₹{r['current_price']:,.1f}* | 4Q Avg Swing: *±{vol.get('avg_abs_move', 2.2)}%*\n"
+            f"🚦 *Signal*: [{dec_badge}]\n"
+            f"{early_tag}"
+            f"   ├ ⚡ Setup: *{setup.get('strikes_label', 'N/A')}*\n"
+            f"   ├ 🧮 *15-Sec Broker Check*: TAKE ≤ *₹{lbc.get('safe_edge_prem', 0)}* | SKIP > *₹{lbc.get('max_parity_prem', 0)}*\n"
+            f"   ├ 📉 IV & IVBP: *IV {iv_data.get('iv_pct', 30)}%* | *IVP {iv_data.get('ivp_pct', 50)}%* | *IVBP ±{iv_data.get('ivbp_pct', 2.5)}%*\n"
+            f"   └ ⏰ 5Q Filing Habit: *{setup.get('typical_filing_time', 'Post-Market')}*\n"
+            f"─────────────────────────"
+        )
+
+    msg = "\n".join(lines)
+    sent = send_telegram_alert(msg)
+    if sent:
+        sent_log[today_str] = dt_cls.now().isoformat()
+        try:
+            with open(TOMORROW_BROADCAST_FILE, "w", encoding="utf-8") as f:
+                json.dump(sent_log, f, indent=2)
+        except Exception:
+            pass
+        return {"status": "SUCCESS", "count": len(results), "target_date": next_date}
+
+    return {"status": "FAILED", "message": "Telegram send failed"}

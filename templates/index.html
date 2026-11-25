@@ -2477,6 +2477,37 @@
             const [shockwavesData, setShockwavesData] = useState(null);
             const [loadingShockwaves, setLoadingShockwaves] = useState(false);
             const [broadcastingShockwaves, setBroadcastingShockwaves] = useState(false);
+            const [tomorrowFnoData, setTomorrowFnoData] = useState(null);
+            const [loadingTomorrowFno, setLoadingTomorrowFno] = useState(false);
+            const [broadcastingTomorrow, setBroadcastingTomorrow] = useState(false);
+
+            const fetchTomorrowFno = async (refresh = false) => {
+                setLoadingTomorrowFno(true);
+                try {
+                    const res = await fetch(`/api/fno-results/tomorrow?refresh=${refresh}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        setTomorrowFnoData(json);
+                    }
+                } catch (e) {
+                    console.error('Tomorrow FNO fetch error:', e);
+                } finally {
+                    setLoadingTomorrowFno(false);
+                }
+            };
+
+            const handleBroadcastTomorrow = async () => {
+                setBroadcastingTomorrow(true);
+                try {
+                    const res = await fetch('/api/broadcast/fno-tomorrow?force=true', { method: 'POST' });
+                    const json = await res.json();
+                    alert(`Tomorrow F&O Preview: ${json.status === 'SUCCESS' ? `Sent ${json.count} stock(s) for ${json.target_date}!` : (json.message || json.status)}`);
+                } catch (e) {
+                    alert('Broadcast error: ' + e);
+                } finally {
+                    setBroadcastingTomorrow(false);
+                }
+            };
 
             const fetchShockwaves = async (refresh = false) => {
                 setLoadingShockwaves(true);
@@ -2604,6 +2635,7 @@
                 fetchAccumulationData('ALL');
                 fetchCatalysts(false);
                 fetchShockwaves(false);
+                fetchTomorrowFno(false);
                 const interval = setInterval(fetchData, 60000);
                 return () => clearInterval(interval);
             }, []);
@@ -2689,7 +2721,9 @@
             };
 
             const filteredItems = useMemo(() => {
-                const sourceList = (activeFilter === 'FNO_TODAY') ? fnoResults : items;
+                const sourceList = (activeFilter === 'FNO_TODAY')
+                    ? fnoResults
+                    : (activeFilter === 'FNO_TOMORROW' ? ((tomorrowFnoData && tomorrowFnoData.results) || []) : items);
                 return sourceList.filter(item => {
                     const matchesSearch =
                         (item.symbol || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -2818,7 +2852,21 @@
                                     </div>
                                     <span className="text-[10px] text-gray-500 font-mono">F&amp;O STRATEGY DOCK</span>
                                 </div>
-                                <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                                <div className="grid grid-cols-2 lg:grid-cols-6 gap-2">
+                                    <button
+                                        onClick={() => { setActiveFilter('FNO_TOMORROW'); fetchTomorrowFno(false); }}
+                                        className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'FNO_TOMORROW' ? 'bg-gradient-to-r from-indigo-600/25 via-blue-500/20 to-transparent border-indigo-400 text-white shadow-md shadow-indigo-500/15' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-indigo-500/40 hover:text-white'}`}>
+                                        <div className="flex items-center space-x-2.5 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold ${activeFilter === 'FNO_TOMORROW' ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow' : 'bg-gray-800 text-indigo-400'}`}>
+                                                <i className="fa-solid fa-calendar-day"></i>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="text-xs font-bold leading-tight">📅 Tomorrow F&amp;O</div>
+                                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">2:30 PM Preview</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-1 flex-shrink-0 ${activeFilter === 'FNO_TOMORROW' ? 'bg-indigo-400 text-black' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'}`}>{tomorrowFnoData ? tomorrowFnoData.count : 0}</span>
+                                    </button>
                                     <button
                                         onClick={() => { setActiveFilter('SHOCKWAVES'); fetchShockwaves(false); }}
                                         className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'SHOCKWAVES' ? 'bg-gradient-to-r from-rose-600/25 via-amber-500/20 to-transparent border-rose-400 text-white shadow-md shadow-rose-500/15' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-rose-500/40 hover:text-white'}`}>
@@ -2975,6 +3023,39 @@
                                         <i className="fa-solid fa-file-csv"></i>
                                         <span>Download CSV</span>
                                     </a>
+                                </div>
+                            </div>
+                        ) : activeFilter === 'FNO_TOMORROW' ? (
+                            <div className="bg-gradient-to-r from-indigo-500/15 via-blue-500/10 to-transparent border border-indigo-500/40 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-md shadow-indigo-500/20">
+                                        <i className="fa-solid fa-calendar-day"></i>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-sm font-bold text-white">📅 Tomorrow&apos;s Scheduled F&amp;O Results ({tomorrowFnoData ? tomorrowFnoData.target_date : 'Next Trading Day'})</h3>
+                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-indigo-400/20 text-indigo-300 border border-indigo-400/30 font-mono">2:30 PM PREVIEW</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Prep your watchlist a day early! Intraday/morning filers may require entry today between 2:45 PM – 3:15 PM before tomorrow&apos;s open.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2 flex-wrap">
+                                    <button
+                                        onClick={() => fetchTomorrowFno(true)}
+                                        disabled={loadingTomorrowFno}
+                                        className="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5">
+                                        <i className={`fa-solid fa-arrows-rotate ${loadingTomorrowFno ? 'fa-spin' : ''}`}></i>
+                                        <span>{loadingTomorrowFno ? 'Scanning...' : 'Refresh'}</span>
+                                    </button>
+                                    <button
+                                        onClick={handleBroadcastTomorrow}
+                                        disabled={broadcastingTomorrow}
+                                        className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md">
+                                        <i className={`fa-brands fa-telegram ${broadcastingTomorrow ? 'fa-circle-notch fa-spin' : ''}`}></i>
+                                        <span>{broadcastingTomorrow ? 'Sending...' : 'Send Tomorrow Preview'}</span>
+                                    </button>
                                 </div>
                             </div>
                         ) : activeFilter === 'CATALYSTS' ? (

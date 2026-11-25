@@ -34,7 +34,9 @@ from fno_service import (
     get_fno_5pct_movers_data,
     scan_fno_shockwaves,
     broadcast_shockwave_alerts,
-    broadcast_closing_shockwave_report
+    broadcast_closing_shockwave_report,
+    fetch_tomorrow_fno_results,
+    broadcast_tomorrow_fno_results
 )
 from accumulation_service import scan_accumulation_basket
 from news_catalyst_service import (
@@ -114,13 +116,17 @@ def background_worker():
             # 2. Check and broadcast Morning Pre-Market F&O Radar & High-Impact News (from 8:30 AM IST)
             ist = timezone(timedelta(hours=5, minutes=30))
             now_ist = datetime.now(ist)
-            if now_ist.hour >= 8:
-                broadcast_today_fno_results(force=False)
-                broadcast_morning_high_impact_news(force=False)
-            if 9 <= now_ist.hour <= 15:
-                broadcast_shockwave_alerts(force=False)
-            if now_ist.hour == 15 and 18 <= now_ist.minute <= 40:
-                broadcast_closing_shockwave_report(force=False)
+            # Only run market-day scheduled Telegram broadcasts on weekdays (Mon=0 .. Fri=4)
+            if now_ist.weekday() < 5:
+                if now_ist.hour >= 8:
+                    broadcast_today_fno_results(force=False)
+                    broadcast_morning_high_impact_news(force=False)
+                if now_ist.hour == 14 and now_ist.minute >= 30:
+                    broadcast_tomorrow_fno_results(force=False)
+                if 9 <= now_ist.hour <= 15:
+                    broadcast_shockwave_alerts(force=False)
+                if now_ist.hour == 15 and 18 <= now_ist.minute <= 40:
+                    broadcast_closing_shockwave_report(force=False)
         except Exception as e:
             print(f"[Worker Error] {e}")
 
@@ -141,6 +147,17 @@ def api_announcements(search: Optional[str] = "", limit: int = 50):
 def api_fno_results_today():
     results = fetch_today_fno_results()
     return JSONResponse(content={"count": len(results), "results": results})
+
+@app.get("/api/fno-results/tomorrow")
+def api_fno_results_tomorrow(refresh: bool = False):
+    data = fetch_tomorrow_fno_results(force_refresh=refresh)
+    return JSONResponse(content=data)
+
+@app.post("/api/broadcast/fno-tomorrow")
+@app.get("/api/broadcast/fno-tomorrow")
+def api_broadcast_fno_tomorrow(force: bool = False):
+    res = broadcast_tomorrow_fno_results(force=force)
+    return JSONResponse(content=res)
 
 @app.post("/api/broadcast/fno-today")
 @app.get("/api/broadcast/fno-today")
