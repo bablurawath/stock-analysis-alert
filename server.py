@@ -36,7 +36,9 @@ from fno_service import (
     broadcast_shockwave_alerts,
     broadcast_closing_shockwave_report,
     fetch_tomorrow_fno_results,
-    broadcast_tomorrow_fno_results
+    broadcast_tomorrow_fno_results,
+    fetch_upcoming_3day_fno_results,
+    broadcast_upcoming_3day_iv_radar
 )
 from accumulation_service import scan_accumulation_basket
 from news_catalyst_service import (
@@ -121,6 +123,8 @@ def background_worker():
                 if now_ist.hour >= 8:
                     broadcast_today_fno_results(force=False)
                     broadcast_morning_high_impact_news(force=False)
+                if (now_ist.hour == 9 and now_ist.minute >= 30) or now_ist.hour >= 10:
+                    broadcast_upcoming_3day_iv_radar(force=False)
                 if now_ist.hour == 14 and now_ist.minute >= 30:
                     broadcast_tomorrow_fno_results(force=False)
                 if 9 <= now_ist.hour <= 15:
@@ -157,6 +161,17 @@ def api_fno_results_tomorrow(refresh: bool = False):
 @app.get("/api/broadcast/fno-tomorrow")
 def api_broadcast_fno_tomorrow(force: bool = False):
     res = broadcast_tomorrow_fno_results(force=force)
+    return JSONResponse(content=res)
+
+@app.get("/api/fno-results/upcoming-3day")
+def api_fno_results_upcoming_3day(refresh: bool = False):
+    data = fetch_upcoming_3day_fno_results(force_refresh=refresh)
+    return JSONResponse(content=data)
+
+@app.post("/api/broadcast/fno-3day-iv")
+@app.get("/api/broadcast/fno-3day-iv")
+def api_broadcast_fno_3day_iv(force: bool = False):
+    res = broadcast_upcoming_3day_iv_radar(force=force)
     return JSONResponse(content=res)
 
 @app.post("/api/broadcast/fno-today")

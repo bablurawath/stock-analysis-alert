@@ -2455,6 +2455,124 @@
         }
 
         // ====================================================================
+        // 4D. 3-DAY UPCOMING F&O IV TRACKER (T-3, T-2, T-1 DAILY MONITOR)
+        // ====================================================================
+        function Upcoming3DayIvView({ data, loading, onRefresh, onBroadcast, broadcasting, search }) {
+            const items = (data && data.items ? data.items : []).filter(item => {
+                if (!search) return true;
+                const q = search.toLowerCase();
+                return (item.symbol || '').toLowerCase().includes(q) || (item.company_name || '').toLowerCase().includes(q);
+            });
+
+            return (
+                <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-cyan-950/40 via-indigo-950/30 to-gray-900 border border-cyan-500/30 rounded-2xl p-5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="flex items-center space-x-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-cyan-500/30">
+                                <i className="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                    <h3 className="text-base sm:text-lg font-black text-white">
+                                        📊 3-Day Upcoming F&amp;O IV Tracker (T-3 to T-0)
+                                    </h3>
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                                        {data ? data.count : 0} UPCOMING RESULTS
+                                    </span>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-1 max-w-3xl">
+                                    Tracks Est. IV%, HV30%, IVP% (1Y Rank), and IVBP% daily from <strong>3 days before result day</strong> so you can watch IV rise and spot cheap entries early.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                            <button
+                                onClick={onRefresh}
+                                disabled={loading}
+                                className="px-3.5 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold border border-gray-700 transition flex items-center space-x-1.5">
+                                <i className={`fa-solid fa-arrows-rotate ${loading ? 'fa-spin' : ''}`}></i>
+                                <span>{loading ? 'Scanning...' : 'Refresh IV'}</span>
+                            </button>
+                            <button
+                                onClick={onBroadcast}
+                                disabled={broadcasting}
+                                className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-lg transition flex items-center space-x-1.5">
+                                <i className={`fa-brands fa-telegram ${broadcasting ? 'fa-spin' : ''}`}></i>
+                                <span>{broadcasting ? 'Sending...' : 'Send 3-Day IV Alert'}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {loading && items.length === 0 ? (
+                        <div className="text-center py-20 text-gray-400">
+                            <i className="fa-solid fa-circle-notch fa-spin text-4xl text-cyan-500 mb-3"></i>
+                            <p className="text-sm font-medium">Scanning NSE upcoming 3-day F&amp;O board meetings &amp; computing 1Y IVP%...</p>
+                        </div>
+                    ) : items.length === 0 ? (
+                        <div className="glass-panel text-center py-16 rounded-2xl text-gray-400 border border-gray-800 max-w-xl mx-auto p-6">
+                            <i className="fa-solid fa-calendar-check text-cyan-400 text-4xl mb-3"></i>
+                            <p className="text-base font-bold text-white">No F&amp;O Results Scheduled in the Next 3 Days</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                                As soon as NSE posts F&amp;O board meetings for the next 1–3 days, this radar automatically tracks their daily IV% trend at 9:30 AM IST.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {items.map(item => (
+                                <div key={item.symbol} className="glass-panel rounded-2xl p-5 border border-gray-800/90 hover:border-cyan-500/40 transition shadow-xl space-y-3">
+                                    <div className="flex items-start justify-between border-b border-gray-800/80 pb-3">
+                                        <div>
+                                            <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                                <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30">{item.symbol}</span>
+                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">{item.t_badge}</span>
+                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-300">{item.decision_pill}</span>
+                                            </div>
+                                            <h4 className="text-sm font-bold text-white mt-1.5 line-clamp-1">{item.company_name}</h4>
+                                            <span className="text-[10px] text-gray-400 font-mono">Result Date: {item.result_date} ({item.typical_filing_time})</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-base font-mono font-black text-white">₹{item.current_price ? item.current_price.toLocaleString() : '—'}</div>
+                                            <span className="text-[10px] font-mono text-amber-300">4Q Avg: ±{item.avg_4q_move}%</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 gap-1.5 bg-gray-950/90 p-2.5 rounded-xl border border-gray-800 text-center text-xs">
+                                        <div className="border-r border-gray-800/80 pr-1">
+                                            <span className="text-[9px] text-gray-400 block">Est. IV</span>
+                                            <strong className="text-white font-mono text-xs">{item.iv_pct}%</strong>
+                                        </div>
+                                        <div className="border-r border-gray-800/80 px-1">
+                                            <span className="text-[9px] text-gray-400 block">HV30</span>
+                                            <strong className="text-gray-300 font-mono text-xs">{item.hv30_pct}%</strong>
+                                        </div>
+                                        <div className="border-r border-gray-800/80 px-1">
+                                            <span className="text-[9px] text-gray-400 block">IVP%</span>
+                                            <strong className={`font-mono text-xs ${item.ivp_pct <= 45 ? 'text-emerald-300' : (item.ivp_pct > 70 ? 'text-rose-300' : 'text-amber-300')}`}>{item.ivp_pct}%</strong>
+                                        </div>
+                                        <div className="pl-1">
+                                            <span className="text-[9px] text-gray-400 block">IVBP%</span>
+                                            <strong className="text-amber-300 font-mono text-xs">±{item.ivbp_pct}%</strong>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-900/80 border border-gray-800 rounded-lg p-2 text-[10px] font-mono text-cyan-200">
+                                        <span className="text-gray-400 block mb-0.5">📈 Daily IV Trend (T-3 → T-0):</span>
+                                        <span>{item.iv_trend_str || `${item.iv_pct}%`}</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[10px] font-mono text-gray-300 pt-1">
+                                        <span>Setup: <strong className="text-blue-300">{item.strikes_label}</strong></span>
+                                        <span>TAKE ≤ <strong className="text-emerald-300">₹{item.safe_edge_prem}</strong></span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ====================================================================
         // 5. MAIN APP COMPONENT
         // ====================================================================
         function App() {
@@ -2480,6 +2598,37 @@
             const [tomorrowFnoData, setTomorrowFnoData] = useState(null);
             const [loadingTomorrowFno, setLoadingTomorrowFno] = useState(false);
             const [broadcastingTomorrow, setBroadcastingTomorrow] = useState(false);
+            const [upcoming3DayData, setUpcoming3DayData] = useState(null);
+            const [loading3Day, setLoading3Day] = useState(false);
+            const [broadcasting3Day, setBroadcasting3Day] = useState(false);
+
+            const fetchUpcoming3Day = async (refresh = false) => {
+                setLoading3Day(true);
+                try {
+                    const res = await fetch(`/api/fno-results/upcoming-3day?refresh=${refresh}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        setUpcoming3DayData(json);
+                    }
+                } catch (e) {
+                    console.error('3-Day IV fetch error:', e);
+                } finally {
+                    setLoading3Day(false);
+                }
+            };
+
+            const handleBroadcast3Day = async () => {
+                setBroadcasting3Day(true);
+                try {
+                    const res = await fetch('/api/broadcast/fno-3day-iv?force=true', { method: 'POST' });
+                    const json = await res.json();
+                    alert(`3-Day IV Tracker: ${json.status === 'SUCCESS' ? `Sent ${json.count} stock(s) to Telegram!` : (json.message || json.status)}`);
+                } catch (e) {
+                    alert('Broadcast error: ' + e);
+                } finally {
+                    setBroadcasting3Day(false);
+                }
+            };
 
             const fetchTomorrowFno = async (refresh = false) => {
                 setLoadingTomorrowFno(true);
@@ -2636,6 +2785,7 @@
                 fetchCatalysts(false);
                 fetchShockwaves(false);
                 fetchTomorrowFno(false);
+                fetchUpcoming3Day(false);
                 const interval = setInterval(fetchData, 60000);
                 return () => clearInterval(interval);
             }, []);
@@ -2852,7 +3002,21 @@
                                     </div>
                                     <span className="text-[10px] text-gray-500 font-mono">F&amp;O STRATEGY DOCK</span>
                                 </div>
-                                <div className="grid grid-cols-2 lg:grid-cols-6 gap-2">
+                                <div className="grid grid-cols-2 lg:grid-cols-7 gap-2">
+                                    <button
+                                        onClick={() => { setActiveFilter('FNO_3DAY_IV'); fetchUpcoming3Day(false); }}
+                                        className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'FNO_3DAY_IV' ? 'bg-gradient-to-r from-cyan-600/25 via-blue-500/20 to-transparent border-cyan-400 text-white shadow-md shadow-cyan-500/15' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-cyan-500/40 hover:text-white'}`}>
+                                        <div className="flex items-center space-x-2.5 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold ${activeFilter === 'FNO_3DAY_IV' ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow' : 'bg-gray-800 text-cyan-400'}`}>
+                                                <i className="fa-solid fa-chart-line"></i>
+                                            </div>
+                                            <div className="truncate">
+                                                <div className="text-xs font-bold leading-tight">📊 3-Day IV</div>
+                                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">T-3 to T-0 Tracker</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-1 flex-shrink-0 ${activeFilter === 'FNO_3DAY_IV' ? 'bg-cyan-400 text-black' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'}`}>{upcoming3DayData ? upcoming3DayData.count : 0}</span>
+                                    </button>
                                     <button
                                         onClick={() => { setActiveFilter('FNO_TOMORROW'); fetchTomorrowFno(false); }}
                                         className={`p-3 rounded-xl text-left transition flex items-center justify-between border ${activeFilter === 'FNO_TOMORROW' ? 'bg-gradient-to-r from-indigo-600/25 via-blue-500/20 to-transparent border-indigo-400 text-white shadow-md shadow-indigo-500/15' : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:border-indigo-500/40 hover:text-white'}`}>
@@ -3250,7 +3414,16 @@
                     </section>
 
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1 w-full">
-                        {activeFilter === 'SHOCKWAVES' ? (
+                        {activeFilter === 'FNO_3DAY_IV' ? (
+                            <Upcoming3DayIvView
+                                data={upcoming3DayData}
+                                loading={loading3Day}
+                                onRefresh={() => fetchUpcoming3Day(true)}
+                                onBroadcast={handleBroadcast3Day}
+                                broadcasting={broadcasting3Day}
+                                search={searchTerm}
+                            />
+                        ) : activeFilter === 'SHOCKWAVES' ? (
                             <ShockwaveRadarView
                                 data={shockwavesData}
                                 loading={loadingShockwaves}

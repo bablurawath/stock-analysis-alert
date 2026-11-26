@@ -2789,3 +2789,215 @@ def broadcast_tomorrow_fno_results(force: bool = False) -> Dict[str, Any]:
         return {"status": "SUCCESS", "count": len(results), "target_date": next_date}
 
     return {"status": "FAILED", "message": "Telegram send failed"}
+
+
+# ==============================================================================
+# 3-DAY UPCOMING F&O IV & PRE-RUN TRACKER (T-3, T-2, T-1 DAILY IV LOG)
+# ==============================================================================
+UPCOMING_3DAY_BROADCAST_FILE = BASE_DIR / "fno_3day_iv_broadcasts.json"
+IV_HISTORY_LOG_FILE = BASE_DIR / "iv_history_log.json"
+_UPCOMING_3DAY_CACHE: Dict[str, Any] = {}
+_UPCOMING_3DAY_TS: float = 0.0
+
+
+def _parse_nse_bm_date(raw_dt: str) -> Optional[dt_cls]:
+    """Parses NSE board meeting date strings like '28-Nov-2026' or '28-11-2026'."""
+    for fmt in ("%d-%b-%Y", "%d-%m-%Y", "%d %b %Y", "%Y-%m-%d"):
+        try:
+            return dt_cls.strptime(raw_dt.strip(), fmt)
+        except Exception:
+            continue
+    return None
+
+
+def _update_iv_history_snapshot(sym: str, date_str: str, iv_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Stores one IV snapshot per day per symbol so traders can see the T-3 -> T-1 IV trend."""
+    log: Dict[str, List[Dict[str, Any]]] = {}
+    if IV_HISTORY_LOG_FILE.exists():
+        try:
+            with open(IV_HISTORY_LOG_FILE, "r", encoding="utf-8") as f:
+                log = json.load(f)
+        except Exception:
+            log = {}
+
+    entries = log.get(sym, [])
+    short_date = date_str[:5]  # DD-MM
+    new_entry = {
+        "date": date_str,
+        "short_date": short_date,
+        "iv_pct": iv_data.get("iv_pct", 30.0),
+        "hv30_pct": iv_data.get("hv30_pct", 25.0),
+        "ivp_pct": iv_data.get("ivp_pct", 50),
+        "ivbp_pct": iv_data.get("ivbp_pct", 2.5)
+    }
+
+    # Replace today's entry if already present, else append and keep last 7 days
+    updated = [e for e in entries if e.get("date") != date_str]
+    updated.append(new_entry)
+    log[sym] = updated[-7:]
+
+    try:
+        with open(IV_HISTORY_LOG_FILE, "w", encoding="utf-8") as f:
+            json.dump(log, f, indent=2)
+    except Exception:
+        pass
+
+    return log[sym]
+
+
+def fetch_upcoming_3day_fno_results(force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Fetches all NSE F&O stocks scheduled for Financial Results in the next 1 to 4 days
+    (covering T-3, T-2, T-1 trading days) and tracks their daily Est. IV%, HV30%, IVP%,
+    and IVBP% so traders can spot cheap volatility 2-3 days before result day.
+    """
+    global _UPCOMING_3DAY_CACHE, _UPCOMING_3DAY_TS
+    now = time.time()
+    if not force_refresh and _UPCOMING_3DAY_CACHE and (now - _UPCOMING_3DAY_TS < 900):
+        return _UPCOMING_3DAY_CACHE
+
+    ist = timezone(timedelta(hours=5, minutes=30))
+    now_ist = dt_cls.now(ist)
+    today_date = now_ist.date()
+    today_str = now_ist.strftime("%d-%m-%Y")
+    end_str = (now_ist + timedelta(days=4)).strftime("%d-%m-%Y")
+
+    session = requests.Session()
+    session.headers.update(NSE_HEADERS)
+    try:
+        session.get("https://www.nseindia.com", verify=False, timeout=10)
+    except Exception:
+        pass
+
+    candidates_map = {}
+    bm_url = f"https://www.nseindia.com/api/corporate-board-meetings?index=equities&from_date={today_str}&to_date={end_str}"
+    try:
+        r_bm = session.get(bm_url, verify=False, timeout=15)
+        if r_bm.status_code == 200:
+            for it in r_bm.json():
+                sym = (it.get("bm_symbol") or "").strip().upper()
+                purpose = (it.get("bm_purpose", "") + " " + it.get("bm_desc", "")).lower()
+                if sym in NSE_FNO_SYMBOLS and "result" in purpose and sym not in candidates_map:
+                    bm_raw = it.get("bm_date") or today_str
+                    parsed = _parse_nse_bm_date(bm_raw)
+                    days_left = (parsed.date() - today_date).days if parsed else 1
+                    if days_left < 0 or days_left > 4:
+                        continue
+                    candidates_map[sym] = {
+                        "symbol": sym,
+                        "company_name": it.get("sm_name") or sym,
+                        "subject": it.get("bm_purpose") or "Board Meeting for Financial Results",
+                        "bm_date": bm_raw,
+                        "days_left": days_left
+                    }
+    except Exception as e:
+        print(f"[3-Day IV Radar] Error fetching board meetings: {e}")
+
+    raw_candidates = list(candidates_map.values())
+    all_symbols = [c["symbol"] for c in raw_candidates]
+    tech_map = get_technicals_map(all_symbols)
+    vol_map = get_earnings_vol_map(all_symbols, session)
+
+    items = []
+    for c in raw_candidates:
+        sym = c["symbol"]
+        tech = tech_map.get(sym) or {}
+        vol = vol_map.get(sym) or {"avg_abs_move": 2.20, "avg_dir_move": 0.50, "quarter_moves": []}
+        price = tech.get("current_price", 0.0)
+        setup = get_fno_strike_setup(price, vol, sym, tech)
+        iv_data = setup.get("iv_analytics", {})
+
+        iv_trend = _update_iv_history_snapshot(sym, today_str, iv_data)
+        trend_str = " → ".join(f"{e['short_date']}: {e['iv_pct']}%" for e in iv_trend)
+
+        d_left = c["days_left"]
+        t_badge = "TODAY (T-0)" if d_left == 0 else f"T-{d_left} Day{'s' if d_left > 1 else ''}"
+
+        items.append({
+            "symbol": sym,
+            "company_name": c["company_name"],
+            "result_date": c["bm_date"],
+            "days_left": d_left,
+            "t_badge": t_badge,
+            "current_price": price,
+            "avg_4q_move": vol.get("avg_abs_move", 2.2),
+            "decision_tag": setup.get("decision_tag", "NEUTRAL"),
+            "decision_pill": setup.get("decision_pill", "🟡 NEUTRAL"),
+            "strikes_label": setup.get("strikes_label", "N/A"),
+            "typical_filing_time": setup.get("typical_filing_time", "Post-Market"),
+            "iv_pct": iv_data.get("iv_pct", 30.0),
+            "hv30_pct": iv_data.get("hv30_pct", 25.0),
+            "ivp_pct": iv_data.get("ivp_pct", 50),
+            "ivbp_pct": iv_data.get("ivbp_pct", 2.5),
+            "iv_status": iv_data.get("status", "MODERATE_IV"),
+            "iv_badge": iv_data.get("badge", ""),
+            "iv_color": iv_data.get("color", "amber"),
+            "iv_trend": iv_trend,
+            "iv_trend_str": trend_str,
+            "safe_edge_prem": (setup.get("live_broker_check") or {}).get("safe_edge_prem", 0),
+            "max_parity_prem": (setup.get("live_broker_check") or {}).get("max_parity_prem", 0)
+        })
+
+    items.sort(key=lambda x: (x["days_left"], x["ivp_pct"]))
+    payload = {
+        "scanned_at": now_ist.strftime("%d-%b-%Y %H:%M IST"),
+        "count": len(items),
+        "items": items
+    }
+    _UPCOMING_3DAY_CACHE = payload
+    _UPCOMING_3DAY_TS = now
+    return payload
+
+
+def broadcast_upcoming_3day_iv_radar(force: bool = False) -> Dict[str, Any]:
+    """
+    Sends the daily 9:30 AM IST 3-Day Upcoming F&O IV Tracker to Telegram
+    so traders can watch Est. IV%, HV30%, IVP%, and IVBP% from T-3 down to T-0.
+    """
+    today_str = get_ist_today_str()
+    sent_log: Dict[str, Any] = {}
+    if UPCOMING_3DAY_BROADCAST_FILE.exists():
+        try:
+            with open(UPCOMING_3DAY_BROADCAST_FILE, "r", encoding="utf-8") as f:
+                sent_log = json.load(f)
+        except Exception:
+            sent_log = {}
+
+    if not force and sent_log.get(today_str):
+        return {"status": "SKIPPED", "message": f"3-Day IV Radar already sent on {today_str}"}
+
+    data = fetch_upcoming_3day_fno_results(force_refresh=force)
+    items = data.get("items", [])
+    if not items:
+        return {"status": "NO_DATA", "message": "No F&O results scheduled in the next 3-4 days."}
+
+    lines = [
+        f"📊 *3-DAY UPCOMING F&O IV TRACKER ({today_str})*",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"🔔 *{len(items)} F&O Stock(s) Reporting Results in Next 1–3 Days*",
+        "_Track Est. IV% & IVP% daily before result day. Full setup & 15-sec broker check also sent on T-1 (2:30 PM) & Result Morning (8:00 AM)._\n"
+    ]
+
+    for it in items[:12]:
+        lines.append(
+            f"📌 *{it['symbol']}* — *{it['t_badge']}* ({it['result_date']})\n"
+            f"   ├ 💵 CMP: *₹{it['current_price']:,.1f}* | 4Q Avg Swing: *±{it['avg_4q_move']}%* | [{it['decision_pill']}]\n"
+            f"   ├ 📉 *IV Status*: {it['iv_badge']}\n"
+            f"   ├ 📊 *Metrics*: Est. IV *{it['iv_pct']}%* | HV30 *{it['hv30_pct']}%* | IVP *{it['ivp_pct']}%* | IVBP *±{it['ivbp_pct']}%*\n"
+            f"   ├ 📈 *IV Trend*: `{it['iv_trend_str']}`\n"
+            f"   └ ⚡ Setup: *{it['strikes_label']}* (Take ≤ ₹{it['safe_edge_prem']})\n"
+            f"─────────────────────────"
+        )
+
+    msg = "\n".join(lines)
+    sent = send_telegram_alert(msg)
+    if sent:
+        sent_log[today_str] = dt_cls.now().isoformat()
+        try:
+            with open(UPCOMING_3DAY_BROADCAST_FILE, "w", encoding="utf-8") as f:
+                json.dump(sent_log, f, indent=2)
+        except Exception:
+            pass
+        return {"status": "SUCCESS", "count": len(items)}
+
+    return {"status": "FAILED", "message": "Telegram send failed"}
