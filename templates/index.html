@@ -751,6 +751,39 @@
                                     </div>
                                 )}
 
+                                {/* DTE Strike Optimizer (25 to 1 Day Left to Expiry) */}
+                                {item.strike_setup.dte_optimizer && item.strike_setup.dte_optimizer.tier_comparison && (
+                                    <div className="bg-gray-950/80 border border-indigo-500/30 rounded-xl p-2.5 mb-2.5 text-xs">
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">
+                                                ⏱️ DTE Strike Optimizer ({item.strike_setup.dte_optimizer.dte_days}d Left)
+                                            </span>
+                                            <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-200 border border-indigo-500/40">
+                                                Best: {item.strike_setup.dte_optimizer.best_tier_name} ({item.strike_setup.dte_optimizer.best_dist_pct}% OTM)
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-1.5 text-center mb-1.5">
+                                            {item.strike_setup.dte_optimizer.tier_comparison.map(t => {
+                                                const isBest = t.name === item.strike_setup.dte_optimizer.best_tier_name;
+                                                return (
+                                                    <div key={t.short} className={`p-1.5 rounded-lg border ${isBest ? 'bg-emerald-500/15 border-emerald-500/50' : 'bg-gray-900/80 border-gray-800'}`}>
+                                                        <span className={`text-[9px] font-bold block ${isBest ? 'text-emerald-300' : 'text-gray-400'}`}>
+                                                            {isBest ? `★ ${t.short}` : t.short} ({t.dist_pct}%)
+                                                        </span>
+                                                        <strong className={`font-mono text-xs block ${t.avg_roi_pct > 0 ? (isBest ? 'text-emerald-300' : 'text-white') : 'text-rose-400'}`}>
+                                                            {t.avg_roi_pct > 0 ? `+${t.avg_roi_pct}%` : `${t.avg_roi_pct}%`}
+                                                        </strong>
+                                                        <span className="text-[8px] text-gray-500 font-mono block">{t.win_qtrs}/{t.total_qtrs} Qtrs</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 leading-snug">
+                                            {item.strike_setup.dte_optimizer.zone_tip}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {item.strike_setup.decision_tag !== 'SKIP' && item.strike_setup.strikes_label && (
                                     <>
                                         <div className="flex items-center justify-between text-xs mb-2">

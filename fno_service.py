@@ -395,6 +395,152 @@ def get_iv_analytics(symbol: str, cmp: float, chosen_be: float, avg_abs: float) 
     return result
 
 
+def _norm_cdf(x: float) -> float:
+    """Standard normal cumulative distribution function."""
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _bs_option_price(S: float, K: float, T_years: float, sigma: float, opt_type: str = "CE") -> float:
+    """Black-Scholes option pricing helper (r = 6.5% Indian risk-free rate)."""
+    if S <= 0 or K <= 0:
+        return 0.0
+    if T_years <= 0 or sigma <= 0:
+        return max(0.0, S - K) if opt_type == "CE" else max(0.0, K - S)
+    r = 0.065
+    sqrt_t = math.sqrt(T_years)
+    d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T_years) / (sigma * sqrt_t)
+    d2 = d1 - sigma * sqrt_t
+    if opt_type == "CE":
+        return max(0.05, S * _norm_cdf(d1) - K * math.exp(-r * T_years) * _norm_cdf(d2))
+    return max(0.05, K * math.exp(-r * T_years) * _norm_cdf(-d2) - S * _norm_cdf(-d1))
+
+
+def get_days_to_monthly_expiry() -> int:
+    """
+    Computes calendar days left to the current NSE monthly F&O expiry (last Tuesday of month).
+    Returns an integer between 1 and 31.
+    """
+    ist = timezone(timedelta(hours=5, minutes=30))
+    today = dt_cls.now(ist).date()
+
+    def last_tuesday(yr: int, mo: int):
+        # First day of next month minus 1 day
+        if mo == 12:
+            last_day = datetime.date(yr + 1, 1, 1) - timedelta(days=1)
+        else:
+            last_day = datetime.date(yr, mo + 1, 1) - timedelta(days=1)
+        while last_day.weekday() != 1:  # Tuesday = 1
+            last_day -= timedelta(days=1)
+        return last_day
+
+    exp = last_tuesday(today.year, today.month)
+    if today >= exp:
+        nxt_mo = 1 if today.month == 12 else today.month + 1
+        nxt_yr = today.year + 1 if today.month == 12 else today.year
+        exp = last_tuesday(nxt_yr, nxt_mo)
+    return max(1, (exp - today).days)
+
+
+def get_dte_optimal_strike(
+    cmp: float,
+    step: float,
+    vol: Dict[str, Any],
+    iv_data: Dict[str, Any],
+    dte_override: Optional[int] = None
+) -> Dict[str, Any]:
+    """
+    Backtests 3 strike tiers (ATM 0%, 1-Strike OTM, 2-Strike OTM) against the stock's
+    real 4-quarter historical spot moves at today's exact Days-to-Expiry (1 to 30 DTE)
+    using Black-Scholes pre-IV -> post-IV crush dynamics to identify which strike %
+    delivers the highest expected % return at the current point in the expiry cycle.
+    """
+    if not cmp or cmp <= 0:
+        return {}
+
+    dte = int(dte_override) if dte_override is not None else get_days_to_monthly_expiry()
+    atm = int(round(cmp / step) * step) if step >= 1 else round(cmp / step) * step
+    q_moves = vol.get("quarter_moves") or []
+    move_pcts = [float(q.get("pct", 0.0)) for q in q_moves if q.get("pct") is not None]
+    if not move_pcts:
+        avg_m = float(vol.get("avg_abs_move") or 3.0)
+        move_pcts = [avg_m, -avg_m]
+
+    pre_iv = max(0.18, float(iv_data.get("iv_pct") or 35.0) / 100.0)
+    hv30 = max(0.15, float(iv_data.get("hv30_pct") or 26.0) / 100.0)
+    post_iv = max(hv30, pre_iv * 0.68)
+
+    t_pre = max(dte, 1) / 365.0
+    t_post = max(dte - 1, 0.5) / 365.0
+
+    candidates = [
+        {"name": "ATM (0% OTM)", "short": "ATM", "steps": 0, "ce_k": atm, "pe_k": atm},
+        {"name": "1-Strike OTM", "short": "1-OTM", "steps": 1, "ce_k": atm + step, "pe_k": atm - step},
+        {"name": "2-Strike OTM", "short": "2-OTM", "steps": 2, "ce_k": atm + 2 * step, "pe_k": atm - 2 * step},
+    ]
+
+    tier_results = []
+    for c in candidates:
+        ce_k = int(c["ce_k"]) if step >= 1 else round(c["ce_k"], 2)
+        pe_k = int(c["pe_k"]) if step >= 1 else round(c["pe_k"], 2)
+        if pe_k <= 0:
+            continue
+        dist_pct = round((c["steps"] * step / cmp) * 100, 1)
+
+        entry_ce = _bs_option_price(cmp, ce_k, t_pre, pre_iv, "CE")
+        entry_pe = _bs_option_price(cmp, pe_k, t_pre, pre_iv, "PE")
+        entry_total = entry_ce + entry_pe
+        if entry_total <= 0:
+            continue
+
+        rois = []
+        for m_pct in move_pcts:
+            spot_after = cmp * (1.0 + m_pct / 100.0)
+            exit_ce = _bs_option_price(spot_after, ce_k, t_post, post_iv, "CE")
+            exit_pe = _bs_option_price(spot_after, pe_k, t_post, post_iv, "PE")
+            roi = ((exit_ce + exit_pe - entry_total) / entry_total) * 100.0
+            rois.append(round(roi, 1))
+
+        avg_roi = round(sum(rois) / len(rois), 1)
+        wins = sum(1 for r in rois if r > 0)
+        tier_results.append({
+            "name": c["name"],
+            "short": c["short"],
+            "dist_pct": dist_pct,
+            "strikes_label": f"{ce_k} CE + {pe_k} PE",
+            "avg_roi_pct": avg_roi,
+            "win_qtrs": wins,
+            "total_qtrs": len(rois)
+        })
+
+    if not tier_results:
+        return {}
+
+    # Prefer tier with highest average simulated ROI (and positive win count if available)
+    positive_tiers = [t for t in tier_results if t["avg_roi_pct"] > 0]
+    best = max(positive_tiers, key=lambda t: t["avg_roi_pct"]) if positive_tiers else tier_results[0]
+
+    if dte >= 20:
+        dte_zone = f"EARLY MONTH ({dte} DTE — High Time Value)"
+        zone_tip = "20+ days left: ATM / tight OTM captures delta cleanly; far OTM lags due to slow gamma."
+    elif dte >= 10:
+        dte_zone = f"MID MONTH ({dte} DTE — Balanced Gamma)"
+        zone_tip = "10–19 days left: 1-Strike OTM balances lower cost with strong gamma acceleration."
+    else:
+        dte_zone = f"EXPIRY GAMMA ZONE ({dte} DTE — Explosive)"
+        zone_tip = "Under 10 days left: OTM options are cheap & gamma explodes on 5%+ moves!"
+
+    return {
+        "dte_days": dte,
+        "dte_zone": dte_zone,
+        "zone_tip": zone_tip,
+        "best_tier_name": best["name"],
+        "best_dist_pct": best["dist_pct"],
+        "best_strikes_label": best["strikes_label"],
+        "best_avg_roi_pct": best["avg_roi_pct"],
+        "tier_comparison": tier_results
+    }
+
+
 def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Evaluates 70-80% Win-Rate Strangle/Straddle Setup for Earnings Day:
@@ -537,6 +683,8 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
     pcr_analytics = get_institutional_pcr_analytics(cmp, vol, symbol, tech)
     # IV, HV30, IV Percentile (IVP%), and IV-Based Breakeven Point (IVBP%)
     iv_analytics = get_iv_analytics(symbol, cmp, chosen_be, avg_abs)
+    # DTE Strike Optimizer (Evaluates ATM vs 1-OTM vs 2-OTM across 4Q real moves at current DTE)
+    dte_optimizer = get_dte_optimal_strike(cmp, step, vol, iv_analytics)
 
     # 15-Second Live Broker Breakeven Check thresholds
     max_parity_prem = round(cmp * (avg_abs / 100.0), 1)
@@ -591,6 +739,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'dte_optimizer': dte_optimizer,
             'live_broker_check': live_broker_check,
             'reason': f'Stock historically swings ±{avg_abs}%, beating the required ±{strangle_be}% breakeven in {strangle_wins}/4 quarters ({strangle_edge}x edge).'
         }
@@ -634,6 +783,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'dte_optimizer': dte_optimizer,
             'live_broker_check': live_broker_check,
             'reason': f'ATM straddle needs ±{straddle_be}% move, achieved in {straddle_wins}/4 quarters (Avg swing: ±{avg_abs}%, {straddle_edge}x edge).'
         }
@@ -677,6 +827,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'dte_optimizer': dte_optimizer,
             'live_broker_check': live_broker_check,
             'reason': f'Moderate volatility. Breakeven needs ±{strangle_be}% vs average realized swing of ±{avg_abs}% ({strangle_edge}x edge).'
         }
@@ -725,6 +876,7 @@ def get_fno_strike_setup(cmp: float, vol: Dict[str, Any], symbol: str = "", tech
             'mispricing_meter': mispricing_meter,
             'institutional_pcr': pcr_analytics,
             'iv_analytics': iv_analytics,
+            'dte_optimizer': dte_optimizer,
             'live_broker_check': live_broker_check,
             'reason': f'Historical swing (±{avg_abs}%) is too low for naked buys. Naked Strangle is an IV crush trap; trade vertical debit spread instead.'
         }
@@ -836,6 +988,11 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
         lbc = setup.get("live_broker_check", {})
         lbc_safe = lbc.get("safe_edge_prem", 0)
         lbc_max = lbc.get("max_parity_prem", 0)
+        dte_opt = setup.get("dte_optimizer", {})
+        dte_line = (
+            f"   ├ ⏱️ *DTE Strike Optimizer ({dte_opt.get('dte_days', '')}d left)*: Best *{dte_opt.get('best_tier_name', '1-OTM')}* (~{dte_opt.get('best_dist_pct', 0)}% OTM → *{dte_opt.get('best_strikes_label', s_label)}*, Est. Avg ROI *{dte_opt.get('best_avg_roi_pct', 0):+}%*)\n"
+            if dte_opt else ""
+        )
 
         if dec_tag == "SKIP":
             card_text = (
@@ -862,6 +1019,7 @@ def broadcast_today_fno_results(force: bool = False) -> Dict[str, Any]:
                 f"💵 CMP: *₹{r['current_price']:,.1f}* | Delivery: *{r['delivery_pct']}%* | Pivots: *₹{r['support_1']:,.0f} - ₹{r['resistance_1']:,.0f}*\n"
                 f"🚦 *Trade Signal*: [{dec_badge}]{serial_str}\n"
                 f"   ├ ⚡ Setup: *{s_label}* ({strat})\n"
+                f"{dte_line}"
                 f"   ├ 🧮 *15-Sec Broker Check*: TAKE if live CE+PE ≤ *₹{lbc_safe}* | SKIP if > *₹{lbc_max}* (±{avg_move}% limit)\n"
                 f"   ├ ⚖️ *Balance Rule*: Keep CE Ask ≈ PE Ask (shift costlier leg 1 strike ±₹{lbc.get('strike_step', '')} OTM if >1.4x)\n"
                 f"   ├ 📉 *IV & IVBP*: *IV {iv_pct_val}%* (HV30 {hv30_val}%) | *IVP {ivp_val}%* | *IVBP ±{ivbp_val}%*\n"

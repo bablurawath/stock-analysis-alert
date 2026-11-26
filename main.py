@@ -201,8 +201,11 @@ def process_cycle(seen_ids: set):
 
                     if dec_tag != "SKIP" and setup.get("strikes_label"):
                         lbc = setup.get("live_broker_check", {})
+                        dte_opt = setup.get("dte_optimizer", {})
+                        dte_txt = f"• ⏱️ *DTE Optimizer ({dte_opt.get('dte_days', '')}d left)*: Best *{dte_opt.get('best_tier_name', '')}* (~{dte_opt.get('best_dist_pct', 0)}% OTM → *{dte_opt.get('best_strikes_label', '')}*, Avg ROI *{dte_opt.get('best_avg_roi_pct', 0):+}%*)" if dte_opt else ""
                         message_lines.extend([
                             f"• Setup: *{setup.get('strikes_label')}* ({setup.get('strategy')})",
+                            *([dte_txt] if dte_txt else []),
                             f"• 🧮 *15-Sec Broker Check*: TAKE if live CE+PE ≤ *₹{lbc.get('safe_edge_prem', 0)}* | SKIP if > *₹{lbc.get('max_parity_prem', 0)}*",
                             f"• ⚖️ *Balance Rule*: Keep CE Ask ≈ PE Ask (shift costlier leg 1 strike ±₹{lbc.get('strike_step', '')} OTM if >1.4x)",
                             f"• ⏰ Filing Habit (5Q Verified): *{setup.get('typical_filing_time')}* ({setup.get('timing_consistency_label')})",
