@@ -146,8 +146,8 @@ def process_cycle(seen_ids: set):
             "whale_note": whale_note
         })
 
-        # Send Telegram alert if matched to watchlist OR if an F&O stock result/action
-        if is_matched or is_fno_result:
+        # Strictly send Telegram notifications ONLY for F&O company stock results
+        if is_fno_result:
             print(f"📤 Broadcasting alert for {symbol} to Telegram channel...")
             message_lines = [
                 f"⚡ *{APP_TITLE}: {symbol}*",
