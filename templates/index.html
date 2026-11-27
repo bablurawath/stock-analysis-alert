@@ -2634,6 +2634,20 @@
             const [upcoming3DayData, setUpcoming3DayData] = useState(null);
             const [loading3Day, setLoading3Day] = useState(false);
             const [broadcasting3Day, setBroadcasting3Day] = useState(false);
+            const [broadcastingBoth, setBroadcastingBoth] = useState(false);
+
+            const handleBroadcastTodayAndTomorrow = async () => {
+                setBroadcastingBoth(true);
+                try {
+                    const res = await fetch('/api/broadcast/fno-today-and-tomorrow', { method: 'POST' });
+                    const json = await res.json();
+                    alert(`Telegram Broadcast Complete:\n${json.message}`);
+                } catch (e) {
+                    alert('Broadcast error: ' + e);
+                } finally {
+                    setBroadcastingBoth(false);
+                }
+            };
 
             const fetchUpcoming3Day = async (refresh = false) => {
                 setLoading3Day(true);
@@ -3019,6 +3033,14 @@
                                     className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold border border-gray-700/80 transition flex items-center space-x-1"
                                     title="Refresh Feed">
                                     <i className={`fa-solid fa-arrows-rotate ${loading ? 'fa-spin' : ''}`}></i>
+                                </button>
+                                <button
+                                    onClick={handleBroadcastTodayAndTomorrow}
+                                    disabled={broadcastingBoth}
+                                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold border border-indigo-400/40 shadow-md transition flex items-center space-x-1.5 whitespace-nowrap"
+                                    title="Send Today & Tomorrow F&O Results to Telegram">
+                                    <i className={`fa-brands fa-telegram ${broadcastingBoth ? 'fa-circle-notch fa-spin' : ''}`}></i>
+                                    <span>{broadcastingBoth ? 'Sending...' : 'Today & Tomorrow TG'}</span>
                                 </button>
                             </div>
                         </div>

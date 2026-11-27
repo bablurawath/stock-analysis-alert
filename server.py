@@ -163,6 +163,17 @@ def api_broadcast_fno_tomorrow(force: bool = False):
     res = broadcast_tomorrow_fno_results(force=force)
     return JSONResponse(content=res)
 
+@app.post("/api/broadcast/fno-today-and-tomorrow")
+@app.get("/api/broadcast/fno-today-and-tomorrow")
+def api_broadcast_fno_today_and_tomorrow():
+    today_res = broadcast_today_fno_results(force=True)
+    tomorrow_res = broadcast_tomorrow_fno_results(force=True)
+    return JSONResponse(content={
+        "today": today_res,
+        "tomorrow": tomorrow_res,
+        "message": f"Today: {today_res.get('status')} ({today_res.get('message', '')}) | Tomorrow: {tomorrow_res.get('status')} ({tomorrow_res.get('message', str(tomorrow_res.get('count', 0)) + ' stocks')})"
+    })
+
 @app.get("/api/fno-results/upcoming-3day")
 def api_fno_results_upcoming_3day(refresh: bool = False):
     data = fetch_upcoming_3day_fno_results(force_refresh=refresh)
